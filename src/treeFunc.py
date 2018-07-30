@@ -157,7 +157,7 @@ def treeFiltred(tree, spTree, cor):
 	for i in lCor:
 		temp = i.split("\t")
 		dCor[i[0]] = i[1].strip("\n")
-		dCorInv[i[1].strip("\n")] = i[]
+		dCorInv[i[1].strip("\n")] = i[0]
 
 	g1Genes = []
 	for z in g1:
@@ -411,7 +411,7 @@ def treeTreatment(data, dicoAT, logger):
 			tree = runPhyML(i, directory)
 			data.lTreeAln.append(tree)
 			dicoAT[i] = tree+"_phyml_tree.txt"
-s
+
 		return dicoAT
 
 	except Exception:
