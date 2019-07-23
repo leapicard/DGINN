@@ -1,5 +1,19 @@
 import pandas, os, requests, argparse
 
+def dict2fasta(dico):
+	"""
+	Function converting a dictionary associating gene names to their sequences into a writable Fasta format.
+
+	@param dico: Dictionary associating gene names (keys) to their CCDS fasta sequence (values)
+	@return txtoutput: Fasta formatted string of the dictionary
+	"""
+
+	txtoutput = ""
+	for key, value in dico.items():
+		txtoutput += ">{:s}\n{:s}\n".format(str(key),str(value))
+
+	return(txtoutput)
+
 def check(arg):	
 	"""
 	Function checking whether a path to a file exists.
@@ -28,6 +42,7 @@ def getCCDS(genesFile, species, spName):
 	dId2Seq = {} # key = seqID (format speSpe|gene|CCDS012345) value = fasta sequence
 
 	server = "http://rest.ensembl.org"
+	species = species.lower().replace(" ", "_")
 	
 	df = pandas.read_csv(genesFile, sep='\t') # import gene list as pandas dataframe
 	df = df.drop_duplicates(subset='Approved symbol', keep='first') # keep only first instance of each gene
@@ -36,28 +51,35 @@ def getCCDS(genesFile, species, spName):
 		geneName = str(row['Approved symbol'])
 		geneCCDS = str(row['CCDS accession'])
 		seqID = "{:s}|{:s}|{:s}".format(spName, geneName, geneCCDS)
+		#print(seqID)
 		
 		# download fasta sequence from ENSEMBL server
 		add = 1
-		while add < 3:
-			ext = "/sequence/id/{:s}.{:d}?object_type=transcript;species={:s}".format(geneCCDS, add, species)	#db_type=otherfeatures;type=cds
+		while add <= 3:
+			ext = "/sequence/id/{:s}.{:d}?object_type=transcript;type=cds;species={:s}".format(geneCCDS, add, species)	#db_type=otherfeatures;type=cds
 			link = server+ext
-		
+			
 			r = requests.get(link, headers={"Content-Type" : "text/x-fasta"})
 			text = "".join(r.text.split("\n")[1:])
 
 			if not r.ok or text == "":
 				add += 1
 			else:
-				add = 4
+				add = 10
 
-		if add != 3:
+		if add == 10:
+			#print(geneName)
 			seqID = seqID.replace(".", "dot")
 			dId2Seq[seqID] = text
-
+			#print(geneName)
+			#print(len(text))
+		else:
+			print("Couldn't download sequence for {:s}".format(geneName))
+	
 	for key, value in dId2Seq.items():
 		out = ".".join(genesFile.split(".")[:-1])+"_"+key.split("|")[1]+"_CCDS.fasta"
-		fasta = open(out, "w")
+		with open(out, "w") as fasta:
+			if key != "" or value != "":
+				fasta.write(">"+key+"\n"+value)
 		
-		fasta.write( ">"+key+"\n"+value)
-		fasta.close()
+	print("Wrote CCDS sequences to their respective files for {:d} genes.".format(len(dId2Seq.keys())))

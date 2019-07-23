@@ -1,12 +1,13 @@
 import G2P_Object, AnalysisFunc
-import logging, os, shlex
+import logging, os, shlex, sys
 from collections import defaultdict, OrderedDict
 from Bio.Blast import NCBIWWW, NCBIXML
 from Bio import SearchIO
+from time import sleep
 
 """This file pools the necessary functions to run Blast and parse its results."""
 
-def blast(CCDSFile, db, evalue, percId, cov, apiKey, remote, query, logger):
+def blast(CCDSFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, query, logger):
 	"""
 	Function running Blast on the provided gene list.
 	
@@ -21,17 +22,23 @@ def blast(CCDSFile, db, evalue, percId, cov, apiKey, remote, query, logger):
 	@param9 logger: Logging object
 	@return blastRes: Path to Blast results file
 	"""
-
 	# Blast results file
-	blastRes = CCDSFile.split(".")[0]+"_blastres.tsv"
+	blastRes = outDir+baseName+"_blastres.tsv"
+	logger.info("Running Blast")
 
-	logger.info("Blasting sequence...")
-
-	if remote == "True":
+	if remote:
+		sequences = open(CCDSFile).read()
+		url = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi?api_key={:s}'.format(apiKey)
 		
-		sequences = open(CCDSFile).read()	
-		resultHandle = NCBIWWW.qblast("blastn", db, sequences, entrez_query= query, url_base='https://blast.ncbi.nlm.nih.gov/Blast.cgi?api_key={:s}'.format(apiKey),hitlist_size=10000, perc_ident= percId, threshold = evalue)
-		
+		blasted = False
+		while not blasted:
+			try:
+				sleep(2)
+				resultHandle = NCBIWWW.qblast("blastn", db, sequences, entrez_query = query, url_base = url, hitlist_size=1000, perc_ident = percId, threshold = evalue)
+				blasted = True
+			except ValueError:
+				blasted = False
+			
 		f = open(blastRes, "w")
 		for record in NCBIXML.parse(resultHandle):
 			f.write("# "+record.application+" "+record.version+"\n# Query: "+record.query+"\n# Database: "+record.database+"\n# Fields: subject id, ?\n# "+str(len(record.alignments))+" hits found\n")
@@ -41,15 +48,15 @@ def blast(CCDSFile, db, evalue, percId, cov, apiKey, remote, query, logger):
 		f.close()
 
 	else:
-		AnalysisFunc.cmd("blastn -task blastn -db {:s} -query {:s} -out {:s} -evalue {:f} -perc_identity {:f} -qcov_hsp_perc {:f} -outfmt \"7 sseqid\" -max_target_seqs 10000 -num_threads {:d}".format(db, CCDSFile, blastRes, evalue, percId, cov, 1), False)
-		logger.debug("Blast command: {:s}".format(cmd))
+		cmdBlast = "blastn -task blastn -db {:s} -query {:s} -out {:s} -evalue {:f} -perc_identity {:d} -qcov_hsp_perc {:d} -outfmt \"7 sseqid\" -max_target_seqs 1000".format(db, CCDSFile, blastRes, evalue, percId, cov)
+		AnalysisFunc.cmd(cmdBlast, False)
+		logger.debug("Blast command: {:s}".format(cmdBlast))
 
-
-	if os.path.exists(blastRes) or os.stat(blastRes).st_size > 0:								
+	if os.path.exists(blastRes) and os.stat(blastRes).st_size > 0:								
 		logger.info("Blast results written to: {:s}".format(blastRes))
 	else:
-		logger.error("Blast didn't run, stopping script.")
-		exit()
+		logger.error("Blast didn't run, exiting pipeline")
+		sys.exit()
 
 	return(blastRes)
 
@@ -62,24 +69,20 @@ def parseBlast(blastRes, logger):
 	@return lGeneRes: list of all the accessions of homologous genes found through Blast
 	"""
 
-	# split blast results by gene using first line of comments as a separator
 	with open(blastRes, "r") as blast:
-		separator = blast.readline().strip()
-		listBlastRes = blast.read()
-		logger.debug(listBlastRes)
+		listBlastRes = blast.readlines()
+		#logger.debug(listBlastRes)
 		
-		lGeneRes = defaultdict(list)
-		listGeneRes = list(filter(bool, listBlastRes.split("\n")))
-		geneName = listGeneRes[0].split("|")[1]
-		if listGeneRes[-1][0] == "#":
-			listGeneRes = listGeneRes[:-1]
-
-		lGeneRes = [ i.split("\t")[0].split("|")[-2]for i in listGeneRes[5:] ]
-
-	logger.debug(lGeneRes)
-	logger.info("Separated blast results per gene")
-
-	return(lGeneRes)
+		listAcc = []
+		geneName = listBlastRes[1].split("|")[1]
+		
+		for hit in listBlastRes:
+			if not hit.startswith("#"):
+				listAcc.append(hit.split("|")[-2])
+		
+	logger.debug(listAcc)
+	logger.info("Extracted gene accession numbers from blast results")
+	return(listAcc)
 
 def treatBlast(data, evalue, percId, cov, apiKey, remote, query):
 	"""
@@ -92,10 +95,10 @@ def treatBlast(data, evalue, percId, cov, apiKey, remote, query):
 	@param5 apiKey: Key for the API of NCBI
 	@param6 remote: Boolean (online database or not)
 	@param7 query: Strings which will select the database online
-	@return data: Liste of gene objects
+	@return data: List of gene objects
 	"""
 
-	data.blastRes = blast(data.CCDSFile, data.db, evalue, percId, cov, apiKey, remote, query, data.logger)
+	data.blastRes = blast(data.CCDSFile, data.o, data.baseName, data.db, evalue, percId, cov, apiKey, remote, query, data.logger)
 	data.lBlastRes = parseBlast(data.blastRes, data.logger)
 
 	return data

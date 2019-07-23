@@ -1,11 +1,10 @@
 import G2P_Object, AnalysisFunc, LoadFileFunc
-import logging, subprocess, shlex
-from Bio import SeqIO
-from multiprocessing import Pool
+import logging, subprocess, shlex, sys, requests, json
+from Bio import SeqIO, Entrez
 from collections import defaultdict, OrderedDict
 from statistics import median
-import requests
 from ete3 import NCBITaxa
+from time import sleep
 
 """
 This file pools functions related to the creation and conversion of fasta format data.
@@ -25,7 +24,7 @@ def dict2fasta(dico):
 
 	return(txtoutput)
 
-def blastExtract(accnFile, db, lBlastRes, geneName, geneDir, apiKey, remote):
+def blastExtract(accnFile, db, lBlastRes, geneName, outDir, apiKey, remote):
 	"""
 	Function downloading sequences for a list of genes using their accessions.
 
@@ -33,7 +32,7 @@ def blastExtract(accnFile, db, lBlastRes, geneName, geneDir, apiKey, remote):
 	@param2 db: Database name
 	@param3 lBlastRes: List of accessions
 	@param4 geneName: Gene name
-	@param5 geneDir: Path directory 
+	@param5 outDir: Path directory 
 	@param6 apiKey: Key for the API of NCBI
 	@param7 remote: Boolean (online database or not)
 	@return out: Path to the file containing the extracted sequences
@@ -41,11 +40,11 @@ def blastExtract(accnFile, db, lBlastRes, geneName, geneDir, apiKey, remote):
 
 	## extract fasta from blast database
 
-	out = geneDir+accnFile.replace("_accns.txt", "_primatesnoquery.fasta").split("/")[-1]
+	out = outDir+accnFile.replace("_accns.txt", "_primatesnoquery.fasta").split("/")[-1]
 	logger = logging.getLogger("main")
 
 	#If remote is set to False, we use the database in local
-	if remote == "False":
+	if not remote:
 		AnalysisFunc.cmd("blastdbcmd -db {:s} -dbtype nucl -entry_batch {:s} -out {:s} -outfmt %f".format(db, accnFile, out), False)
 	#If remote is set to True and the lengh of lBlastRes isn't big, generate one link
 	elif len(lBlastRes) < 20:
@@ -90,8 +89,7 @@ def blastExtract(accnFile, db, lBlastRes, geneName, geneDir, apiKey, remote):
 		with open(out, "w") as fasta:
 			fasta.write("\n".join(lRes))
 		
-	#logger.debug(cmd)
-	logger.info("{:s}: extracted fasta sequences from blast results.".format(geneName.split("|")[1]))
+	logger.info("Extracted fasta sequences from blast results: {:s}".format(out))
 	
 	return(out)
 
@@ -112,62 +110,92 @@ def catFile(lBlastRes, geneName, sequence, hitsFasta, sptree, o, apiKey, treerec
 	@return2 corSG: Path
 	"""
 	dSpecies = {}
+	
+	"""
+	Entrez.api_key = apiKey
+	Entrez.email = ""
+	"""
 	for i in lBlastRes:
-
+		
 		if apiKey != "":
 			link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&api_key={:s}&retmode=text".format(i, apiKey)
 		else:
 			link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&retmode=text".format(i)
-		r = requests.get(link, headers={"Content-Type" : "text"})
-		texTemp = r.text.split("\n")
+	
+		r = requests.get(link)
+		while r.status_code != 200:
+			sleep(2)
+			r = requests.get(link)
+		
+		handle = r.text
+		"""	
+		handle = Entrez.efetch(db = "nucleotide", id = i, retmode = "text")
+		handle = handle.read()
+		"""
+		tax = handle.split('taxname')[1].split('"')[1].split(" ")
+		tax = tax[0][:3].lower()+"".join([ i[:3].title() for i in tax[1:]])
+		
 
-		line = 0
-		while "taxname" not in texTemp[line]:
-			line += 1
-		dSpecies[i] = texTemp[line].split('"')[1]
-
+		try:
+			name = handle.split('locus')[1].split('"')[1].upper().replace('/', "_").replace(" ", "").replace("-", "")
+			#print(name)
+			if "{" in name:
+				name = "pot"+geneName.split("|")[1]
+			if " " in name:
+				name = "pot"+geneName.split("|")[1]
+			if "\n" in name:
+				name = "pot"+geneName.split("|")[1]
+		except:
+			name = "pot"+geneName.split("|")[1]
+			
+		dSpecies[i] = tax+"_"+name
+	
 	dNewId2Seq = OrderedDict()
 	dNewId2Len = {}
 
-	lName = geneName.split("|")
-	newID = lName[0]+lName[2]
+	newID = geneName.replace("|", "_")
 	dNewId2Seq[newID] = sequence
 	for accn in SeqIO.parse(open(hitsFasta),'fasta'):
 		if accn.id in dSpecies:
 			accnNb, accnSeq = accn.id, str(accn.seq)
-			spInter = dSpecies[accn.id].split(" ")
-			accnSp = spInter[0][:3].lower()+"".join([ i[:3].title() for i in spInter[1:]])
+			accnSp = dSpecies[accn.id]
+			"""spInter = dSpecies[accn.id].split(" ")
+			accnSp = spInter[0][:3].lower()+"".join([ i[:3].title() for i in spInter[1:]])"""
 
 			if "." in accnNb:
 				accnNb = accnNb.replace(".", "dot")
 
-			accnNewID = accnSp+accnNb
+			accnNewID = accnSp+"_"+accnNb
 			dNewId2Seq[accnNewID] = accnSeq
 			dNewId2Len[accnNewID] = len(accnSeq)
 
-	logger.debug(dNewId2Seq)
-	logger.debug(dNewId2Len)		
+	#logger.debug(dNewId2Seq)
+	#logger.debug(dNewId2Len)		
 
 	m = median(dNewId2Len.values())
 	for k, v in dNewId2Len.items():
-		if v > 10000 and v > 5*m:
-			try:
-				del dNewId2Seq[k]
-				logger.debug("{:s}: deleted sequence {:s} (length {:d})".format(geneName, k, v))
-			except KeyError:
-				pass
+		if m > 10000:
+			if v > 2*m:
+				try:
+					del dNewId2Seq[k]
+					logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
+				except KeyError:
+					pass
+		else:
+			if v > 3*m or v > 10000:
+				try:
+					del dNewId2Seq[k]
+					logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
+				except KeyError:
+					pass
 	
 	outCat = hitsFasta.replace("noquery", "")
 	with open(outCat, "w") as out:
 		out.write(dict2fasta(dNewId2Seq))
 	
-	logger.info("{:s}: added human sequence to file and deleted sequences with excessive length.".format(geneName))
+	logger.info("Added original query sequence to file and deleted sequences with excessive length: {:s}".format(outCat))
 	
-	corSG=""
-	if treerecs == "True":
-		outCat, corSG = LoadFileFunc.filtreData(sptree, outCat, o)
-
-	return(outCat, corSG)
+	return(outCat)
 
 
 def fastaCreation(data, logger, remote, apiKey, treerecs):
@@ -180,11 +208,11 @@ def fastaCreation(data, logger, remote, apiKey, treerecs):
 	@param4 apiKey: Key for the API of NCBI
 	@param5 treerecs: Booleans
 	"""
-	listExtract = blastExtract(data.accnFile, data.db, data.lBlastRes, data.geneName, data.geneDir, apiKey, remote)
+	listExtract = blastExtract(data.accnFile, data.db, data.lBlastRes, data.geneName, data.o, apiKey, remote)
 	setattr(data, "hitsFasta", listExtract)
-	logger.info("Extracted blast hits from blast database")
 
-	listCat, corSG = catFile(data.lBlastRes, data.geneName, data.sequence, data.hitsFasta, data.sptree, data.o, apiKey, treerecs, logger)
-	setattr(data, "catFile", listCat)
-	setattr(data, "cor", corSG)
-	logger.info("Added human sequence to fasta file")
+	listCat = catFile(data.lBlastRes, data.geneName, data.sequence, data.hitsFasta, data.sptree, data.o, apiKey, treerecs, logger)
+	if treerecs:
+		outCat, corSG = LoadFileFunc.filterData(data.sptree, listCat, data.o)
+		setattr(data, "catFile", outCat)
+		setattr(data, "cor", corSG)

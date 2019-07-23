@@ -2,23 +2,26 @@ from scipy import stats
 from collections import OrderedDict
 import re, os, logging
 
-def getParams(models, bppml, mixed, opbFile, gnhFile, Busted, Meme, opb, gnh):
+def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 	# Check analyses to be run and where the parameters file are
 
 	dCtrls = {}
 	lModels = []
 	if models != "":
-		dCtrls["bppml"] = bppml
+		if bppml not in ["", "False", False] and mixed not in ["", "False", False]:
+			dCtrls["bppml"] = bppml
+			dCtrls["bppmixedlikelihood"] = mixed
+		if paml not in ["", "False", False]:
+			dCtrls["paml"] = paml
 		lModels = re.compile("\s*,\s*").split(models)
-		dCtrls["bppmixedlikelihood"] = mixed
-	if opbFile != "" and opb == "True":
-		dCtrls["OPB"] = opbFile
-	if gnh != "" and gnh == "True":
-		dCtrls["GNH"] = gnhFile
-	if Busted == "True":
-		dCtrls["BUSTED"] = "/usr/local/lib/hyphy/TemplateBatchFiles/SelectionAnalyses/BUSTED.bf"
-	if Meme == "True":
-		dCtrls["MEME"] = "/usr/local/lib/hyphy/TemplateBatchFiles/SelectionAnalyses/MEME.bf"
+	if opb != "" and opb != False:
+		dCtrls["OPB"] = opb
+	if gnh != "" and gnh != False:
+		dCtrls["GNH"] = gnh
+	if Busted:
+		dCtrls["BUSTED"] = ""
+	if Meme:
+		dCtrls["MEME"] = ""
 
 	return dCtrls, lModels
 
@@ -31,13 +34,12 @@ def supBoot(outDir, baseName, treeFile, logger):
 	logger.debug(leanTree(treeFile))
 	return cladoFile
 
-def nbNode(treeFile, outDir, logger):
+def nbNode(treeFile, logger):
 	# count number of nodes in tree file
 	with open(treeFile, "r") as tree:
 		data = tree.read()
 		nodes = str(data.count("(")+data.count(")"))
-		logger.info("There are %s nodes in the provided tree." %nodes)
-	logger.info("Output folder: %s" %outDir)
+		logger.info("There are {:s} nodes in the provided tree.".format(nodes))
 
 	return nodes
 
@@ -82,15 +84,16 @@ def leanTree(tree):
 		return(tf)
 	
 def pspFileCreation(path, option):
-	if option == "bppml":
-		with open(path, "w") as bppml:
-			bppml.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nnonhomogeneous = general\nnonhomogeneous.number_of_models = 1\nnonhomogeneous.root_freq=F3X4(initFreqs=observed)\nmodel1 = $(MODEL)\nmodel1.nodes_id=0:$(NODES)\nlikelihood.recursion = simple\nlikelihood.recursion_simple.compression = recursive\noptimization = FullD(derivatives=Newton)\noptimization.ignore_parameters = $(IGNORE)\noptimization.max_number_f_eval = 100\noptimization.tolerance = 0.01\noutput.tree.file = $(OUTTREE)\noutput.tree.format = Newick\noutput.estimates = $(OUTPARAMS)\noptimization.backup.file = $(BACKUP)")
-	if option == "mixedlikelihood":
-		with open(path, "w") as mixed:
-			mixed.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nparams = $(PARAMS)\noutput.likelihoods.file = $(OUTINFO)")
-	if option == "opbFile":
-		with open(path, "w") as opbFile:
-			opbFile.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nnonhomogeneous = one_per_branch\nnonhomogeneous.root_freq=F3X4(initFreqs=observed)\nmodel = YNGP_M0(frequencies=F3X4(initFreqs=observed))\nnonhomogeneous_one_per_branch.shared_parameters = YN98.kappa, YN98.*theta*\nlikelihood.recursion = simple\nlikelihood.recursion_simple.compression = recursive\noptimization = FullD(derivatives=Newton)\noptimization.ignore_parameters = $(IGNORE)\noptimization.max_number_f_eval = 10\noptimization.tolerance = 0.01\noutput.tree.file = $(OUTTREE)\noutput.tree.format = Newick\noutput.estimates = $(OUTPARAMS)\noptimization.backup.file = $(BACKUP)")
-	if option == "gnhFile":
-		with open(path, "w") as gnhFile:
-			gnhFile.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nnonhomogeneous = general\nnonhomogeneous.number_of_models = 2\nnonhomogeneous.root_freq=F3X4(initFreqs=observed)\nmodel1 = YNGP_M1(frequencies=F3X4(initFreqs=observed))\nmodel1.nodes_id=$(NODE)\nmodel2 = YNGP_M2(frequencies=F3X4(initFreqs=observed),kappa=YNGP_M1.kappa_1,omega=YNGP_M1.omega_1)\nmodel2.nodes_id=$(NODE)\nlikelihood.recursion = simple\nlikelihood.recursion_simple.compression = recursive\noptimization = FullD(derivatives=Newton)\noptimization.ignore_parameters = BrLen,YNGP_M0*,*kappa*,*theta*,Ancient\noptimization.max_number_f_eval = 1000\noptimization.tolerance = 0.0001\noutput.tree.file = $(OUTTREE)\noutput.tree.format = Newick\noutput.estimates = $(OUTPARAMS)\noptimization.backup.file = $(BACKUP)")
+	if not os.path.exists(path):
+		if option == "bppml":
+			with open(path, "w") as bppml:
+				bppml.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nnonhomogeneous = general\nnonhomogeneous.number_of_models = 1\nnonhomogeneous.root_freq=F3X4(initFreqs=observed)\nmodel1 = $(MODEL)\nmodel1.nodes_id=0:$(NODES)\nlikelihood.recursion = simple\nlikelihood.recursion_simple.compression = recursive\noptimization = FullD(derivatives=Newton)\noptimization.ignore_parameters = $(IGNORE)\noptimization.max_number_f_eval = 10000\noptimization.tolerance = 0.00001\noutput.tree.file = $(OUTTREE)\noutput.tree.format = Newick\noutput.estimates = $(OUTPARAMS)\noptimization.backup.file = $(BACKUP)")
+		if option == "mixedlikelihood":
+			with open(path, "w") as mixed:
+				mixed.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nparams = $(PARAMS)\noutput.likelihoods.file = $(OUTINFO)")
+		if option == "opb":
+			with open(path, "w") as opbFile:
+				opbFile.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nnonhomogeneous = one_per_branch\nnonhomogeneous.root_freq=F3X4(initFreqs=observed)\nmodel = YNGP_M0(frequencies=F3X4(initFreqs=observed))\nnonhomogeneous_one_per_branch.shared_parameters = YN98.kappa, YN98.*theta*\nlikelihood.recursion = simple\nlikelihood.recursion_simple.compression = recursive\noptimization = FullD(derivatives=Newton)\noptimization.ignore_parameters = $(IGNORE)\noptimization.max_number_f_eval = 10000\noptimization.tolerance = 0.00001\noutput.tree.file = $(OUTTREE)\noutput.tree.format = Newick\noutput.estimates = $(OUTPARAMS)\noptimization.backup.file = $(BACKUP)")
+		if option == "gnh":
+			with open(path, "w") as gnhFile:
+				gnhFile.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nnonhomogeneous = general\nnonhomogeneous.number_of_models = 2\nnonhomogeneous.root_freq=F3X4(initFreqs=observed)\nmodel1 = YNGP_M1(frequencies=F3X4(initFreqs=observed))\nmodel1.nodes_id=$(NODE)\nmodel2 = YNGP_M2(frequencies=F3X4(initFreqs=observed),kappa=YNGP_M1.kappa_1,omega=YNGP_M1.omega_1)\nmodel2.nodes_id=$(NODE)\nlikelihood.recursion = simple\nlikelihood.recursion_simple.compression = recursive\noptimization = FullD(derivatives=Newton)\noptimization.ignore_parameters = BrLen,YNGP_M0*,*kappa*,*theta*,Ancient\noptimization.max_number_f_eval = 10000\noptimization.tolerance = 0.00001\noutput.tree.file = $(OUTTREE)\noutput.tree.format = Newick\noutput.estimates = $(OUTPARAMS)\noptimization.backup.file = $(BACKUP)")

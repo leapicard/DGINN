@@ -1,4 +1,5 @@
-import argparse, logging, os
+import argparse, logging, os, sys
+import FormatFunc, PSPFunc
 import G2P_Object
 from time import localtime, strftime
 
@@ -29,99 +30,145 @@ def parameterCommandLine(version, __file__):
 	"""
 
 	# Parameters recovery
-	parser = argparse.ArgumentParser(prog=__file__, description="This Script simplify the commandline of G2P.")
+	parser = argparse.ArgumentParser(prog=__file__, description="Enter parameters for running the PSDRP pipeline.")
 	parser.add_argument('-dd', '--debug', dest='debug', action='store_true', help='enter verbose/debug mode')
 
 
-	required = parser.add_argument_group('Mandatory input infos for running')
-	required.add_argument('-in', '--inFile', metavar="<filename>", required=True, type=check, dest = 'inFile', help = 'Table of parameters mandatory to start the pipeline G2P.')
-
+	args = parser.add_argument_group('Input infos for running')
+	args.add_argument('-p', '--params', metavar="<filename>", required=True, type=check, dest = 'params', help = 'Mandatory file with all the parameters necessary to run the pipeline.')
+	args.add_argument('-i', '--infile', metavar="<filename>", required=False, dest = 'infile', default="", help = 'Path or list of paths to the file(s) needed to start the pipeline (if indicated, will take priority over the parameters file)')
+	args.add_argument('-host', '--hostfile', metavar="<filename>", required=False, dest = 'hostfile', default="", help = 'Path to cluster hostfile if needed for mpi process')
+	args.add_argument('-th', '--threads', metavar="<integer>", required=False, dest = 'threads', default=2, help = 'Number of threads to use for parallelization (cluster use only)')
+	
 	return parser
 
-def paramDef(infile):
+
+def paramDef(params, inf):
 	"""
 	Check the parameters in the file.
 
 	@param infile: path's file
 	@return defaultParam: dico of parameters
 	"""
-	if not os.path.exists(infile):
-		print("The file does not exist, try again:\n")
-
-		while os.path.exist(infile):
-			infile = raw_input("Path:\n")
+	
+	if not os.path.exists(params):
+		print("The provided parameter file does not exist, try again.")
+		sys.exit()
 
 	#Parsing
-	lParams = ["infile", "blastdb", "outdir", "logfile", "evalue", "mincov", "perc_id", "step_id", "remote", "entry_query", "sptree", "API_Key", "gard", "treerecs", "psp", "alnfile", "treefile", "alnformat", "basename", "hyphySeuil", "busted", "meme", "models", "bppml", "mixedlikelihood", "opbFile", "gnhFile", "opb", "gnh"]
-	with open(infile, "r") as content:
+	lParams = ["infile", "CCDSfile", "blastdb", "outdir", "logfile", "evalue", "mincov", "perc_id", "step_id", "remote", "entry_query", "sptree", "API_Key", "gard", "treerecs", "nbspecies", "positiveSelection", "basename", "hyphySeuil", "busted", "meme", "models", "paml", "bppml", "mixedlikelihood", "opb", "gnh"]
+	with open(params, "r") as content:
 		dParams = {}
 		for line in content:
 			temp = line.strip("\n").split(":")
 			if temp[0] not in lParams:
-				if temp[0].startswith("#") == False:
-					print(temp[0]+" is not a valide parameter.\n")
+				if not temp[0].startswith("#"):
+					print(temp[0]+" is not a valid parameter.\n")
 			else:
 				dParams[temp[0]] = temp[1]
-
-	#Verifying if parameters are correct
-	if "step_id" not in dParams or dParams["step_id"] not in ["blast", "accession", "fasta", "orf", "prank", "phyml", "tree", "gard", "psp", ""]:
-		print(dParams["step_id"]+" not available, it will be blast by default.\n")
+	
+	#If infile(s) given through command line, takes priority
+	if inf != "":
+		dParams["infile"] = inf.split(",")
+	else:
+		dParams["infile"] = dParams["infile"].split(",")
+	
+	#If list of file given, split and check what each file is
+	if len(dParams["infile"]) > 1:
+		for entryfile in dParams["infile"]:
+			if FormatFunc.isCCDSFasta(entryfile):
+				dParams["CCDSfile"] = entryfile
+			if FormatFunc.isAln(entryfile):
+				dParams["alnfile"] = entryfile
+			if FormatFunc.isTree(entryfile):
+				dParams["treefile"] = entryfile
+	else:
+		dParams["CCDSfile"] = dParams["infile"][0]
+	
+	if "CCDSfile" in dParams.keys() and dParams["CCDSfile"] != "":
+		dParams["infile"] = dParams["CCDSfile"]	
+	elif "alnfile" in dParams.keys() and dParams["alnfile"] != "":
+		dParams["infile"] = dParams["alnfile"]	
+	
+	answers = ["Y", "YES", "T", "TRUE"]
+	negAnswers = ["N", "NO", "F", "FALSE"]
+	
+	for param in dParams.keys():
+		if type(dParams[param]) is not list:
+			if dParams[param].upper() in answers:
+				dParams[param] = True
+			elif dParams[param].upper() in negAnswers:
+				dParams[param] = False
+		
+	#Check if parameters are correct
+	if "step_id" not in dParams or dParams["step_id"] not in ["blast", "extract", "getSequences", "orf", "prank", "phyml", "duplication", "recombination", "positiveSelection", ""]:
+		print("Step \""+dParams["step_id"]+"\" not available, set to blast by default.")
 		dParams["step_id"] = "blast"
-
-	if "remote" not in dParams or dParams["remote"] not in ["True", "False", ""]:
-		print("Remote option need to be a boolean, set to True by default\n")
-		dParams["remote"] = "True"
-
-	if "psp" not in dParams or dParams["psp"] not in ["True", "False", ""]:
-		print("PSP will not be executed, set to False by default\n")
-		dParams["psp"] = "False"
-	elif dParams["psp"] == "True":
-		if dParams["step_id"] == "psp":
+	if dParams["step_id"] == "":
+		dParams["step_id"] = "blast"
+	
+	if "remote" not in dParams or dParams["remote"] == "":
+		print("Remote option needs to be a boolean, set to True by default.")
+		dParams["remote"] = True
+	
+	if dParams["entry_query"] == "":
+		print("Database {:s} will be searched for all species".format(dParams["blastdb"]))
+	else:
+		print("Database search on {:s} will be limited to {:s}".format(dParams["blastdb"], dParams["entry_query"]))
+	
+	if "positiveSelection" not in dParams:
+		print("Positive selection analyses will not be executed, set to False by default.")
+		dParams["positiveSelection"] = False
+		
+	elif dParams["positiveSelection"]:
+		if dParams["step_id"] == "positiveSelection":
 			if "treefile" not in dParams or dParams["treefile"] == "":
-				print("You need to precise the tree file because psp needed")
-				exit()
-			elif "treefile" not in dParams or dParams["alnfile"] == "":
-				print("You need to precise the aln file because psp needed")
-				exit()
-		for opt in ["meme", "busted", "models", "bppml", "mixedlikelihood", "opbFile", "gnhFile"]:
+				print("The pipeline requires a phylogenetic tree. Please provide one.")
+				sys.exit()
+			elif "alnfile" not in dParams or dParams["alnfile"] == "":
+				print("The pipeline requires a nucleotide or, preferably, codon alignment. Please provide one.")
+				sys.exit()
+				
+		for opt in ["meme", "busted", "models", "paml", "bppml", "mixedlikelihood", "opb", "gnh"]:
 			if opt not in dParams:
 				dParams[opt] = ""
-			elif opt not in ["meme", "busted", "models"]:
-				if os.path.exists(dParams[opt].strip("\n")) == True:
+				
+			elif opt not in ["meme", "busted", "models", "paml"]:
+				if type(dParams[opt]) is not bool and os.path.exists(dParams[opt].strip("\n")):
 					dParams[opt] = dParams[opt].strip("\n")
-				else:
-					path = dParams["infile"].split("/")[:-1]+opt+"_params.bpp"
-					print(opt+" doesn't exist, new parameters file: "+path)
+				elif dParams[opt]:
+					path = "/".join(dParams["infile"].split("/")[:-1])+"/"+opt+"_params.bpp"
+					print("{:s} parameter file: {:s}".format(opt, path))
 					PSPFunc.pspFileCreation(path, opt)
 					dParams[opt] = path
+					
 			elif opt == "models":
 				ltemp = []
 				for M in dParams[opt].split(","):
-					if M.strip(" ") not in ["M0", "M1", "M2", "M7", "M8", "M8a"]:
+					if M.strip(" ") == "":
+						next
+					elif M.strip(" ") not in ["M0", "M1", "M2", "M7", "M8", "M8a"]:
 						print(M+" isn't a valid model.")
 					else:
 						ltemp.append(M)
 				dParams[opt] = ",".join(ltemp)
 
-			elif dParams[opt] not in ["True", "False"]:
-				dParams[opt] = "False"
-
-	elif dParams["step_id"] == "psp":
-		print("Error: psp option set to false and step_id set to psp ...")
-		exit()
-	if dParams["step_id"] in ["blast","accession","fasta"]:
+	elif dParams["step_id"] == "positiveSelection":
+		print("Error: positiveSelection option set to false and step_id set to positiveSelection.")
+		sys.exit()
+		
+	if dParams["step_id"] in ["blast","extract","getSequences"]:
 		if dParams["infile"] == "" or dParams["blastdb"] == "":
-			print("Infile and Blastdb are necessary !\n")
-			exit()
+			print("Infile and Blastdb are necessary.")
+			sys.exit()
 
 	#Creation of a dictionnary with all the parameters
-	defaultParam = {"infile":"", "blastdb":"", "outdir":"", "logfile":"", "evalue":1e-3, "mincov":50, "perc_id":70, "entry_query":"", "API_Key":"", "sptree":"", "treerecs":"False", "gard":"False", "remote":"False", "step_id":"blast","psp":"False", "alnfile":"", "treefile":"", "alnformat":"Fasta", "basename":"", "hyphySeuil":0.05, "busted":"False", "meme":"False", "models":"", "bppml":"", "mixedlikelihood":"", "opbFile":"", "gnhFile":"", "opb":"False", "gnh":"False"}
+	defaultParam = {"infile":"", "CCDSfile":"", "blastdb":"", "outdir":"", "logfile":"", "evalue":1e-3, "mincov":50, "perc_id":70, "entry_query":"", "API_Key":"", "sptree":"", "treerecs":False, "nbspecies":8, "gard":False, "remote":False, "step_id":"blast","positiveSelection":False, "alnfile":"", "treefile":"", "alnformat":"Fasta", "basename":"", "hyphySeuil":0.05, "busted":False, "meme":False, "models":"", "paml":"", "bppml":"", "mixedlikelihood":"", "opb":False, "gnh":False}
+	
 	for i in defaultParam:
-		if i in dParams:
-			if dParams[i] != "":
-				defaultParam[i] = dParams[i].strip("\n")
-
-
+		if i in dParams.keys() and dParams[i] != "":
+			defaultParam[i] = dParams[i]
+	
 	return defaultParam
 
 def initLogger(args, debug, version):
@@ -140,12 +187,12 @@ def initLogger(args, debug, version):
 	timeStamp = strftime("%Y%m%d%H%M", localtime())
 	if args["infile"] != "":
 		if args["logfile"] == "":
-			args["logfile"] = args["infile"].split(".")[0]+"_G2P_"+timeStamp+".log"
+			args["logfile"] = args["infile"].split(".")[0]+"_PSDRP_"+timeStamp+".log"
 		else:
 			args["logfile"] = args["infile"].split(".")[0]+args["logfile"]
 	else:
 		if args["logfile"] == "":
-			args["logfile"] = args["alnfile"].split(".")[0]+"_G2P_"+timeStamp+".log"
+			args["logfile"] = args["alnfile"].split(".")[0]+"_PSDRP_"+timeStamp+".log"
 		else:
 			args["logfile"] = args["alnfile"].split(".")[0]+args["logfile"]
 	# create logger
@@ -175,14 +222,14 @@ def initLogger(args, debug, version):
 
 	mainData = G2P_Object.basicData(args["infile"], args["outdir"], args["blastdb"], timeStamp, args["sptree"], args["alnfile"], args["treefile"])
 
-	if args["step_id"] == "tree" and args["treerecs"] == False:
+	if args["step_id"] == "duplication" and args["treerecs"] == False:
 		args["treerecs"] == True
-	elif args["step_id"] == "gard" and args["gard"] == False:
+	elif args["step_id"] == "recombination" and args["gard"] == False:
 		args["gard"] == True
 
 	logger.info("Reading input file {:s}".format(mainData.CCDSFile))
 	logger.info("Output directory: {:s}".format(mainData.o))
-	logger.info("Analysis will begin at the {:s} step".format(args["step_id"].title()))
+	logger.info("Analysis will begin at the {:s} step".format(args["step_id"]))
 
 	return mainData, logger
 
@@ -198,8 +245,9 @@ def initPipeline(step, lStep):
 
 	#Create a list of step to do
 	toDo = []
-	i =0
-	while step.lower() != lStep[i]:
+	i = 0
+
+	while step.lower() != lStep[i].lower():
 			toDo.append(False)
 			i+=1
 

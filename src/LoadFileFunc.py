@@ -1,5 +1,5 @@
-import Blast, G2P_Object, AccessionFunc, treeFunc, AnalysisFunc
-import os
+import BlastFunc, G2P_Object, ExtractFunc, TreeFunc, AnalysisFunc
+import os, sys
 from multiprocessing import Pool
 from Bio import SeqIO
 
@@ -9,26 +9,26 @@ This file pools the necessary functions to enter in the pipeline at a specific s
 
 def securityEntry(lFiles, nbFiles):
 	"""
-	Verify if the number of files.
+	Verify if the correct number of files has been provided.
 
 	@param1 lFiles: list of paths
 	@param2 nbFiles: number of files needed
 
 	"""
 	if len(lFiles) != nbFiles:
-		print("There're not enough files or too much to enter at this step !")
-		exit()
+		print("You have only provided {:d} files, while {:d} are necessary to enter at this step.".format(len(lFiles), nbFiles))
+		sys.exit()
 
 def checkPath(path, attrNames):
 	"""
 	Check if the path exist
 
 	@param1 path: path's file 
-	@param2 attrNames: Name of the attribut
+	@param2 attrNames: Name of the attribute
 	"""
 	if not os.path.exists(path):
-		print("The File with the {:s} informations does not exist.".format(attrNames))
-		exit()
+		print("The file with the {:s} information does not exist.".format(attrNames))
+		sys.exit()
 
 def baseNameInit(baseName, CCDSFile, aln, logger):
 	"""
@@ -46,11 +46,11 @@ def baseNameInit(baseName, CCDSFile, aln, logger):
 		elif aln != "":
 			baseName = aln.split(".")[0].split("/")[-1]
 		else:
-			logger.info("We can't initialize the basename")
-			exit()
+			logger.info("Basename can't be initialized.")
+			sys.exit()
 	return baseName
 
-def filtreData(sptree, filePath, o):
+def filterData(sptree, filePath, o):
 	"""
 	Function which execute functions to delete genes which aren't in the species tree.
 
@@ -59,9 +59,9 @@ def filtreData(sptree, filePath, o):
 	@param3 o: Path of a directory
 	@return path: Path of a file
 	"""
-	corsg = treeFunc.assocFile(sptree, filePath, o)
+	corsg = TreeFunc.assocFile(sptree, filePath, o)
 
-	path = treeFunc.supData(filePath, corsg, o)
+	path = TreeFunc.supData(filePath, corsg, o)
 
 	return path, corsg
 
@@ -104,9 +104,9 @@ def communFuncEntry(Data, attrNames, nb):
 
 	return Data
 
-def accessionEntry(Data):
+def extractEntry(Data):
 	"""
-	Function handling start of the pipeline at the Accession step.
+	Function handling start of the pipeline at the Extract step.
 
 	@param Data: basicData object 
 	@return data: basicData object
@@ -125,7 +125,7 @@ def accessionEntry(Data):
 
 	return Data
 
-def fastaEntry(Data):
+def getSeqEntry(Data):
 	"""
 	Function handling start of the pipeline at the Fasta step.
 
@@ -150,7 +150,7 @@ def orfEntry(Data, treeOption):
 	Data = communFuncEntry(Data, ["catFile"], 2)
 	if treeOption == "True":
 		checkPath(Data.sptree, "species's tree")
-		Data.catFile, corSG = filtreData(Data.sptree, Data.catFile, Data.o)
+		Data.catFile, corSG = filterData(Data.sptree, Data.catFile, Data.o)
 		setattr(Data, "cor", corSG)
 	return Data
 
@@ -165,7 +165,7 @@ def prankEntry(Data, treeOption):
 	Data = communFuncEntry(Data, ["catFile", "ORFs"], 3)
 	if treeOption == "True":
 		checkPath(Data.sptree, "species's tree")
-		Data.ORFs, corSG = filtreData(Data.sptree, Data.ORFs, Data.o)
+		Data.ORFs, corSG = filterData(Data.sptree, Data.ORFs, Data.o)
 		setattr(Data, "cor", corSG)
 	return Data
 
@@ -179,14 +179,14 @@ def phymlEntry(Data, treeOption, logger):
 	@return Data: basicData object
 	"""
 	if Data.aln != "":
-		logger.info("Alignement file: "+Data.aln)
+		logger.info("Alignment file: "+Data.aln)
 		Data = communFuncEntry(Data, ["ORFs"], 2)
 	else:
 		logger.info("You need to precise the alnfile")
-		exit()
+		sys.exit()
 	if treeOption == "True":
 		checkPath(Data.sptree, "species's tree")		
-		Data.aln, corSG = filtreData(Data.sptree, Data.aln, Data.o)
+		Data.aln, corSG = filterData(Data.sptree, Data.aln, Data.o)
 		setattr(Data, "cor", corSG)
 		Data.tree = AnalysisFunc.runPhyML(Data.aln, "/".join(Data.aln.split("/")[:-1]))+"_phyml_tree.txt"
 	return Data
@@ -207,10 +207,10 @@ def treeEntry(Data, logger):
 		Data = communFuncEntry(Data, ["ORFs"], 2)
 	else:
 		logger.info("You didn't precise the alnfile or the treefile.")
-		exit()
+		sys.exit()
 
 	checkPath(Data.sptree, "species's tree")		
-	Data.aln, corSG = filtreData(Data.sptree, Data.aln, Data.o)
+	Data.aln, corSG = filterData(Data.sptree, Data.aln, Data.o)
 	setattr(Data, "cor", corSG)
 	dico[Data.aln] = Data.tree
 	return Data, dico
@@ -226,12 +226,12 @@ def gardEntry(Data, parameters, logger):
 	"""
 	dico = {}
 	Data = communFuncEntry(Data, [], 1)
-	AccessionFunc.createGeneDir(Data.o, Data.aln.split('/')[-1].split(".")[0])
+	#AccessionFunc.createGeneDir(Data.o, Data.aln.split('/')[-1].split(".")[0])
 	if Data.tree != "" and Data.aln != "":
 		dico[Data.aln] = Data.tree
 	else:
 		logger.info("You didn't precise the alnfile or the treefile.")
-		exit()
+		sys.exit()
 	return Data, dico
 
 
@@ -241,7 +241,7 @@ def pspEntry(Data, parameters, logger):
 	logger.info("Gene's Tree file: "+Data.tree)
 	dico[Data.aln] = Data.tree
 	Data.baseName = baseNameInit(Data.baseName, Data.CCDSFile, Data.aln, Data.logger)
-	AccessionFunc.createGeneDir(Data.o, Data.aln.split('/')[-1].split(".")[0])
+	#AccessionFunc.createGeneDir(Data.o, Data.aln.split('/')[-1].split(".")[0])
 	Data.alnFormat = parameters["alnformat"].title()
 
 	return Data, dico

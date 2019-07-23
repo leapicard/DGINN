@@ -1,11 +1,11 @@
-import G2P_Object, FastaResFunc, AccessionFunc
+import G2P_Object, FastaResFunc, ExtractFunc
 import logging, subprocess, shlex, os
 from Bio import SeqIO, AlignIO
 from collections import defaultdict, OrderedDict
 
 ######Functions=============================================================================================================
 
-def cmd(commandLine,choice):
+def cmd(commandLine, choice):
 	"""
 	Function executing a command line in a bash terminal.
 
@@ -29,12 +29,11 @@ def getORFs(catFile, geneName, geneDir):
 	"""
 
 	outORFraw = geneDir+catFile.split("/")[-1].split(".")[0]+"_allORFs.fasta"
-	print(outORFraw)
 	logger = logging.getLogger("main")
 	
 	cmd("getorf -sequence {:s} -outseq {:s} -table 0 -find 3 -noreverse".format(catFile, outORFraw), False)
 	
-	#logger.debug(cmd)
+	logger.debug(cmd)
 	
 	dId2ORFs = defaultdict(list)
 	f = SeqIO.parse(open(outORFraw),'fasta')
@@ -49,13 +48,34 @@ def getORFs(catFile, geneName, geneDir):
 	dId2Longest = {}
 	for k, v in dId2ORFs.items():
 		dId2Longest[k] = max(v, key=len)
+		
+	# delete duplicate sequences
+	dRev = {}
+	for k, v in dId2Longest.items():
+		dRev.setdefault(v, set()).add(k)
+		
+	AllDupl = [values for key, values in dRev.items() if len(values) > 1]
+	
+	for dupl in AllDupl:
+		species = set([x.split("_")[0] for x in dupl])
+		
+		for sp in species:
+			if geneName.replace("|", "_") in dupl:
+				firstOcc = geneName.replace("|", "_")
+			else:
+				firstOcc = [x for x in dupl if sp in x][0]
+			dupl.remove(firstOcc)
+		
+		for i in dupl:
+			dId2Longest.pop(i, None)
+			logger.info("Deleted sequence {:s} (duplicate)".format(i))
 	
 	outORF = outORFraw.replace("_allORFs.fasta","_longestORFs.fasta")
 
 	with open(outORF, "w") as outO:
 		outO.write(FastaResFunc.dict2fasta(dId2Longest))
 	
-	logger.info("{:s}: got longest ORFs.".format(geneName.split("|")[1]))
+	logger.info("Extracted longest ORFs: {:s}".format(outORF))
 
 	return(outORF)
 
@@ -68,14 +88,14 @@ def orfFinder(data, logger):
 	@param2 logger: Logging object
 	"""
 	
-	ORFile = getORFs(data.catFile, data.geneName, data.geneDir)
+	ORFile = getORFs(data.catFile, data.geneName, data.o)
 	setattr(data, "ORFs", ORFile)
-	logger.info("Got longest ORFs")
+	#logger.info("Got longest ORFs")
 
 #######=================================================================================================================
 ######PRANK=============================================================================================================
 	
-def runPrank(ORFs, geneName, outPrank):
+def runPrank(ORFs, geneName, o):
 	"""
 	Function to run PRANK software for codon alignment (Löytynoja, 2014).
 	
@@ -85,12 +105,55 @@ def runPrank(ORFs, geneName, outPrank):
 	@return outPrank: Path to Prank results file
 	"""
 	logger = logging.getLogger("main")
-	logger.info("{:s}: start Prank codon alignment.".format(geneName))
+	logger.info("Started Prank codon alignment")
+	outPrank = o+ORFs.split("/")[-1].split(".")[0]+"_prank"
 	
 	cmd("prank -d={:s} -o={:s} -codon -F".format(ORFs, outPrank), False)
 	
-	logger.info("{:s}: finished Prank codon alignment.".format(geneName.split("|")[1]))
+	logger.info("Finished Prank codon alignment: {:s}.best.fas".format(outPrank))
+	
+	if os.path.exists(outPrank+".fas"):
+		os.rename(outPrank+".fas", outPrank+".best.fas")
+	
+	return(outPrank+".best.fas")
 
+def covAln(aln, cov, geneName, o):
+	"""
+	Function to discard sequences from alignment according to coverage to query.
+	
+	@param1 aln: Path to prank alignment
+	@param2 cov: minimum coverage necessary to keep sequence (from parameter file)
+	@param3 geneName: id of the query sequence against which to check coverage
+	@param4 o: output directory
+	@return outCov: Path to file of conserved sequences
+	"""
+	logger = logging.getLogger("main")
+	logger.info("Discarding sequences with less than {:d}% coverage of query.".format(cov))
+	outCov = o+aln.split("/")[-1].split(".")[0]+"_mincov.fasta"
+	
+	nbOut = 0
+	
+	dId2Seq = {fasta.id:str(fasta.seq) for fasta in SeqIO.parse(open(aln),'fasta')}
+	CCDS = geneName.replace("|", "_")
+	
+	lIndexes = [pos for pos, char in enumerate(dId2Seq[CCDS]) if char != "-"]
+
+	dKeep = {}
+	for ID, seq in dId2Seq.items():
+		seqPos = [seq[x] for x in lIndexes]
+		seqCov = (len(seqPos) - seqPos.count("-"))/len(seqPos)*100
+		
+		if seqCov > cov:
+			dKeep[ID] = seq
+	
+	nbOut = len(dId2Seq) - len(dKeep)
+	
+	with open(outCov, "w") as outC:
+		outC.write(FastaResFunc.dict2fasta(dKeep))
+	
+	logger.info("Discarded {:d} sequences".format(nbOut))
+	
+	return(outCov)
 
 def alnPrank(data, logger):
 	"""
@@ -99,10 +162,8 @@ def alnPrank(data, logger):
 	@param1 data: basicdata object
 	@param2 logger: Logging object
 	"""
-	output = data.geneDir+data.ORFs.split("/")[-1].split(".")[0]+"_prank"
-	runPrank(data.ORFs, data.geneName, output)
-	data.aln = output+".best.fas"
-	logger.info("Performed alignement using Prank")
+	aln = runPrank(data.ORFs, data.geneName, data.o)
+	data.aln = aln
 
 #######=================================================================================================================
 ######PhyML=============================================================================================================
@@ -115,9 +176,8 @@ def runPhyML(aln, geneDir):
 	@param2 geneDir: Gene directory
 	@return outPhy: Path to PhyML results file
 	"""
-
-	# convert to Phylip format and replace "!" symbols inserted by MACSE for frame shifts by "N"
-	outPhy = geneDir+aln.split("/")[-1].split(".")[0]
+	# convert to Phylip format and replace eventual "!" symbols (relic from using MACSE)
+	outPhy = geneDir+aln.split("/")[-1].split(".")[0]+".phylip"
 	tmp = geneDir+aln.split("/")[-1].split(".")[0]+".tmp"
 	logger = logging.getLogger("main")
 	
@@ -137,8 +197,8 @@ def runPhyML(aln, geneDir):
 	os.remove(tmp)
 
 	# PhyML
-	cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
-	
+	cmd("PhyML_3.0_linux64 -i {:s} -v e -b -2".format(outPhy), False)
+	#PhyML_3.0_linux64 -i /home/lpicard/76genes/76genes_list_base_SERPING1_CCDS_results_201901050221/SERPING1_primates_filtered_longestORFs_prank.phylip -v e -b -2
 	#logger.debug(cmd)
 	
 	return(outPhy)
@@ -152,19 +212,19 @@ def phyMLTree(data, logger):
 	@param2 logger: Logging object
 	"""
 	dAlnTree = {}
-	logger.info("Beginning of PhyML works")
-	TreesFile = runPhyML(data.aln, data.geneDir)
+	logger.info("Running PhyML to produce gene phylogenetic tree")
+	TreesFile = runPhyML(data.aln, data.o)
 	data.tree = TreesFile+"_phyml_tree.txt"
-	logger.info("Reconstructed tree using PhyML")
+	logger.info("Reconstructed tree using PhyML: {:s}".format(data.tree))
 
 	dAlnTree[data.aln] = data.tree
-	return dAlnTree
+	return(dAlnTree)
 
 #######=================================================================================================================
 
 ######GARD==============================================================================================================
 
-def runGARD(aln, o, logger):
+def runGARD(aln, o, hostFile, logger):
 	"""
 	Function creating the batch file to run GARD (Kosakovsky Pond et al., 2006).
 	
@@ -187,7 +247,10 @@ def runGARD(aln, o, logger):
 		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"GARD.bf\", inputRedirect);\n")
 	logger.debug("Batch file: {:s}".format(batchFile))
 	
-	cmd = "mpirun -np 2 HYPHYMPI {:s}".format(batchFile)
+	if hostFile == "":
+		cmd = "mpirun -np 2 HYPHYMPI {:s}".format(batchFile)
+	else:
+		cmd = "mpirun -np 2 -hostfile {:s} HYPHYMPI {:s}".format(hostFile, batchFile)
 	lCmd = shlex.split(cmd)
 	with open(outGard, "w") as o, open(errGard, "w") as e:
 		runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
@@ -208,7 +271,7 @@ def procGARD(gardRes, aln):
 	splitsFile = gardRes+"_splits"
 	outGardProc = gardRes+"_outproc"
 	errGardProc = gardRes+"_errproc"
-	logger = logging.getLogger("main")
+	#logger = logging.getLogger("main")
 	
 	with open(batchFile, "w") as bf:
 		bf.write("inputRedirect = {};\n")
@@ -216,31 +279,34 @@ def procGARD(gardRes, aln):
 		bf.write("inputRedirect[\"02\"] = \"{:s}\";\n".format(splitsFile))
 		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"GARDProcessor.bf\", inputRedirect);\n".format())
 	#logger.debug("Batch file: {:s}".format(batchFile))
-	
+	print("test")
+	cmd = "HYPHYMP {:s}".format(batchFile)
+	lCmd = shlex.split(cmd)
 	with open(outGardProc, "w") as o, open(errGardProc, "w") as e:
-		runCmd = subprocess.run(["HYPHYMP", batchFile], shell=False, check=True, stdout=o, stderr=e)
-	
+		runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
+	print("ran")
 	return(outGardProc)
 
-def parseGard(kh, aln, geneName, pvalue, o):
+def parseGard(kh, aln, pvalue, o, logger):
 	"""
 	Function returning the cut fragments following GARD analysis and identification of significant breakpoints.
 
 	@param1 kh: Path to GARDprocessor output file
 	@param2 aln: Path to alignment file
-	@param3 geneName: Gene name
-	@param4 pvalue: Float
+	@param3 pvalue: Float
+	@param4 o: Path to output directory
 	@return lOutFrag: List of Path (Fragments in fasta files)
 	"""
 	lBP = []
 	with open(kh, "r") as f:
 		lLine = f.readlines()
+		finalIndex = len(lLine)
 	
 	index = 0
-	while lLine[index].startswith("Breakpoint") != True:
+	while lLine[index].startswith("Breakpoint") != True and index < finalIndex:
 		index += 1
-
-	#If there're breakpoints, add it in lBP
+	
+	#If there are breakpoints, add it in lBP
 	if lLine[index+1] != "":
 		index += 1
 		while lLine[index].startswith(" "):
@@ -248,8 +314,11 @@ def parseGard(kh, aln, geneName, pvalue, o):
 			if line[2] < pvalue and line[4] < pvalue:
 				lBP.append(int(line[0]))
 			index += 1
-	
-		print("There are {:d} significant breakpoints in the alignement for gene {:s} at positions {}".format(len(lBP), geneName, lBP))
+		
+		if len(lBP) > 0:
+			logger.info("There are {:d} significant breakpoints in alignement {:s} at positions {}".format(len(lBP), aln, lBP))
+		else:
+			logger.info("There are no significant breakpoints in alignement {:s}.".format(aln))
 		
 		#If there're breakpoint(s), cut sequence in subsequences according to breakpoints
 		if len(lBP) > 0:
@@ -271,7 +340,7 @@ def parseGard(kh, aln, geneName, pvalue, o):
 			lBPprec = [0 for i in range(len(lSeqBin))]
 			lFrag = []
 			for bp in lBP:
-				index = 0
+				"""index = 0
 				lPosInter = []
 				index2 = 0
 				for elem in lSeqBin:
@@ -284,19 +353,22 @@ def parseGard(kh, aln, geneName, pvalue, o):
 					lPosInter.append(pos)
 					index2 += 1
 				lBPprec = lPosInter
-				lPos.append(max(lPosInter))
+				lPos.append(max(lPosInter))"""
+				while bp%3 != 0:
+					bp += 1
+				lPos.append(bp)
 				lFrag += [ dFname2Fseq[lNameGene[j]][lPos[-2]:lPos[-1]] for j in range(nbSeq) ]
-
+			
 			#Adding subsequences that start at the last breakpoint to the end
 			lFrag += [dFname2Fseq[lNameGene[i]][lPos[-1]:] for i in range(nbSeq)]
 
-			lBP = [0]+lBP+[lenSeq]
+			lBP = lPos+[lenSeq]
 			lOutFrag = []
 			index = 0
 			for x in range(1,len(lBP)):
 				dFrag = {}
 				extension = "{:d}:{:d}".format(lBP[x-1], lBP[x])
-				outFrag = o+aln.split("/")[-1].split(".")[0]+"_frag"+extension+".bes.fas"
+				outFrag = o+aln.split("/")[-1].split(".")[0]+"_frag"+extension+".best.fas"
 				for name in lNameGene:
 					dFrag[name] = lFrag[index]
 					index += 1
@@ -310,7 +382,7 @@ def parseGard(kh, aln, geneName, pvalue, o):
 	else:
 		return []
 
-def gardRecomb(data, pvalue, dAT, logger):
+def gardRecomb(data, pvalue, dAT, hostFile, logger):
 	"""
 	Procedure which execute gard functions on each alignment given.
 
@@ -319,34 +391,36 @@ def gardRecomb(data, pvalue, dAT, logger):
 	@param3 step: String
 	@param4 logger: Logging object
 	"""
-	try:
-		setattr(data, "lGard", [])
-		nb = 1	
-		for aln in dAT:
+	#try:
+	setattr(data, "lGard", [])
+	nb = 1
+	dFrag = {}
+	for aln in dAT:
+		logger.info("Running GARD on {:s}".format(aln))
+		gardRes = runGARD(aln, data.o, hostFile, data.logger)
 			
-			directory = data.o+aln.split('/')[-1].split(".")[0]+"/"
-			logger.info("trying GARD")
-			listGard = runGARD(aln, directory, logger)
+		logger.info("Checked for recombination using HYPHY GARD.")
 				
-			logger.info("Checked for recombination using HYPHY GARD")
-					
-			listGardProc = procGARD(listGard, aln)
-			data.lGard.append(listGardProc)
-			logger.info("Extracted GARD results")
+		procGardRes = procGARD(gardRes, aln)
+		#data.lGard.append(listGardProc)
+		logger.info("Extracted GARD results.")
 
-			listCut = parseGard(listGardProc, aln, data.geneName, float(pvalue), directory)
+		parsedFragments = parseGard(procGardRes, aln, float(pvalue), data.o, logger)
 
-			logger.info("Parsed GARD results")
-
-			for path in listCut:
-				logger.info(path+": Phyml.")
-				out = runPhyML(path, directory)+"_phyml_tree.txt"
-				dAT[path] = out
-
-			return dAT
-
-	except Exception:
+		logger.info("Parsed GARD results.")
+		if len(parsedFragments) > 0:
+			for frag in parsedFragments:
+				logger.info("Running Phyml on fragment: {:s}".format(frag))
+				fragTree = runPhyML(frag, data.o)+"_phyml_tree.txt"
+				dFrag[frag] = fragTree
+		else:
+			logger.info("No fragments of recombination identified.")
+			
+	dAT.update(dFrag)
+	return(dAT)
+	
+	"""except Exception:
 		logger.info("GARD uncountered an unexpected error, skipping.")
-		return dAT
+		return dAT"""
 
 #######=================================================================================================================
