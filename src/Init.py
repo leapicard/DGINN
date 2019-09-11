@@ -187,12 +187,12 @@ def initLogger(args, debug, version):
 	timeStamp = strftime("%Y%m%d%H%M", localtime())
 	if args["infile"] != "":
 		if args["logfile"] == "":
-			args["logfile"] = args["infile"].split(".")[0]+"_PSDRP_"+timeStamp+".log"
+			args["logfile"] = args["infile"].split(".")[0]+"_DGINN_"+timeStamp+".log"
 		else:
 			args["logfile"] = args["infile"].split(".")[0]+args["logfile"]
 	else:
 		if args["logfile"] == "":
-			args["logfile"] = args["alnfile"].split(".")[0]+"_PSDRP_"+timeStamp+".log"
+			args["logfile"] = args["alnfile"].split(".")[0]+"_DGINN_"+timeStamp+".log"
 		else:
 			args["logfile"] = args["alnfile"].split(".")[0]+args["logfile"]
 	# create logger

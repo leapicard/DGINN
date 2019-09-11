@@ -1,4 +1,4 @@
-infile:
+infile:SAMD9Lpri_MuscleCo.fasta
 blastdb:nr
 outdir:
 logfile:
@@ -15,11 +15,11 @@ nbspecies:
 gard:
 positiveSelection:True
 hyphySeuil:
-busted:True
-meme:True
+busted:False
+meme:False
 models:M0,M1,M2,M7,M8
 paml:False
-bppml:True
-mixedlikelihood:True
-opb:True
+bppml:/home/lpicard/params/params_bppml.bpp
+mixedlikelihood:/home/lpicard/params/params_mixedllh.bpp
+opb:False
 gnh:False

@@ -82,6 +82,7 @@ if __name__ == "__main__":
 					Data = LoadFileFunc.phymlEntry(Data, parameters["treerecs"], logger)
 
 				dAlTree = AnalysisFunc.phyMLTree(Data, logger)
+				dAlTree = AnalysisFunc.checkPhyMLTree(Data, dAlTree, logger)
 
 			elif lSteps[i] == "duplication" and parameters["treerecs"]:
 				if parameters["step_id"] == "duplication":
@@ -106,15 +107,6 @@ if __name__ == "__main__":
 					with open(Data.o+"files_list.txt", "w") as fAT:
 						fAT.write(aln+"\t"+dAlTree[aln])
 						
-				if len(listArgsPosSel) > 1:
-					pool = ProcessPool(nodes=threads)
-					logger.info("Pool started on {:d} threads".format(threads))				
-					results = pool.amap(PosSelFunc.pspAnalysis, listArgsPosSel)
-				
-					while not results.ready():
-						time.sleep(5)
-						
-				else:
 					PosSelFunc.pspAnalysis(Data, parameters, aln, dAlTree[aln], logger)
 				
 				logger.info("Finished positive selection analyses.")

@@ -269,7 +269,7 @@ def runTreerecs(tree, sptree, o):
 	@param3 o: Output directory
 	"""
 	recTree = o+tree.split("/")[-1].split(".")[0]+"_reconciliation"
-	val = "Treerecs -g {:s} -s {:s} -o {:s} -O NHX:svg".format(tree, sptree, recTree)
+	val = "Treerecs -g {:s} -s {:s} -o {:s} -t 0.8 -O NHX:svg".format(tree, sptree, recTree)
 	AnalysisFunc.cmd(val, False)
 	
 	return recTree+".nhx" 

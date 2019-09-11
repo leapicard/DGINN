@@ -1,4 +1,4 @@
-import BlastFunc, G2P_Object, ExtractFunc, TreeFunc, AnalysisFunc
+import BlastFunc, G2P_Object, ExtractFunc, TreeFunc, AnalysisFunc, FormatFunc
 import os, sys
 from multiprocessing import Pool
 from Bio import SeqIO
@@ -15,8 +15,9 @@ def securityEntry(lFiles, nbFiles):
 	@param2 nbFiles: number of files needed
 
 	"""
+	print(lFiles)
 	if len(lFiles) != nbFiles:
-		print("You have only provided {:d} files, while {:d} are necessary to enter at this step.".format(len(lFiles), nbFiles))
+		print("You have only provided {:d} file(s), while {:d} are necessary to enter at this step.".format(len(lFiles), nbFiles))
 		sys.exit()
 
 def checkPath(path, attrNames):
@@ -156,17 +157,27 @@ def orfEntry(Data, treeOption):
 
 def prankEntry(Data, treeOption):
 	"""
-	Function handling start of the pipeline at the Prank (currently Mafft) step.
+	Function handling start of the pipeline at the Prank step.
 
 	@param1 Data: basicData object
 	@param2 treeOption: Boolean
 	@return data: basicData object
 	"""
-	Data = communFuncEntry(Data, ["catFile", "ORFs"], 3)
-	if treeOption == "True":
+	if FormatFunc.isFasta(Data.CCDSFile):
+		Data.ORFs = Data.CCDSFile
+		Data.baseName = baseNameInit(Data.baseName, Data.CCDSFile, Data.ORFs, Data.logger)
+		
+		with open(Data.ORFs) as orf:
+			Data.geneName = orf.readline().split("_")[1]
+		
+	else:
+		logger.info("Provided file is not a fasta of sequences, terminating DGINN.")
+		
+	if treeOption:
 		checkPath(Data.sptree, "species's tree")
 		Data.ORFs, corSG = filterData(Data.sptree, Data.ORFs, Data.o)
 		setattr(Data, "cor", corSG)
+		
 	return Data
 
 def phymlEntry(Data, treeOption, logger):
@@ -238,7 +249,7 @@ def gardEntry(Data, parameters, logger):
 def pspEntry(Data, parameters, logger):
 	dico = {}
 	logger.info("Alignement file: "+Data.aln)
-	logger.info("Gene's Tree file: "+Data.tree)
+	logger.info("Gene Tree file: "+Data.tree)
 	dico[Data.aln] = Data.tree
 	Data.baseName = baseNameInit(Data.baseName, Data.CCDSFile, Data.aln, Data.logger)
 	#AccessionFunc.createGeneDir(Data.o, Data.aln.split('/')[-1].split(".")[0])

@@ -1,6 +1,6 @@
 import os, logging, subprocess
 import PSPFunc
-
+from ete3 import EvolTree
 
 def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, baseName, logger):	
 	### SITE ANALYSIS: BIO++
@@ -39,6 +39,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	dLogLlh = {}		# dictionary(model:logllh)
 	
 	for model in lModels:
+		print(model)
 		# take into account the specificities of each model (number of classes n for example)
 		if int(model[1]) > 2:
 			dModelSyntax[model] = dModelSyntax[model].replace(model+"(", model+"(n=8, ")
@@ -140,27 +141,23 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 
 def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
 	
-	modelsLRT = ""
+	tree = EvolTree(treeFile)
+	tree.workdir = os.mkdir(outDir+"/paml/")
+	aln = tree.link_to_alignment(alnFile, "Fasta")
 	
-	if "M0" not in lModels:
-		logger.info("M0 not included, skipping PAML analysis.")
+	dModelRun = {}
+	for model in lModels:
+		logger.info("Running {:s}".format(model))
+		dModelRun[model] = tree.run_model(model)
 	
-	elif "M1" and "M2" in lModels:
-		modelsLRT = "M1,M2"
+	if "M1" and "M2" in dModelRun:
+		p12 = tree.get_most_likely("M2", "M1")
+		logger.info("LRT of M1 vs M2 = {}".format(p12))
+	if "M7" and "M8" in dModelRun:
+		p78 = tree.get_most_likely("M8", "M7")
+		logger.info("LRT of M7 vs M8 = {}".format(p78))
+	if "M8a" and "M8" in dModelRun:
+		p88a = tree.get_most_likely("M8a", "M8")
+		logger.info("LRT of M8 vs M8a = {}".format(p88a))
 		
-		if "M7" and "M8" in lModels:
-			modelsLRT = "M1,M2 M7,M8"
 	
-	elif "M7" and "M8" in lModels:
-		modelsLRT = "M7,M8"
-		
-	if "M8a" in lModels:
-		del lModels["M8a"]
-		logger.info("PAML codeml M8a model is not implemented in DGINN, ignoring.")
-	
-	if pamlParams in ["", "True", True]:
-		cmd = "ete3 evol -t {:s} --alg {:s} -v 3 --models {:s} --test {:s} -o {:s}".format(treeFile, alnFile, " ".join(lModels), modelsLRT, outDir)
-	else:
-		cmd = "ete3 evol -t {:s} --alg {:s} -v 3 --models {:s} --test {:s} --codeml_param {:s} -o {:s}".format(treeFile, alnFile, " ".join(lModels), modelsLRT, pamlParams, outDir)
-	
-	logger.debug(cmd)

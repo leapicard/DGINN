@@ -1,7 +1,8 @@
 import G2P_Object, FastaResFunc, ExtractFunc
-import logging, subprocess, shlex, os
+import logging, subprocess, shlex, os, ete3
 from Bio import SeqIO, AlignIO
 from collections import defaultdict, OrderedDict
+from itertools import chain
 
 ######Functions=============================================================================================================
 
@@ -134,9 +135,9 @@ def covAln(aln, cov, geneName, o):
 	nbOut = 0
 	
 	dId2Seq = {fasta.id:str(fasta.seq) for fasta in SeqIO.parse(open(aln),'fasta')}
-	CCDS = geneName.replace("|", "_")
+	CCDS = [k for k in dId2Seq if "CCDS" in k]
 	
-	lIndexes = [pos for pos, char in enumerate(dId2Seq[CCDS]) if char != "-"]
+	lIndexes = [pos for pos, char in enumerate(dId2Seq[CCDS[0]]) if char != "-"]
 
 	dKeep = {}
 	for ID, seq in dId2Seq.items():
@@ -210,6 +211,7 @@ def phyMLTree(data, logger):
 
 	@param1 data: List of gene objects
 	@param2 logger: Logging object
+	@return dAlnTree: Updated dictionary of alignments and their corresponding trees
 	"""
 	dAlnTree = {}
 	logger.info("Running PhyML to produce gene phylogenetic tree")
@@ -220,6 +222,65 @@ def phyMLTree(data, logger):
 	dAlnTree[data.aln] = data.tree
 	return(dAlnTree)
 
+def cutLongBranches(aln, dAlnTree, logger):
+	"""
+	Check for overly long branches in a tree and separate both tree and corresponding alignment if found.
+	
+	@param1 aln: Fasta alignment
+	@param2 tree: Tree corresponding to the alignment
+	@param3 logger: Logging object
+	@return dAlnTree: Updated dictionary of alignments and their corresponding trees
+	"""
+	logger.info("Looking for long branches.")
+	loadTree = ete3.Tree(dAlnTree[aln])
+	matches = [leaf for leaf in loadTree.traverse() if leaf.dist>50.0]
+	
+	if len(matches) > 0:
+		logger.info("{} long branches found, separating alignments.".format(len(matches)))
+		
+		seqs = SeqIO.parse(open(aln),'fasta')
+		dID2Seq = {gene.id: gene.seq for gene in seqs}
+		
+		for node in matches:
+			gp = node.get_children()
+			lNewGp = list(chain.from_iterable([x.get_leaf_names() for x in gp]))
+		
+			newAln = aln.split(".")[0]+"_split"+str(matches.index(node)+1)+".fasta"
+			
+			dNewAln = {gene:dID2Seq[gene] for gene in lNewGp}
+			for k in lNewGp:
+				dID2Seq.pop(k, None)
+			
+			# create new file of sequences
+			with open(newAln, "w") as fasta:
+				fasta.write(FastaResFunc.dict2fasta(dNewAln))
+			
+			dAlnTree[newAln] = ""
+		
+		alnLeft = aln.split(".")[0]+"_split"+str(len(matches)+1)+".fasta"
+		with open(alnLeft, "w") as fasta:
+			fasta.write(FastaResFunc.dict2fasta(dID2Seq))
+		
+		dAlnTree[alnLeft] = ""
+		dAlnTree.pop(aln, None)
+		
+	else:
+		logger.info("No long branches found.")
+	
+	return(dAlnTree)
+
+def checkPhyMLTree(data, dAlnTree, logger):
+	dAlnTree = cutLongBranches(data.aln, dAlnTree, logger)
+	
+	if "" in dAlnTree.values():
+		logger.info("Reconstructing alignments and phylogenies following long branch parsing.")
+		for newAln in dAlnTree:
+			aln = runPrank(newAln, data.geneName, data.o)
+			tree = runPhyML(aln, data.o)
+			dAlnTree[aln] = tree+"_phyml_tree.txt"
+		
+	return(dAlnTree)
+		
 #######=================================================================================================================
 
 ######GARD==============================================================================================================
@@ -340,20 +401,6 @@ def parseGard(kh, aln, pvalue, o, logger):
 			lBPprec = [0 for i in range(len(lSeqBin))]
 			lFrag = []
 			for bp in lBP:
-				"""index = 0
-				lPosInter = []
-				index2 = 0
-				for elem in lSeqBin:
-					nb = elem[lBPprec[index]:bp].count('1') 
-					pos = bp
-
-					while nb%3 != 0:
-						pos += 1
-						nb = elem[lBPprec[index]:pos].count('1')
-					lPosInter.append(pos)
-					index2 += 1
-				lBPprec = lPosInter
-				lPos.append(max(lPosInter))"""
 				while bp%3 != 0:
 					bp += 1
 				lPos.append(bp)
@@ -367,7 +414,7 @@ def parseGard(kh, aln, pvalue, o, logger):
 			index = 0
 			for x in range(1,len(lBP)):
 				dFrag = {}
-				extension = "{:d}:{:d}".format(lBP[x-1], lBP[x])
+				extension = "{:d}to{:d}".format(lBP[x-1], lBP[x])
 				outFrag = o+aln.split("/")[-1].split(".")[0]+"_frag"+extension+".best.fas"
 				for name in lNameGene:
 					dFrag[name] = lFrag[index]

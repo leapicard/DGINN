@@ -182,7 +182,7 @@ def catFile(lBlastRes, geneName, sequence, hitsFasta, sptree, o, apiKey, treerec
 				except KeyError:
 					pass
 		else:
-			if v > 3*m or v > 10000:
+			if v > 3*m or v > 20000:
 				try:
 					del dNewId2Seq[k]
 					logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))

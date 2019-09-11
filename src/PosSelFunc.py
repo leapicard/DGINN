@@ -41,6 +41,7 @@ def pspAnalysis(data, parms, aln, tree, logger):
 			logger.info("BUSTED uncountered an unexpected error, skipping.")"""
 	
 	if "paml" in dCtrls and dCtrls["paml"] not in ["False", False] and len(lModels) > 1:
+		print("let's try.")
 		SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
 		"""try:
 			SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
