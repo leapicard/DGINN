@@ -4,6 +4,7 @@
 #reload(PSPFunc)
 import TreeFunc
 import AnalysisFunc
+import requests
 
 class basicData:
 	def __init__(self, outDir, baseName, alnFormat):
@@ -45,7 +46,7 @@ if __name__ == "__main__":
 	recTree = "/home/lpicard/22genes/201903_cov/22geneslist_complete_GADD45A_CCDS_results_201903241129/GADD45A_primates_filtered_longestORFs_prank_mincov_reconciliation.nhx"
 	nbSp = 8
 	o = "/home/lpicard/"
-	"""
+	
 	dAlnTree = {}
 	d = "/home/lpicard/22genes/20190613/22geneslist_complete_RHO_CCDS_results_201906131553/"
 	aln = d+"RHO_primates_filtered_longestORFs_prank_mincov_prank.best.fas"
@@ -57,5 +58,12 @@ if __name__ == "__main__":
 	print(ex)
 	#TreeFunc.treeParsing(ORF, recTree, nbSp, o, logger)
 	#TreeFunc.treeParsing2(ORF, recTree, nbSp, o, logger)
+	"""
 	
+	query = "CU012950.1"
 	
+	link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&retmode=text".format(query)
+	r = requests.get(link)
+	handle = r.text
+	
+	print(handle)

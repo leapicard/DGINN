@@ -37,13 +37,14 @@ def parameterCommandLine(version, __file__):
 	args = parser.add_argument_group('Input infos for running')
 	args.add_argument('-p', '--params', metavar="<filename>", required=True, type=check, dest = 'params', help = 'Mandatory file with all the parameters necessary to run the pipeline.')
 	args.add_argument('-i', '--infile', metavar="<filename>", required=False, dest = 'infile', default="", help = 'Path or list of paths to the file(s) needed to start the pipeline (if indicated, will take priority over the parameters file)')
+	args.add_argument('-q', '--query', metavar="<string>", required=False, dest = 'queryName', default="", help = 'Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)')
 	args.add_argument('-host', '--hostfile', metavar="<filename>", required=False, dest = 'hostfile', default="", help = 'Path to cluster hostfile if needed for mpi process')
 	args.add_argument('-th', '--threads', metavar="<integer>", required=False, dest = 'threads', default=2, help = 'Number of threads to use for parallelization (cluster use only)')
 	
 	return parser
 
 
-def paramDef(params, inf):
+def paramDef(params, inf, queryName):
 	"""
 	Check the parameters in the file.
 
@@ -56,7 +57,7 @@ def paramDef(params, inf):
 		sys.exit()
 
 	#Parsing
-	lParams = ["infile", "CCDSfile", "blastdb", "outdir", "logfile", "evalue", "mincov", "perc_id", "step_id", "remote", "entry_query", "sptree", "API_Key", "gard", "treerecs", "nbspecies", "positiveSelection", "basename", "hyphySeuil", "busted", "meme", "models", "paml", "bppml", "mixedlikelihood", "opb", "gnh"]
+	lParams = ["infile", "queryName", "CCDSfile", "blastdb", "outdir", "logfile", "evalue", "mincov", "percID", "step", "remote", "entryQuery", "sptree", "APIKey", "gard", "treerecs", "nbspecies", "positiveSelection", "basename", "hyphySeuil", "busted", "meme", "models", "paml", "bppml", "mixedlikelihood", "opb", "gnh"]
 	with open(params, "r") as content:
 		dParams = {}
 		for line in content:
@@ -72,6 +73,12 @@ def paramDef(params, inf):
 		dParams["infile"] = inf.split(",")
 	else:
 		dParams["infile"] = dParams["infile"].split(",")
+		
+	#Idem queryName
+	if queryName != "":
+		dParams["queryName"] = queryName
+	else:
+		dParams["queryName"] = dParams["queryName"]
 	
 	#If list of file given, split and check what each file is
 	if len(dParams["infile"]) > 1:
@@ -101,27 +108,27 @@ def paramDef(params, inf):
 				dParams[param] = False
 		
 	#Check if parameters are correct
-	if "step_id" not in dParams or dParams["step_id"] not in ["blast", "extract", "getSequences", "orf", "prank", "phyml", "duplication", "recombination", "positiveSelection", ""]:
-		print("Step \""+dParams["step_id"]+"\" not available, set to blast by default.")
-		dParams["step_id"] = "blast"
-	if dParams["step_id"] == "":
-		dParams["step_id"] = "blast"
+	if "step" not in dParams or dParams["step"] not in ["blast", "extract", "getSequences", "orf", "prank", "phyml", "duplication", "recombination", "positiveSelection", ""]:
+		print("Step \""+dParams["step"]+"\" not available, set to blast by default.")
+		dParams["step"] = "blast"
+	if dParams["step"] == "":
+		dParams["step"] = "blast"
 	
 	if "remote" not in dParams or dParams["remote"] == "":
 		print("Remote option needs to be a boolean, set to True by default.")
 		dParams["remote"] = True
 	
-	if dParams["entry_query"] == "":
+	if dParams["entryQuery"] == "":
 		print("Database {:s} will be searched for all species".format(dParams["blastdb"]))
 	else:
-		print("Database search on {:s} will be limited to {:s}".format(dParams["blastdb"], dParams["entry_query"]))
+		print("Database search on {:s} will be limited to {:s}".format(dParams["blastdb"], dParams["entryQuery"]))
 	
 	if "positiveSelection" not in dParams:
 		print("Positive selection analyses will not be executed, set to False by default.")
 		dParams["positiveSelection"] = False
 		
 	elif dParams["positiveSelection"]:
-		if dParams["step_id"] == "positiveSelection":
+		if dParams["step"] == "positiveSelection":
 			if "treefile" not in dParams or dParams["treefile"] == "":
 				print("The pipeline requires a phylogenetic tree. Please provide one.")
 				sys.exit()
@@ -153,17 +160,17 @@ def paramDef(params, inf):
 						ltemp.append(M)
 				dParams[opt] = ",".join(ltemp)
 
-	elif dParams["step_id"] == "positiveSelection":
-		print("Error: positiveSelection option set to false and step_id set to positiveSelection.")
+	elif dParams["step"] == "positiveSelection":
+		print("Error: positiveSelection option set to false and step set to positiveSelection.")
 		sys.exit()
 		
-	if dParams["step_id"] in ["blast","extract","getSequences"]:
+	if dParams["step"] in ["blast","extract","getSequences"]:
 		if dParams["infile"] == "" or dParams["blastdb"] == "":
 			print("Infile and Blastdb are necessary.")
 			sys.exit()
 
 	#Creation of a dictionnary with all the parameters
-	defaultParam = {"infile":"", "CCDSfile":"", "blastdb":"", "outdir":"", "logfile":"", "evalue":1e-3, "mincov":50, "perc_id":70, "entry_query":"", "API_Key":"", "sptree":"", "treerecs":False, "nbspecies":8, "gard":False, "remote":False, "step_id":"blast","positiveSelection":False, "alnfile":"", "treefile":"", "alnformat":"Fasta", "basename":"", "hyphySeuil":0.05, "busted":False, "meme":False, "models":"", "paml":"", "bppml":"", "mixedlikelihood":"", "opb":False, "gnh":False}
+	defaultParam = {"infile":"", "queryName":"", "CCDSfile":"", "blastdb":"", "outdir":"", "logfile":"", "evalue":1e-3, "mincov":50, "percID":70, "entryQuery":"", "APIKey":"", "sptree":"", "treerecs":False, "nbspecies":8, "gard":False, "remote":False, "step":"blast","positiveSelection":False, "alnfile":"", "treefile":"", "alnformat":"Fasta", "basename":"", "hyphySeuil":0.05, "busted":False, "meme":False, "models":"", "paml":"", "bppml":"", "mixedlikelihood":"", "opb":False, "gnh":False}
 	
 	for i in defaultParam:
 		if i in dParams.keys() and dParams[i] != "":
@@ -220,16 +227,16 @@ def initLogger(args, debug, version):
 	# Welcome message
 	logger.info("Starting {:s} (v{:s})".format(__file__, version))
 
-	mainData = G2P_Object.basicData(args["infile"], args["outdir"], args["blastdb"], timeStamp, args["sptree"], args["alnfile"], args["treefile"])
+	mainData = G2P_Object.basicData(args["infile"], args["outdir"], args["blastdb"], timeStamp, args["sptree"], args["alnfile"], args["treefile"], args["queryName"])
 
-	if args["step_id"] == "duplication" and args["treerecs"] == False:
+	if args["step"] == "duplication" and args["treerecs"] == False:
 		args["treerecs"] == True
-	elif args["step_id"] == "recombination" and args["gard"] == False:
+	elif args["step"] == "recombination" and args["gard"] == False:
 		args["gard"] == True
 
 	logger.info("Reading input file {:s}".format(mainData.CCDSFile))
 	logger.info("Output directory: {:s}".format(mainData.o))
-	logger.info("Analysis will begin at the {:s} step".format(args["step_id"]))
+	logger.info("Analysis will begin at the {:s} step".format(args["step"]))
 
 	return mainData, logger
 

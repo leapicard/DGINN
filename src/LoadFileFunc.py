@@ -172,6 +172,7 @@ def prankEntry(Data, treeOption):
 		
 	else:
 		logger.info("Provided file is not a fasta of sequences, terminating DGINN.")
+		sys.exit()
 		
 	if treeOption:
 		checkPath(Data.sptree, "species's tree")
@@ -189,17 +190,22 @@ def phymlEntry(Data, treeOption, logger):
 	@param3 logger: An object logging
 	@return Data: basicData object
 	"""
-	if Data.aln != "":
-		logger.info("Alignment file: "+Data.aln)
-		Data = communFuncEntry(Data, ["ORFs"], 2)
+	if FormatFunc.isAln(Data.CCDSFile):
+		Data.aln = Data.CCDSFile
+		Data.ORFs = Data.CCDSFile
+		Data.baseName = baseNameInit(Data.baseName, Data.CCDSFile, Data.ORFs, Data.logger)
+		
+		with open(Data.aln) as orf:
+			Data.geneName = orf.readline().split("_")[1]
+		
 	else:
-		logger.info("You need to precise the alnfile")
-		sys.exit()
-	if treeOption == "True":
-		checkPath(Data.sptree, "species's tree")		
+		logger.info("Provided file is not a multiple sequence alignment, terminating DGINN.")
+		
+	if treeOption:
+		checkPath(Data.sptree, "species's tree")
 		Data.aln, corSG = filterData(Data.sptree, Data.aln, Data.o)
 		setattr(Data, "cor", corSG)
-		Data.tree = AnalysisFunc.runPhyML(Data.aln, "/".join(Data.aln.split("/")[:-1]))+"_phyml_tree.txt"
+		
 	return Data
 
 

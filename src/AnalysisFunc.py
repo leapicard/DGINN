@@ -118,43 +118,47 @@ def runPrank(ORFs, geneName, o):
 	
 	return(outPrank+".best.fas")
 
-def covAln(aln, cov, geneName, o):
+def covAln(aln, cov, queryName, o):
 	"""
 	Function to discard sequences from alignment according to coverage to query.
 	
 	@param1 aln: Path to prank alignment
 	@param2 cov: minimum coverage necessary to keep sequence (from parameter file)
-	@param3 geneName: id of the query sequence against which to check coverage
-	@param4 o: output directory
+	@param4 queryName: full identifier of the sequence against which to check coverage
+	@param5 o: output directory
 	@return outCov: Path to file of conserved sequences
 	"""
-	logger = logging.getLogger("main")
-	logger.info("Discarding sequences with less than {:d}% coverage of query.".format(cov))
-	outCov = o+aln.split("/")[-1].split(".")[0]+"_mincov.fasta"
-	
-	nbOut = 0
 	
 	dId2Seq = {fasta.id:str(fasta.seq) for fasta in SeqIO.parse(open(aln),'fasta')}
-	CCDS = [k for k in dId2Seq if "CCDS" in k]
+	logger = logging.getLogger("main")
 	
-	lIndexes = [pos for pos, char in enumerate(dId2Seq[CCDS[0]]) if char != "-"]
-
-	dKeep = {}
-	for ID, seq in dId2Seq.items():
-		seqPos = [seq[x] for x in lIndexes]
-		seqCov = (len(seqPos) - seqPos.count("-"))/len(seqPos)*100
+	if queryName in dId2Seq:
+		logger.info("Discarding sequences with less than {:d}% coverage of query.".format(cov))
+		outCov = o+aln.split("/")[-1].split(".")[0]+"_mincov.fasta"
 		
-		if seqCov > cov:
-			dKeep[ID] = seq
+		nbOut = 0
+		lIndexes = [pos for pos, char in enumerate(dId2Seq[queryName]) if char != "-"]
+
+		dKeep = {}
+		for ID, seq in dId2Seq.items():
+			seqPos = [seq[x] for x in lIndexes]
+			seqCov = (len(seqPos) - seqPos.count("-"))/len(seqPos)*100
+			
+			if seqCov > cov:
+				dKeep[ID] = seq
+		
+		nbOut = len(dId2Seq) - len(dKeep)
+		
+		with open(outCov, "w") as outC:
+			outC.write(FastaResFunc.dict2fasta(dKeep))
+		
+		logger.info("Discarded {:d} sequences".format(nbOut))
 	
-	nbOut = len(dId2Seq) - len(dKeep)
+		return(outCov)
 	
-	with open(outCov, "w") as outC:
-		outC.write(FastaResFunc.dict2fasta(dKeep))
-	
-	logger.info("Discarded {:d} sequences".format(nbOut))
-	
-	return(outCov)
+	else:
+		logger.info("Provided query name not found in the alignment, skipping coverage check.")
+		return(aln)
 
 def alnPrank(data, logger):
 	"""
@@ -340,12 +344,12 @@ def procGARD(gardRes, aln):
 		bf.write("inputRedirect[\"02\"] = \"{:s}\";\n".format(splitsFile))
 		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"GARDProcessor.bf\", inputRedirect);\n".format())
 	#logger.debug("Batch file: {:s}".format(batchFile))
-	print("test")
+	
 	cmd = "HYPHYMP {:s}".format(batchFile)
 	lCmd = shlex.split(cmd)
 	with open(outGardProc, "w") as o, open(errGardProc, "w") as e:
 		runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
-	print("ran")
+	
 	return(outGardProc)
 
 def parseGard(kh, aln, pvalue, o, logger):

@@ -128,14 +128,21 @@ def catFile(lBlastRes, geneName, sequence, hitsFasta, sptree, o, apiKey, treerec
 			r = requests.get(link)
 		
 		handle = r.text
-		"""	
-		handle = Entrez.efetch(db = "nucleotide", id = i, retmode = "text")
-		handle = handle.read()
-		"""
-		tax = handle.split('taxname')[1].split('"')[1].split(" ")
+		
+		if "." in i:
+			ID = i.split(".")[0]
+		else:
+			ID = i
+			
+		if ID in handle:
+			tax = handle.split(ID)[1].split('taxname')[1] #.split('"')[1].split(" ")
+			print(tax)
+		else:
+			print(ID)
+	exit()
+	"""
 		tax = tax[0][:3].lower()+"".join([ i[:3].title() for i in tax[1:]])
 		
-
 		try:
 			name = handle.split('locus')[1].split('"')[1].upper().replace('/', "_").replace(" ", "").replace("-", "")
 			#print(name)
@@ -159,8 +166,6 @@ def catFile(lBlastRes, geneName, sequence, hitsFasta, sptree, o, apiKey, treerec
 		if accn.id in dSpecies:
 			accnNb, accnSeq = accn.id, str(accn.seq)
 			accnSp = dSpecies[accn.id]
-			"""spInter = dSpecies[accn.id].split(" ")
-			accnSp = spInter[0][:3].lower()+"".join([ i[:3].title() for i in spInter[1:]])"""
 
 			if "." in accnNb:
 				accnNb = accnNb.replace(".", "dot")
@@ -196,7 +201,7 @@ def catFile(lBlastRes, geneName, sequence, hitsFasta, sptree, o, apiKey, treerec
 	logger.info("Added original query sequence to file and deleted sequences with excessive length: {:s}".format(outCat))
 	
 	return(outCat)
-
+	"""
 
 def fastaCreation(data, logger, remote, apiKey, treerecs):
 	"""

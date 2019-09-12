@@ -34,12 +34,12 @@ if __name__ == "__main__":
 	threads = int(parameters.threads)
 	if threads < 2:
 		threads = 2
-	parameters = Init.paramDef(parameters.params, parameters.infile)
+	parameters = Init.paramDef(parameters.params, parameters.infile, parameters.queryName)
 	Data, logger = Init.initLogger(parameters, debug, version)
-	funcNeeded = Init.initPipeline(parameters["step_id"], lSteps)
+	funcNeeded = Init.initPipeline(parameters["step"], lSteps)
 	Data.sptree, parameters["treerecs"] = TreeFunc.treeCheck(Data.sptree, parameters["treerecs"], logger)
 	dAlTree = {}
-	
+
 	for i in range(len(lSteps)):
 
 		if funcNeeded[i] == True:
@@ -48,57 +48,57 @@ if __name__ == "__main__":
 				Data.setGenAttr()
 				Data.baseName = LoadFileFunc.baseNameInit(Data.baseName, Data.CCDSFile, Data.aln, logger)			
 				
-				Data = BlastFunc.treatBlast(Data, parameters["evalue"], parameters["perc_id"], parameters["mincov"], parameters["API_Key"], parameters["remote"], parameters["entry_query"])
+				Data = BlastFunc.treatBlast(Data, parameters["evalue"], parameters["percID"], parameters["mincov"], parameters["APIKey"], parameters["remote"], parameters["entryQuery"])
 
 			elif lSteps[i] == "extract":
-				if parameters["step_id"] == "extract":
+				if parameters["step"] == "extract":
 					Data = LoadFileFunc.extractEntry(Data)	
 
 				ExtractFunc.treatAccns(Data, logger)
 				
 			elif lSteps[i] == "getSequences":
-				if parameters["step_id"] == "getSequences":
-					Data = LoadFileFunc.getSeqEntry(Data, parameters["step_id"])
+				if parameters["step"] == "getSequences":
+					Data = LoadFileFunc.getSeqEntry(Data, parameters["step"])
 
-				FastaResFunc.fastaCreation(Data, logger, parameters["remote"], parameters["API_Key"], parameters["treerecs"])
+				FastaResFunc.fastaCreation(Data, logger, parameters["remote"], parameters["APIKey"], parameters["treerecs"])
 
 			elif lSteps[i] == "orf":
-				if parameters["step_id"] == "orf":
+				if parameters["step"] == "orf":
 					Data = LoadFileFunc.orfEntry(Data, parameters["treerecs"])
 
 				AnalysisFunc.orfFinder(Data, logger)
 				
 			elif lSteps[i] == "prank":
-				if parameters["step_id"] == "prank":
+				if parameters["step"] == "prank":
 					Data = LoadFileFunc.prankEntry(Data, parameters["treerecs"])
 
 				AnalysisFunc.alnPrank(Data, logger)
-				fasCov = AnalysisFunc.covAln(Data.aln, parameters["mincov"], Data.geneName, Data.o)
+				fasCov = AnalysisFunc.covAln(Data.aln, parameters["mincov"], Data.queryName, Data.o)
 				newAln = AnalysisFunc.runPrank(fasCov, Data.geneName, Data.o)
 				Data.aln = newAln
 
 			elif lSteps[i] == "phyml":
-				if parameters["step_id"] == "phyml":
+				if parameters["step"] == "phyml":
 					Data = LoadFileFunc.phymlEntry(Data, parameters["treerecs"], logger)
 
 				dAlTree = AnalysisFunc.phyMLTree(Data, logger)
 				dAlTree = AnalysisFunc.checkPhyMLTree(Data, dAlTree, logger)
 
 			elif lSteps[i] == "duplication" and parameters["treerecs"]:
-				if parameters["step_id"] == "duplication":
+				if parameters["step"] == "duplication":
 					Data, dAlTree = LoadFileFunc.treeEntry(Data, logger)
 
 				dAlTree = TreeFunc.treeTreatment(Data, dAlTree, parameters["nbspecies"], logger)
 
 			elif lSteps[i] == "recombination" and parameters["gard"]:
-				if parameters["step_id"] == "recombination":
+				if parameters["step"] == "recombination":
 					Data, dAlTree = LoadFileFunc.gardEntry(Data, parameters, logger)
 
 				dAlTree = AnalysisFunc.gardRecomb(Data, parameters["hyphySeuil"], dAlTree, hostfile, logger)
 
 			elif lSteps[i] == "positiveSelection" and parameters["positiveSelection"]:
 				logger.info("Starting positive selection analyses.")
-				if parameters["step_id"] == "positiveSelection":
+				if parameters["step"] == "positiveSelection":
 					Data, dAlTree = LoadFileFunc.pspEntry(Data, parameters, logger)
 			
 				listArgsPosSel =  []

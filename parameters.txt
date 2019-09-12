@@ -1,4 +1,4 @@
-infile:/home/lpicard/22genes/22geneslist_complete_APOBEC3F_CCDS.fasta
+infile:/home/lpicard/22genes/22geneslist_complete_APOBEC3G_CCDS.fasta
 blastdb:nr
 outdir:
 logfile:

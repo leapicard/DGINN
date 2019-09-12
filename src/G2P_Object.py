@@ -24,7 +24,7 @@ class basicData:
 	@attr14 alnFormat: Format of alignment files
 	@attr15 baseName: base used for naming convention
 	"""
-	def __init__(self, inFile, outDir, database, timeStamp, spTree, aln, tree):
+	def __init__(self, inFile, outDir, database, timeStamp, spTree, aln, tree, queryName):
 		self.CCDSFile = inFile
 		self.o = outDir
 		self.logger = logging.getLogger("main")
@@ -36,6 +36,7 @@ class basicData:
 		self.sptree = spTree
 		self.aln = aln
 		self.tree = tree
+		self.queryName = queryName
 		self.alnFormat = "Fasta"
 		self.baseName = ""
 		
