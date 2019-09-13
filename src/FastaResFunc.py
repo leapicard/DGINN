@@ -1,10 +1,7 @@
-import G2P_Object, AnalysisFunc, LoadFileFunc
-import logging, subprocess, shlex, sys, requests, json
-from Bio import SeqIO, Entrez
-from collections import defaultdict, OrderedDict
+import LoadFileFunc
+import logging, sys
+from Bio import Entrez
 from statistics import median
-from ete3 import NCBITaxa
-from time import sleep
 
 """
 This file pools functions related to the creation and conversion of fasta format data.
@@ -24,76 +21,7 @@ def dict2fasta(dico):
 
 	return(txtoutput)
 
-def blastExtract(accnFile, db, lBlastRes, geneName, outDir, apiKey, remote):
-	"""
-	Function downloading sequences for a list of genes using their accessions.
-
-	@param1 accnFile: Path
-	@param2 db: Database name
-	@param3 lBlastRes: List of accessions
-	@param4 geneName: Gene name
-	@param5 outDir: Path directory 
-	@param6 apiKey: Key for the API of NCBI
-	@param7 remote: Boolean (online database or not)
-	@return out: Path to the file containing the extracted sequences
-	"""
-
-	## extract fasta from blast database
-
-	out = outDir+accnFile.replace("_accns.txt", "_primatesnoquery.fasta").split("/")[-1]
-	logger = logging.getLogger("main")
-
-	#If remote is set to False, we use the database in local
-	if not remote:
-		AnalysisFunc.cmd("blastdbcmd -db {:s} -dbtype nucl -entry_batch {:s} -out {:s} -outfmt %f".format(db, accnFile, out), False)
-	#If remote is set to True and the lengh of lBlastRes isn't big, generate one link
-	elif len(lBlastRes) < 20:
-		if apiKey != "":
-			link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&rettype=fasta&api_key={:s}".format(",".join(lBlastRes), apiKey)
-		else:
-			link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&rettype=fasta".format(",".join(lBlastRes))
-		r = requests.get(link, headers={"Content-Type" : "text/x-fasta"})
-		fasta = open(out, "w")
-		texTemp = r.text.split("\n")
-		text = [ i for i in texTemp if i != "" ]
-		fasta.write("\n".join(text))
-		fasta.close()
-	#If there're too much accessions number, generate several link to get fasta
-	else:
-		start = 0
-		end = 20
-		lRes = []
-		while end < len(lBlastRes):
-			if apiKey != "":
-				link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&rettype=fasta&api_key={:s}".format(",".join(lBlastRes[start:end]), apiKey)
-			else:
-				link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&rettype=fasta".format(",".join(lBlastRes[start:end]))
-			r = requests.get(link, headers={"Content-Type" : "text/x-fasta"})
-			texTemp = r.text.split("\n")
-			text = [ i for i in texTemp if i != "" ]
-			lRes.append("\n".join(text))
-			start=end
-			end +=20
-		if len(lBlastRes) != end:
-			if apiKey != "":
-				link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&rettype=fasta&api_key={:s}".format(",".join(lBlastRes[start:]), apiKey)
-			else:
-				link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&rettype=fasta".format(",".join(lBlastRes[start:]))
-			r = requests.get(link, headers={"Content-Type" : "text/x-fasta"})
-			texTemp = r.text.split("\n")
-			text = [ i for i in texTemp if i != "" ]
-			lRes.append("\n".join(text))
-			
-		#Filtre à ajouter
-
-		with open(out, "w") as fasta:
-			fasta.write("\n".join(lRes))
-		
-	logger.info("Extracted fasta sequences from blast results: {:s}".format(out))
-	
-	return(out)
-
-def catFile(lBlastRes, geneName, sequence, hitsFasta, sptree, o, apiKey, treerecs, logger):
+def remoteDl(lBlastRes, queryName, apiKey):
 	"""
 	Function dowloading species to generate new datas.
 
@@ -109,101 +37,85 @@ def catFile(lBlastRes, geneName, sequence, hitsFasta, sptree, o, apiKey, treerec
 	@return1 outCat: Path to the file containing the sequences and the new IDs
 	@return2 corSG: Path
 	"""
+	logger = logging.getLogger("main")
 	dSpecies = {}
+	dId2Seq = {}
 	
-	"""
+	Entrez.email="example@example.com"
 	Entrez.api_key = apiKey
-	Entrez.email = ""
-	"""
-	for i in lBlastRes:
-		
-		if apiKey != "":
-			link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&api_key={:s}&retmode=text".format(i, apiKey)
-		else:
-			link = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=sequences&id={:s}&retmode=text".format(i)
 	
-		r = requests.get(link)
-		while r.status_code != 200:
-			sleep(2)
-			r = requests.get(link)
-		
-		handle = r.text
-		
-		if "." in i:
-			ID = i.split(".")[0]
-		else:
-			ID = i
-			
-		if ID in handle:
-			tax = handle.split(ID)[1].split('taxname')[1] #.split('"')[1].split(" ")
-			print(tax)
-		else:
-			print(ID)
-	exit()
-	"""
+	handle = Entrez.efetch(db="nuccore", id=lBlastRes , idtype="acc", retmode="xml")
+	records = Entrez.parse(handle)
+	
+	for record in records:
+		acc = record['GBSeq_primary-accession']
+		tax = record['GBSeq_organism'].split(" ")
 		tax = tax[0][:3].lower()+"".join([ i[:3].title() for i in tax[1:]])
 		
-		try:
-			name = handle.split('locus')[1].split('"')[1].upper().replace('/', "_").replace(" ", "").replace("-", "")
-			#print(name)
-			if "{" in name:
-				name = "pot"+geneName.split("|")[1]
-			if " " in name:
-				name = "pot"+geneName.split("|")[1]
-			if "\n" in name:
-				name = "pot"+geneName.split("|")[1]
-		except:
-			name = "pot"+geneName.split("|")[1]
+		features = [record['GBSeq_feature-table'][i]['GBFeature_quals'] for i, d in enumerate(record['GBSeq_feature-table']) if 'GBFeature_quals' in d]
+		
+		for feat in features:
+			for d in feat:
+				if ('GBQualifier_name', 'gene') in d.items():
+					name = d['GBQualifier_value']
+					break
+					
+		if "." in name or "-" in name:
+			name = "pot"+queryName.split("_")[1]
+		if tax == "synCon" or 'GBSeq_sequence' not in record.keys():
+			continue
+		else:
+			dId2Seq[tax+"_"+name+"_"+acc.split(".")[0]] = record['GBSeq_sequence'].upper()
 			
-		dSpecies[i] = tax+"_"+name
+	handle.close()
+	logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases.")
 	
-	dNewId2Seq = OrderedDict()
-	dNewId2Len = {}
+	return(dId2Seq)
 
-	newID = geneName.replace("|", "_")
-	dNewId2Seq[newID] = sequence
-	for accn in SeqIO.parse(open(hitsFasta),'fasta'):
-		if accn.id in dSpecies:
-			accnNb, accnSeq = accn.id, str(accn.seq)
-			accnSp = dSpecies[accn.id]
 
-			if "." in accnNb:
-				accnNb = accnNb.replace(".", "dot")
-
-			accnNewID = accnSp+"_"+accnNb
-			dNewId2Seq[accnNewID] = accnSeq
-			dNewId2Len[accnNewID] = len(accnSeq)
-
-	#logger.debug(dNewId2Seq)
-	#logger.debug(dNewId2Len)		
-
-	m = median(dNewId2Len.values())
-	for k, v in dNewId2Len.items():
+def sizeCheck(dId2Seq):
+	logger = logging.getLogger("main")
+	
+	dId2Len = {Id:len(seq) for Id, seq in dId2Seq.items()}
+	m = median(dId2Len.values())
+	n = 0
+	
+	for k, v in dId2Len.items():
 		if m > 10000:
 			if v > 2*m:
 				try:
-					del dNewId2Seq[k]
+					del dId2Seq[k]
 					logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
+					n += 1
 				except KeyError:
 					pass
 		else:
 			if v > 3*m or v > 20000:
 				try:
-					del dNewId2Seq[k]
+					del dId2Seq[k]
 					logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
+					n += 1
 				except KeyError:
 					pass
 	
-	outCat = hitsFasta.replace("noquery", "")
-	with open(outCat, "w") as out:
-		out.write(dict2fasta(dNewId2Seq))
+	logger.info("Deleted {} sequences due to excessive length.".format(n))
 	
-	logger.info("Added original query sequence to file and deleted sequences with excessive length: {:s}".format(outCat))
+	return(dId2Seq)
 	
-	return(outCat)
-	"""
+def catFile(queryFile, dId2Seq, firstFasta):
+	logger = logging.getLogger("main")
+	
+	with open(queryFile, "r") as query:
+		query = query.readlines()
+		dId2Seq[query[0].strip().replace(">", "")] = query[1]
+	
+		with open(firstFasta, "w") as fasta:
+			fasta.write(dict2fasta(dId2Seq))
+	
+	return(firstFasta)
+	
 
-def fastaCreation(data, logger, remote, apiKey, treerecs):
+def fastaCreation(data, logger, remote, apiKey, step, treerecs):
 	"""
 	Function handling the creation of fasta files in the pipeline.
 
@@ -213,11 +125,25 @@ def fastaCreation(data, logger, remote, apiKey, treerecs):
 	@param4 apiKey: Key for the API of NCBI
 	@param5 treerecs: Booleans
 	"""
-	listExtract = blastExtract(data.accnFile, data.db, data.lBlastRes, data.geneName, data.o, apiKey, remote)
-	setattr(data, "hitsFasta", listExtract)
-
-	listCat = catFile(data.lBlastRes, data.geneName, data.sequence, data.hitsFasta, data.sptree, data.o, apiKey, treerecs, logger)
+	
+	if remote:
+		dId2Seq = remoteDl(data.lBlastRes, data.queryName, apiKey)
+	else: ### need to code this!!!!
+		logger.info("Local retrieval of information not yet implemented, exiting DGINN.")
+		sys.exit()
+	
+	dId2Seq = sizeCheck(dId2Seq)
+	
+	firstFasta = data.o+data.accnFile.replace("_accns.txt", "_sequences.fasta").split("/")[-1]
+	if step is "blast":
+		firstFasta = catFile(data.queryFile, dId2Seq, firstFasta)
+	else:
+		with open(firstFasta, "w") as out:
+			out.write(dict2fasta(dId2Seq))
+	setattr(data, "seqFile", firstFasta)
+	
 	if treerecs:
-		outCat, corSG = LoadFileFunc.filterData(data.sptree, listCat, data.o)
-		setattr(data, "catFile", outCat)
+		outCat, corSG = LoadFileFunc.filterData(data.sptree, firstFasta, data.o)
+		setattr(data, "seqFile", outCat)
 		setattr(data, "cor", corSG)
+	

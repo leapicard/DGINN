@@ -1,40 +1,34 @@
-import logging, os
-import G2P_Object
-from collections import defaultdict, OrderedDict
+import logging
 
 """This file pools the necessary functions to treat the input file of genes and their CCDS accessions."""
 
 
-def makeAccnsFile(lBlastRes, geneName, outDir):
+def makeAccnsFile(lBlastRes, queryName, outDir):
 	"""
 	Function creating a file with only CCDS accessions.
 
 	@param1 lBlastRes: List of accessions
-	@param2 geneName: Gene name
-	@param3 geneDir: gene Directory
+	@param2 queryName: ID of the blast query/reference sequence
+	@param3 outDir: Output directory
 	@return outBlastn: Path to the accessions file
 	"""
 
-	# write all accessions to new file		
-	outBlastn = outDir+geneName.split("|")[1]+"_accns.txt"
-	geneAllAccns = ""
+	# write all accessions to new file
+	outBlastn = outDir+queryName.split("_")[1]+"_accns.txt"
 	logger = logging.getLogger("main")
-
 	geneAllAccns = "\n".join(set(lBlastRes))
 	
 	logger.debug(geneAllAccns)
 		
 	with open(outBlastn, "w") as out:
 		out.write(geneAllAccns)
-
-	out.close()
 	
 	logger.info("Wrote all accessions to {:s}".format(outBlastn))
 	
 	return(outBlastn)
 
 
-def treatAccns(Data, logger):
+def treatAccns(Data):
 	"""
 	Process handling all the accession-related steps of the pipeline.
 
@@ -42,6 +36,6 @@ def treatAccns(Data, logger):
 	@param2 logger: Logging object
 	"""
 	
-	accnFile = makeAccnsFile(Data.lBlastRes, Data.geneName, Data.o)
+	accnFile = makeAccnsFile(Data.lBlastRes, Data.queryName, Data.o)
 	setattr(Data,"accnFile", accnFile)
 	

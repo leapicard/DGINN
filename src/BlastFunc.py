@@ -1,4 +1,4 @@
-import G2P_Object, AnalysisFunc
+import DataObject, AnalysisFunc
 import logging, os, shlex, sys
 from collections import defaultdict, OrderedDict
 from Bio.Blast import NCBIWWW, NCBIXML
@@ -7,11 +7,11 @@ from time import sleep
 
 """This file pools the necessary functions to run Blast and parse its results."""
 
-def blast(CCDSFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, query, logger):
+def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, query, logger):
 	"""
 	Function running Blast on the provided gene list.
 	
-	@param1 CCDSFile: Path
+	@param1 queryFile: Path
 	@param2 db: Database name
 	@param3 evalue: Blast e-value
 	@param4 percId: Blast percentage of identity
@@ -27,14 +27,20 @@ def blast(CCDSFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, q
 	logger.info("Running Blast")
 
 	if remote:
-		sequences = open(CCDSFile).read()
+		
+		if query == "":
+			logger.info("Database {:s} will be searched for all species".format(db))
+		else:
+			logger.info("Database search on {:s} will be limited to {:s}".format(db, query))
+			
+		sequence = open(queryFile).read()
 		url = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi?api_key={:s}'.format(apiKey)
 		
 		blasted = False
 		while not blasted:
 			try:
 				sleep(2)
-				resultHandle = NCBIWWW.qblast("blastn", db, sequences, entrez_query = query, url_base = url, hitlist_size=1000, perc_ident = percId, threshold = evalue)
+				resultHandle = NCBIWWW.qblast("blastn", db, sequence, entrez_query = query, url_base = url, hitlist_size=1000, perc_ident = percId, threshold = evalue)
 				blasted = True
 			except ValueError:
 				blasted = False
@@ -48,7 +54,7 @@ def blast(CCDSFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, q
 		f.close()
 
 	else:
-		cmdBlast = "blastn -task blastn -db {:s} -query {:s} -out {:s} -evalue {:f} -perc_identity {:d} -qcov_hsp_perc {:d} -outfmt \"7 sseqid\" -max_target_seqs 1000".format(db, CCDSFile, blastRes, evalue, percId, cov)
+		cmdBlast = "blastn -task blastn -db {:s} -query {:s} -out {:s} -evalue {:f} -perc_identity {:d} -qcov_hsp_perc {:d} -outfmt \"7 sseqid\" -max_target_seqs 1000".format(db, queryFile, blastRes, evalue, percId, cov)
 		AnalysisFunc.cmd(cmdBlast, False)
 		logger.debug("Blast command: {:s}".format(cmdBlast))
 
@@ -60,7 +66,7 @@ def blast(CCDSFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, q
 
 	return(blastRes)
 
-def parseBlast(blastRes, logger):
+def parseBlast(blastRes):
 	"""
 	Function parsing accessions of Blast results per gene.
 
@@ -68,20 +74,19 @@ def parseBlast(blastRes, logger):
 	@param2 logger: Logging object
 	@return lGeneRes: list of all the accessions of homologous genes found through Blast
 	"""
-
+	logger = logging.getLogger("main")
+	
 	with open(blastRes, "r") as blast:
 		listBlastRes = blast.readlines()
-		#logger.debug(listBlastRes)
 		
 		listAcc = []
-		geneName = listBlastRes[1].split("|")[1]
 		
 		for hit in listBlastRes:
 			if not hit.startswith("#"):
 				listAcc.append(hit.split("|")[-2])
 		
 	logger.debug(listAcc)
-	logger.info("Extracted gene accession numbers from blast results")
+	logger.info("Extracted gene accessions from blast results")
 	return(listAcc)
 
 def treatBlast(data, evalue, percId, cov, apiKey, remote, query):
@@ -98,8 +103,8 @@ def treatBlast(data, evalue, percId, cov, apiKey, remote, query):
 	@return data: List of gene objects
 	"""
 
-	data.blastRes = blast(data.CCDSFile, data.o, data.baseName, data.db, evalue, percId, cov, apiKey, remote, query, data.logger)
-	data.lBlastRes = parseBlast(data.blastRes, data.logger)
+	data.blastRes = blast(data.queryFile, data.o, data.baseName, data.db, evalue, percId, cov, apiKey, remote, query, data.logger)
+	data.lBlastRes = parseBlast(data.blastRes)
 
 	return data
 

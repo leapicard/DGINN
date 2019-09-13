@@ -1,4 +1,4 @@
-import logging, os
+import logging, os, sys
 from Bio import SeqIO
 
 """
@@ -9,7 +9,7 @@ class basicData:
 	"""
 	Object pooling all the necessary information for running the pipeline as well as the list of CCDS accessions and Blast result file.
 	
-	@attr1 CCDSFile: Path to the input file
+	@attr1 QueryFile: Path to the input file
 	@attr2 o: Path to the output directory (user determined or default)
 	@attr3 logger: Logger object
 	@attr4 db: Name of the Blast database
@@ -25,7 +25,7 @@ class basicData:
 	@attr15 baseName: base used for naming convention
 	"""
 	def __init__(self, inFile, outDir, database, timeStamp, spTree, aln, tree, queryName):
-		self.CCDSFile = inFile
+		self.queryFile = inFile
 		self.o = outDir
 		self.logger = logging.getLogger("main")
 		self.db = database
@@ -40,7 +40,7 @@ class basicData:
 		self.alnFormat = "Fasta"
 		self.baseName = ""
 		
-		## initiate self.o
+		## init self.o
 		if os.path.exists(self.o):
 			self.o = os.path.abspath(self.o)+"/"
 		else:
@@ -53,12 +53,16 @@ class basicData:
 				os.makedirs(self.o)
 			else:
 				self.logger.warn("Provided path to output folder {:s} does not exist, defaulting to {:s}".format(wrongDir, self.o))
-
-	def setGenAttr(self):
+			
+	def setGenAttr(self, step):
 		"""
-		Set attributes from the CCDSFile.
+		Set attributes from the queryFile.
 		"""
-		accns = list(SeqIO.parse(open(self.CCDSFile),'fasta'))
-		accn = accns[0]
-		self.geneName = accn.id
-		self.sequence = str(accn.seq)
+		if step == "blast":
+			accns = list(SeqIO.parse(open(self.queryFile),'fasta'))
+			accn = accns[0]
+			self.queryName = accn.id
+		else:
+			if self.queryName == "":
+				self.logger.warn("queryName is not provided, exiting DGINN.")
+				sys.exit()

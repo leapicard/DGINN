@@ -1,6 +1,7 @@
 from Bio import SeqIO
 from ete3 import Tree
 
+
 """The file pools all the functions needed to check formats of the user-provided files at each step of the pipeline."""
 
 def isCCDSFasta(targetFile):
@@ -23,6 +24,22 @@ def isCCDSFasta(targetFile):
 	
 	if '-' in seq and not seq.startswith("ATG"):
 		boolFile = False
+	
+	return(boolFile)
+
+def isAccns(targetFile):
+	"""
+	Check if provided file is at least not a fasta file for accessing the accession step.
+	
+	@param targetFile: file to be tested
+	@return boolFile: boolean of answer
+	"""
+	boolFile = True
+	with open(targetFile, "r") as target:
+		bad = any(">" in line for line in target.readlines())
+		
+		if bad:
+			boolFile = False
 	
 	return(boolFile)
 
@@ -70,15 +87,6 @@ def isBlastRes(targetFile):
 	
 	return(boolFile)
 	
-
-def isAccnsList(targetFile):
-	"""
-	Check if provided file is a file of a phylogenetic tree.
-	
-	@param targetFile: file to be tested
-	@return boolFile: boolean of answer
-	"""
-
 def isFasta(targetFile):
 	"""
 	Check if provided file is a simple fasta and contain multiple sequences.

@@ -46,19 +46,19 @@ def getCCDS(genesFile, species, spName):
 	
 	df = pandas.read_csv(genesFile, sep='\t') # import gene list as pandas dataframe
 	df = df.drop_duplicates(subset='Approved symbol', keep='first') # keep only first instance of each gene
-
+	
 	for index, row in df.iterrows():
 		geneName = str(row['Approved symbol'])
 		geneCCDS = str(row['CCDS accession'])
-		seqID = "{:s}|{:s}|{:s}".format(spName, geneName, geneCCDS)
+		seqID = "{:s}_{:s}_{:s}".format(spName, geneName, geneCCDS)
 		#print(seqID)
 		
 		# download fasta sequence from ENSEMBL server
 		add = 1
 		while add <= 3:
-			ext = "/sequence/id/{:s}.{:d}?object_type=transcript;type=cds;species={:s}".format(geneCCDS, add, species)	#db_type=otherfeatures;type=cds
+			ext = "/sequence/id/{:s}.{:d}?content-type=text/x-fasta;species={:s};object_type=transcript;db_type=otherfeatures;type=cds".format(geneCCDS, add, species)	#db_type=otherfeatures;type=cds
 			link = server+ext
-			
+			print(link)
 			r = requests.get(link, headers={"Content-Type" : "text/x-fasta"})
 			text = "".join(r.text.split("\n")[1:])
 
@@ -69,7 +69,7 @@ def getCCDS(genesFile, species, spName):
 
 		if add == 10:
 			#print(geneName)
-			seqID = seqID.replace(".", "dot")
+			seqID = seqID.split(".")[0]
 			dId2Seq[seqID] = text
 			#print(geneName)
 			#print(len(text))
@@ -77,7 +77,7 @@ def getCCDS(genesFile, species, spName):
 			print("Couldn't download sequence for {:s}".format(geneName))
 	
 	for key, value in dId2Seq.items():
-		out = ".".join(genesFile.split(".")[:-1])+"_"+key.split("|")[1]+"_CCDS.fasta"
+		out = ".".join(genesFile.split(".")[:-1])+"_"+key.split("_")[1]+"_CCDS.fasta"
 		with open(out, "w") as fasta:
 			if key != "" or value != "":
 				fasta.write(">"+key+"\n"+value)

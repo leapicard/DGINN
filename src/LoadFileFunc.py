@@ -1,24 +1,10 @@
-import BlastFunc, G2P_Object, ExtractFunc, TreeFunc, AnalysisFunc, FormatFunc
-import os, sys
-from multiprocessing import Pool
+import BlastFunc, DataObject, ExtractFunc, TreeFunc, AnalysisFunc, FormatFunc
+import os, sys, logging
 from Bio import SeqIO
 
 """
 This file pools the necessary functions to enter in the pipeline at a specific step.
 """
-
-def securityEntry(lFiles, nbFiles):
-	"""
-	Verify if the correct number of files has been provided.
-
-	@param1 lFiles: list of paths
-	@param2 nbFiles: number of files needed
-
-	"""
-	print(lFiles)
-	if len(lFiles) != nbFiles:
-		print("You have only provided {:d} file(s), while {:d} are necessary to enter at this step.".format(len(lFiles), nbFiles))
-		sys.exit()
 
 def checkPath(path, attrNames):
 	"""
@@ -31,19 +17,20 @@ def checkPath(path, attrNames):
 		print("The file with the {:s} information does not exist.".format(attrNames))
 		sys.exit()
 
-def baseNameInit(baseName, CCDSFile, aln, logger):
+def baseNameInit(baseName, queryFile, aln, logger):
 	"""
 	Initialization of the attribut basename
 
 	@param1 baseName: String
-	@param2 CCDSFile: Path
+	@param2 queryFile: Path
 	@param3 aln: Path
 	@param4 logger: An object logging
 	@return baseName: String
 	"""
+	
 	if baseName == "":
-		if CCDSFile != "":
-			baseName = CCDSFile.split(".")[0].split("/")[-1]
+		if queryFile != "":
+			baseName = queryFile.split(".")[0].split("/")[-1]
 		elif aln != "":
 			baseName = aln.split(".")[0].split("/")[-1]
 		else:
@@ -79,64 +66,44 @@ def parseLFile(path):
 	return [i.strip("\n") for i in listFile]
 
 ##==============================================================================================================================
-def communFuncEntry(Data, attrNames, nb):
-	"""
-	Commun code for function in LoadFileFunc.py.
 
-	@param1 Data: basicData object
-	@param2 attrNames: Name of the new attribut
-	@param3 nb: Number of files
-	@return data: basicData object
-	"""
-	files = Data.CCDSFile.split(",")
-	securityEntry(files, nb)
-	Data.CCDSFile = files[0].strip("\n")
-	checkPath(Data.CCDSFile, "fasta")
-	Data.setGenAttr()
-
-	setattr(Data, "geneDir", Data.o+Data.geneName.split("|")[1]+"/")
-	os.makedirs(Data.geneDir)
-
-	for i in range(len(attrNames)):
-		checkPath(files[i+1].strip("\n"), attrNames[i])
-		setattr(Data, attrNames[i], files[i+1].strip("\n"))
-
-	Data.baseName = baseNameInit(Data.baseName, Data.CCDSFile, Data.aln, Data.logger)
-
-	return Data
-
-def extractEntry(Data):
+def accnEntry(Data):
 	"""
 	Function handling start of the pipeline at the Extract step.
 
 	@param Data: basicData object 
 	@return data: basicData object
 	"""
-
-	files = Data.CCDSFile.split(",")
-	securityEntry(files, 2)
-	dId = {}
-	Data.CCDSFile = files[0].strip("\n")
-	checkPath(Data.CCDSFile, "fasta")
-	Data.setGenAttr()
-	Data.blastRes = files[1].strip("\n")
-	checkPath(Data.blastRes, "Blast' resultats")
-	Data.lBlastRes = Blast.parseBlast(Data)
-	Data.baseName =  baseNameInit(Data.basename, Data.CCDSFile, Data.aln, Data.logger)
-
+	logger = logging.getLogger("main")
+	
+	if FormatFunc.isBlastRes(Data.queryFile):
+		Data.blastRes = Data.queryFile
+		Data.lBlastRes = BlastFunc.parseBlast(Data.blastRes)
+		Data.baseName = baseNameInit(Data.baseName, Data.queryFile, Data.aln, Data.logger)
+	else:
+		logger.info("The provided file is not a tabular output of Blast+, exiting DGINN.")
+		sys.exit()
+	
 	return Data
 
-def getSeqEntry(Data):
+def getSeqEntry(Data, treeOption):
 	"""
 	Function handling start of the pipeline at the Fasta step.
 
 	@param Data: basicData object 
 	@return data: basicData object
 	"""
-	Data = communFuncEntry(Data, ["accnFile"], 2)
+	logger = logging.getLogger("main")
+	
+	if FormatFunc.isAccns(Data.queryFile):
+		Data.accnFile = Data.queryFile
+		Data.baseName = baseNameInit(Data.baseName, Data.queryFile, Data.accnFile, Data.logger)
 
-	Data.lBlastRes = [ i.strip("\n") for i in open(Data.accnFile, "r").readlines() ]
-
+		Data.lBlastRes = [ i.strip("\n") for i in open(Data.accnFile, "r").readlines() ]
+	else:
+		logger.info("Provided file is not a list of NCBI accessions, terminating DGINN.")
+		sys.exit()
+		
 	return Data
 
 
@@ -148,11 +115,15 @@ def orfEntry(Data, treeOption):
 	@param2 treeOption: Boolean
 	@return data: basicData object
 	"""
-	Data = communFuncEntry(Data, ["catFile"], 2)
-	if treeOption == "True":
-		checkPath(Data.sptree, "species's tree")
-		Data.catFile, corSG = filterData(Data.sptree, Data.catFile, Data.o)
-		setattr(Data, "cor", corSG)
+	logger = logging.getLogger("main")
+	
+	if FormatFunc.isFasta(Data.queryFile):
+		Data.seqFile = Data.queryFile
+		Data.baseName = baseNameInit(Data.baseName, Data.queryFile, Data.aln, Data.logger)
+	else:
+		logger.info("The provided file is not a fasta of nucleotide sequences, exiting DGINN.")
+		sys.exit()
+	
 	return Data
 
 def prankEntry(Data, treeOption):
@@ -163,9 +134,9 @@ def prankEntry(Data, treeOption):
 	@param2 treeOption: Boolean
 	@return data: basicData object
 	"""
-	if FormatFunc.isFasta(Data.CCDSFile):
-		Data.ORFs = Data.CCDSFile
-		Data.baseName = baseNameInit(Data.baseName, Data.CCDSFile, Data.ORFs, Data.logger)
+	if FormatFunc.isFasta(Data.queryFile):
+		Data.ORFs = Data.queryFile
+		Data.baseName = baseNameInit(Data.baseName, Data.queryFile, Data.ORFs, Data.logger)
 		
 		with open(Data.ORFs) as orf:
 			Data.geneName = orf.readline().split("_")[1]
@@ -173,11 +144,6 @@ def prankEntry(Data, treeOption):
 	else:
 		logger.info("Provided file is not a fasta of sequences, terminating DGINN.")
 		sys.exit()
-		
-	if treeOption:
-		checkPath(Data.sptree, "species's tree")
-		Data.ORFs, corSG = filterData(Data.sptree, Data.ORFs, Data.o)
-		setattr(Data, "cor", corSG)
 		
 	return Data
 
@@ -190,10 +156,10 @@ def phymlEntry(Data, treeOption, logger):
 	@param3 logger: An object logging
 	@return Data: basicData object
 	"""
-	if FormatFunc.isAln(Data.CCDSFile):
-		Data.aln = Data.CCDSFile
-		Data.ORFs = Data.CCDSFile
-		Data.baseName = baseNameInit(Data.baseName, Data.CCDSFile, Data.ORFs, Data.logger)
+	if FormatFunc.isAln(Data.queryFile):
+		Data.aln = Data.queryFile
+		Data.ORFs = Data.queryFile
+		Data.baseName = baseNameInit(Data.baseName, Data.queryFile, Data.ORFs, Data.logger)
 		
 		with open(Data.aln) as orf:
 			Data.geneName = orf.readline().split("_")[1]
@@ -201,14 +167,24 @@ def phymlEntry(Data, treeOption, logger):
 	else:
 		logger.info("Provided file is not a multiple sequence alignment, terminating DGINN.")
 		
-	if treeOption:
-		checkPath(Data.sptree, "species's tree")
-		Data.aln, corSG = filterData(Data.sptree, Data.aln, Data.o)
-		setattr(Data, "cor", corSG)
-		
 	return Data
 
+def spTreeCheck(Data, firstStep, treeOption):
+	if treeOption:
+		checkPath(Data.sptree, "species's tree")
+		
+		if not hasattr(Data, 'cor'):
+			if firstStep == "orf":
+				Data.seqFile, corSG = filterData(Data.sptree, Data.seqFile, Data.o)
+			elif firstStep == "prank":
+				Data.ORFs, corSG = filterData(Data.sptree, Data.ORFs, Data.o)
+			elif firstStep == "phyml":
+				Data.aln, corSG = filterData(Data.sptree, Data.aln, Data.o)
+			elif firstStep == "duplication":
+				Data.aln, corSG = filterData(Data.sptree, Data.aln, Data.o)
+			setattr(Data, "cor", corSG)
 
+### rework this
 def treeEntry(Data, logger):
 	"""
 	Function handling start of the pipeline at the tree step.
@@ -257,8 +233,8 @@ def pspEntry(Data, parameters, logger):
 	logger.info("Alignement file: "+Data.aln)
 	logger.info("Gene Tree file: "+Data.tree)
 	dico[Data.aln] = Data.tree
-	Data.baseName = baseNameInit(Data.baseName, Data.CCDSFile, Data.aln, Data.logger)
-	#AccessionFunc.createGeneDir(Data.o, Data.aln.split('/')[-1].split(".")[0])
+	Data.baseName = baseNameInit(Data.baseName, Data.queryFile, Data.aln, Data.logger)
+	
 	Data.alnFormat = parameters["alnformat"].title()
 
 	return Data, dico

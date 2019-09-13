@@ -1,4 +1,4 @@
-import G2P_Object, FastaResFunc, ExtractFunc
+import FastaResFunc, ExtractFunc
 import logging, subprocess, shlex, os, ete3
 from Bio import SeqIO, AlignIO
 from collections import defaultdict, OrderedDict
@@ -19,7 +19,7 @@ def cmd(commandLine, choice):
 
 ######ORF===================================================================================================================
 
-def getORFs(catFile, geneName, geneDir):
+def getORFs(catFile, queryName, geneDir):
 	"""
 	Function to find Open Reading Frames within the sequence of each gene and select the longest one.
 
@@ -56,20 +56,23 @@ def getORFs(catFile, geneName, geneDir):
 		dRev.setdefault(v, set()).add(k)
 		
 	AllDupl = [values for key, values in dRev.items() if len(values) > 1]
-	
+	n = 0
 	for dupl in AllDupl:
 		species = set([x.split("_")[0] for x in dupl])
 		
 		for sp in species:
-			if geneName.replace("|", "_") in dupl:
-				firstOcc = geneName.replace("|", "_")
+			if queryName in dupl:
+				firstOcc = queryName
 			else:
 				firstOcc = [x for x in dupl if sp in x][0]
 			dupl.remove(firstOcc)
 		
 		for i in dupl:
 			dId2Longest.pop(i, None)
-			logger.info("Deleted sequence {:s} (duplicate)".format(i))
+			n += 1
+			logger.debug("Deleted sequence {:s} (duplicate)".format(i))
+		
+	logger.info("Deleted {} sequences as duplicates".format(n))
 	
 	outORF = outORFraw.replace("_allORFs.fasta","_longestORFs.fasta")
 
@@ -81,7 +84,7 @@ def getORFs(catFile, geneName, geneDir):
 	return(outORF)
 
 
-def orfFinder(data, logger):
+def orfFinder(data):
 	"""
 	Procedure which launch the ORF step
 
@@ -89,9 +92,8 @@ def orfFinder(data, logger):
 	@param2 logger: Logging object
 	"""
 	
-	ORFile = getORFs(data.catFile, data.geneName, data.o)
+	ORFile = getORFs(data.seqFile, data.queryName, data.o)
 	setattr(data, "ORFs", ORFile)
-	#logger.info("Got longest ORFs")
 
 #######=================================================================================================================
 ######PRANK=============================================================================================================
@@ -276,10 +278,10 @@ def cutLongBranches(aln, dAlnTree, logger):
 def checkPhyMLTree(data, dAlnTree, logger):
 	dAlnTree = cutLongBranches(data.aln, dAlnTree, logger)
 	
-	if "" in dAlnTree.values():
-		logger.info("Reconstructing alignments and phylogenies following long branch parsing.")
-		for newAln in dAlnTree:
-			aln = runPrank(newAln, data.geneName, data.o)
+	for aln in dAlnTree:
+		if dAlnTree[aln] == "":
+			logger.info("Reconstructing alignments and phylogenies following long branch parsing.")
+			aln = runPrank(aln, data.geneName, data.o)
 			tree = runPhyML(aln, data.o)
 			dAlnTree[aln] = tree+"_phyml_tree.txt"
 		
