@@ -11,7 +11,7 @@ Any questions or suggestions about the program can be addressed to lea.picard [a
 
 ## 1/ Necessary dependencies and softwares
 
-- Softwares: [Blast+ 2.6.0+](ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/), [EMBOSS:6.6.0.0]()
+- Softwares: [Blast+ 2.6.0+](ftp://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/), [EMBOSS:6.6.0.0](http://en.bio-soft.net/format/emboss.html)
 - 
 
 
