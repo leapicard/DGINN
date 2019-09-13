@@ -11,8 +11,8 @@ Any questions or suggestions about the program can be addressed to lea.picard [a
 
 ## 1/ Necessary dependencies and softwares
 
-- Softwares: [Blast+ 2.6.0+](https://www.ncbi.nlm.nih.gov/books/NBK279671/), [EMBOSS:6.6.0.0](http://en.bio-soft.net/format/emboss.html), [PhyML 3:3.2.0](https://github.com/stephaneguindon/phyml), [PRANK v.150803](http://wasabiapp.org/software/prank/prank_installation/), [Treerecs](https://gitlab.inria.fr/Phylophile/Treerecs), [HYPHY 2.220161014beta](http://www.hyphy.org/installation/), [PAML 4.9](http://abacus.gene.ucl.ac.uk/software/paml.html), [Bio++ v.1.6.0](https://github.com/BioPP)
-
+- Softwares (minimum version): [Blast+ 2.6.0+](https://www.ncbi.nlm.nih.gov/books/NBK279671/), [EMBOSS:6.6.0.0](http://en.bio-soft.net/format/emboss.html), [PhyML 3:3.2.0](https://github.com/stephaneguindon/phyml), [PRANK v.150803](http://wasabiapp.org/software/prank/prank_installation/), [Treerecs](https://gitlab.inria.fr/Phylophile/Treerecs), [HYPHY 2.220161014beta](http://www.hyphy.org/installation/), [PAML 4.9](http://abacus.gene.ucl.ac.uk/software/paml.html), [Bio++ v.1.6.0](https://github.com/BioPP)
+- Python (3.5) and packages: Biopython, ete3, collections, logging, shlex, os, numpy, scipy, requests, pandas, statistics, time, re, argparse
 
 ## 2/ Docker
 
