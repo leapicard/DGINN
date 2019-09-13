@@ -16,8 +16,36 @@ Any questions or suggestions about the program can be addressed to lea.picard [a
 
 ## 2/ Docker
 
-A docker will soon be available (link).
+A docker image will soon be available (link) to provide a way to use DGINN without requiring installation.
+
+```{sh}
+docker pull link/tocome
+```
 
 # Usage
+
+## 1/ Command line
+
+## 2/ Parameter file
+
+## 3/ Entry steps
+
+## 4/ Positive selection
+
+# Tutorial
+
+## 1/ Validation data
+
+link to validation results repo
+
+# Related content
+
+## 1/ CCDSquery
+
+link to CCDSquery repo
+
+## 2/ Results extraction
+
+link to Results extraction repo
 
 
