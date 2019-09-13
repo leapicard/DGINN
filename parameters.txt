@@ -1,4 +1,4 @@
-infile:/home/lpicard/2019_validation/21genes_GADD45A_CCDS.fasta
+infile:
 blastdb:nr
 outdir:
 logfile:
@@ -7,7 +7,7 @@ mincov:
 percID:
 entryQuery:Primates[Organism]
 step:
-queryName:homSap_GADD45A_CCDS640
+queryName:
 remote:yes
 APIKey:72fdd958586d0fca7819f4daeceb95469e09
 sptree:/home/lpicard/primates_speciestree.tree

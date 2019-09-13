@@ -53,11 +53,12 @@ class basicData:
 				os.makedirs(self.o)
 			else:
 				self.logger.warn("Provided path to output folder {:s} does not exist, defaulting to {:s}".format(wrongDir, self.o))
-			
+	
+	
 	def setGenAttr(self, step):
-		"""
-		Set attributes from the queryFile.
-		"""
+		
+		#Set attributes from the queryFile.
+		
 		if step == "blast":
 			accns = list(SeqIO.parse(open(self.queryFile),'fasta'))
 			accn = accns[0]
@@ -66,3 +67,4 @@ class basicData:
 			if self.queryName == "":
 				self.logger.warn("queryName is not provided, exiting DGINN.")
 				sys.exit()
+	

@@ -37,8 +37,8 @@ if __name__ == "__main__":
 	Data, logger = Init.initLogger(parameters, debug, version)
 	funcNeeded = Init.initPipeline(parameters["step"], lSteps)
 	Data.sptree, parameters["treerecs"] = TreeFunc.treeCheck(Data.sptree, parameters["treerecs"], logger)
-	Data.setGenAttr(parameters["step"])
 	dAlTree = {}
+	Data.setGenAttr(parameters["step"])
 	
 	firstStep = ""
 	if parameters["step"] in ["blast", "accessions", "fasta"]:
@@ -51,7 +51,6 @@ if __name__ == "__main__":
 	for i in range(len(lSteps)):
 		if funcNeeded[i] == True:
 			if lSteps[i] == firstStep:
-				print("once")
 				LoadFileFunc.spTreeCheck(Data, firstStep, parameters["treerecs"])
 				
 			if lSteps[i] == "blast":
