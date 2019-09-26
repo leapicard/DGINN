@@ -34,6 +34,7 @@ def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, 
 			logger.info("Database search on {:s} will be limited to {:s}".format(db, query))
 			
 		sequence = open(queryFile).read()
+		seqL = len(sequence.split("\n")[1])
 		url = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi?api_key={:s}'.format(apiKey)
 		
 		blasted = False
@@ -46,11 +47,15 @@ def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, 
 				blasted = False
 			
 		f = open(blastRes, "w")
+		print(seqL)
 		for record in NCBIXML.parse(resultHandle):
 			f.write("# "+record.application+" "+record.version+"\n# Query: "+record.query+"\n# Database: "+record.database+"\n# Fields: subject id, ?\n# "+str(len(record.alignments))+" hits found\n")
+			
 			for alignment in record.alignments:
 				for hsp in alignment.hsps:
-					f.write(alignment.title+"\n")
+					qcov = hsp.align_length/seqL*100
+					if qcov > cov:
+						f.write(alignment.title+"\n")
 		f.close()
 
 	else:
