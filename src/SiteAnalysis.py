@@ -5,7 +5,7 @@ from ete3 import EvolTree
 def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, baseName, logger):	
 	### SITE ANALYSIS: BIO++
 
-	logger.info("Site Analysis (BIO++)")
+	logger.info("Bio++ Site Analysis")
 	logger.info("Models to be run: {:s}".format(", ".join(model for model in lModels)))
 	logger.info("Bppml parameter file: {:s}".format(bppFile))
 	logger.info("Bppmixedlilkelihood parameter file: {:s}".format(bppMixed))
@@ -27,7 +27,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	"""
 
 	# Bppml output file names - dictionaries that associate model number with output file name for the model
-	outSite = outDir+"site_analysis/"
+	outSite = outDir+"bpp_site/"
 	if not os.path.exists(outSite):
 		subprocess.Popen("mkdir "+outSite, shell =  True).wait()
 
@@ -142,10 +142,14 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
 	
 	tree = EvolTree(treeFile)
-	tree.workdir = os.mkdir(outDir+"/paml/")
-	aln = tree.link_to_alignment(alnFile, "Fasta")
+	os.mkdir(outDir+"paml_site/")
+	tree.workdir = outDir+"paml_site/"
+	tree.link_to_alignment(alnFile, "Fasta")
+	logger.info("PAML codeml")
 	
 	dModelRun = {}
+	if "M8a" in lModels:
+		lModels.remove("M8a")
 	for model in lModels:
 		logger.info("Running {:s}".format(model))
 		dModelRun[model] = tree.run_model(model)
@@ -156,8 +160,9 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
 	if "M7" and "M8" in dModelRun:
 		p78 = tree.get_most_likely("M8", "M7")
 		logger.info("LRT of M7 vs M8 = {}".format(p78))
+	"""
 	if "M8a" and "M8" in dModelRun:
 		p88a = tree.get_most_likely("M8a", "M8")
 		logger.info("LRT of M8 vs M8a = {}".format(p88a))
-		
+	"""
 	

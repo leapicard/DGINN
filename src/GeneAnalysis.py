@@ -18,7 +18,7 @@ def hyphyBusted(alnFile, cladoFile, outDir, baseName, logger):
 	
 	# run BUSTED
 	### find way to suppress stderr
-	outWG = outDir+"whole_gene/"
+	outWG = outDir+"busted/"
 	if not os.path.exists(outWG):
 		subprocess.Popen("mkdir "+outWG, shell =  True).wait()
 	outBusted = open(outWG+baseName+"_busted.out", "w")

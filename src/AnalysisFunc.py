@@ -277,13 +277,16 @@ def cutLongBranches(aln, dAlnTree, logger):
 
 def checkPhyMLTree(data, dAlnTree, logger):
 	dAlnTree = cutLongBranches(data.aln, dAlnTree, logger)
+	dAlnTree2 = {}
 	
 	for aln in dAlnTree:
 		if dAlnTree[aln] == "":
 			logger.info("Reconstructing alignments and phylogenies following long branch parsing.")
 			aln = runPrank(aln, data.geneName, data.o)
 			tree = runPhyML(aln, data.o)
-			dAlnTree[aln] = tree+"_phyml_tree.txt"
+			dAlnTree2[aln] = tree+"_phyml_tree.txt"
+			
+	dAlnTree.update(dAlnTree2)
 		
 	return(dAlnTree)
 		

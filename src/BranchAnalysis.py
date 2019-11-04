@@ -8,7 +8,7 @@ def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 	logger.info("One Per Branch (BIO++)")
 	logger.info("OPB parameter file: {:s}".format(OPBFile))
 	
-	outOPB = outDir+"branch_analysis/"
+	outOPB = outDir+"bpp_branch/"
 	if not os.path.exists(outOPB):
 		os.makedirs(outOPB)
 	
@@ -56,7 +56,7 @@ def bppBranchSite(GNHFile, lPSNodes, outDir, baseName, alnFile, alnFormat, treeF
 	logger.info("GNH parameter file: {:s}".format(GNHFile))
 	
 	for node in lPSNodes:
-		outGNH = outDir+"pseudo_branchsite_analysis/"
+		outGNH = outDir+"bpp_gnh/"
 		if not os.path.exists(outGNH):
 			os.makedirs(outGNH)
 		
@@ -81,9 +81,9 @@ def memeBranchSite(aln, cladoFile, outDir, baseName, logger):
 
 	### BRANCH-SITE ANALYSIS: HYPHY MEME
 	
-	logger.info("Branch-site (MEME, HYPHY)")
+	logger.info("Episodic selection (MEME, HYPHY)")
 	
-	outBSA = outDir+"branch_site/"
+	outBSA = outDir+"meme/"
 	if not os.path.exists(outBSA):
 		subprocess.Popen("mkdir "+outBSA, shell =  True).wait()
 
