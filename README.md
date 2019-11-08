@@ -48,7 +48,38 @@ Optional parameters:
   -host <filename>, --hostfile <filename>
                         Path to cluster hostfile if needed for mpi process
 ```
+
 ## 2/ Parameter file
+
+DGINN uses a parameter file to pass all the necessary arguments for lauching the pipeline.
+All
+```
+infile:
+blastdb:
+outdir:
+logfile:
+evalue:
+mincov:
+percID:
+entryQuery:
+step:
+queryName:
+remote:
+APIKey:
+sptree:
+treerecs:
+nbspecies:
+gard:
+positiveSelection:
+hyphySeuil:
+busted:
+meme:
+models:
+bppml:
+mixedlikelihood:
+opb:
+gnh:
+```
 
 ## 3/ Entry steps
 
