@@ -1,10 +1,11 @@
 # DGINN: Detection of Genetic INNovations pipeline
 
-IN CONSTRUCTION
-
 DGINN is a pipeline dedicated to the detection of genetic innovations, starting from a nucleotidic sequence. 
+
 It automatizes all the necessary preliminary steps for evolutionary analyses, including retrieval of homologs, assignment to orthology groups, codon alignment and reconstruction of gene phylogeny.
+
 Following the obtention of the alignements and corresponding phylogenies, three major genetic innovations: duplication events, recombination events, and signatures of positive selection.
+
 Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.org
 
 # Overview
@@ -57,8 +58,8 @@ Optional parameters:
 
 DGINN uses a parameter file to pass all the necessary arguments for lauching the pipeline.
 Two example files are provided in the main directory:
-1. one performing steps 1-7 (cf Overview) from the CDS of the gene of interest to the detection of recombination
-2. one performing step 8 for the detection of positive selection
+1. one performing steps 1-7 (cf Overview) from the CDS of the gene of interest to the detection of recombination (parameters.txt)
+2. one performing step 8 for the detection of positive selection (parameters_possel.txt)
 
 This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized over all alignments instead of doing them sequentially.
 
@@ -166,6 +167,14 @@ opb:
 | positiveSelection | codon alignment, gene tree                 | Fasta, newick         |
 
 TEST
+
+| Tables        | Are           | Cool  |
+| ------------- |:-------------:| -----:|
+| col 3 is      | right-aligned | $1600 |
+| col 2 is      | centered      |   $12 |
+| zebra stripes | are neat      |    $1 |
+
+AGAIN
 
 ## 4/ Positive selection
 
