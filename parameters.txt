@@ -1,4 +1,4 @@
-infile:
+infile:/home/lpicard/2019_validation/21genes_MX1_CCDS_results_201911071321/MX1_sequences_filtered_longestORFs_prank_mincov_prank.best.fas,/home/lpicard/2019_validation/21genes_MX1_CCDS_results_201911071321/MX1_sequences_filtered_longestORFs_prank_mincov_prank.phylip_phyml_tree.txt
 blastdb:nr
 outdir:
 logfile:
@@ -6,8 +6,8 @@ evalue:
 mincov:
 percID:
 entryQuery:Primates[Organism]
-step:
-queryName:
+step:duplication
+queryName:homSap_MX1_CCDS13673
 remote:yes
 APIKey:72fdd958586d0fca7819f4daeceb95469e09
 sptree:/home/lpicard/primates_speciestree.tree
