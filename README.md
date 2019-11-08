@@ -55,7 +55,7 @@ DGINN uses a parameter file to pass all the necessary arguments for lauching the
 Two example files are provided in the main directory:
 one performing steps 1-7 (cf pipeline workflow) from the CDS of the gene of interest to the detection of recombination,
 and one performing step 8 for the detection of positive selection. 
-This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized 
+This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized over all alignments instead of doing them sequentially.
 ```
 # Path or list of paths to the files needed to start the pipeline
 # Please refer to 3/ Entry steps to know which files are necessary depending on the step at which DGINN will start
@@ -65,10 +65,12 @@ infile:
 # Future implementations will include the possibility to perform the search on local databases
 blastdb:
 
-# Output directory for all results (will be automatically created if not specified)
+# Output directory for all results
+# Automatically created if not specified
 outdir:
 
-# Path to a file where progress of the pipeline will be logged (will be automatically created if not specified)
+# Path to a file where progress of the pipeline will be logged
+# Automatically created if not specified
 logfile:
 
 # E-value for Blast (default: 10⁻⁴)
@@ -91,22 +93,54 @@ step:
 # Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName:
 
-# C
+# Determines if Blast is performed against local or NCBI databases (default: True)
 remote:
+
+# NCBI API key to increase Blast speed, obtainable from the NCBI
 APIKey:
+
+# Path to the species tree for the detection of duplication events and ortholog group assignment
+# Species names must be formated as speSpe or speSpeSpe (ex: homSap, gorGorGor)
 sptree:
+
+# Option for the identification of duplication events (default: False)
 treerecs:
+
+# Minimum number of species for a duplication to be considered as delimiting a group of orthologs (default: 8)
 nbspecies:
+
+# Option for the detection of recombination events (default: False)
 gard:
+
+# Option for the detection of positive selection (default: False)
 positiveSelection:
+
+# P-value for Hyphy methods (BUSTED/MEME) (Pond et al., 2005) (default: 0.1)
 hyphySeuil:
+
+# Option for using the Hyphy method BUSTED (Murrel et al., 2015) (default: False)
 busted:
+
+# Option for using the Hyphy method BUSTED (Murrel et al., 2015) (default: False)
 meme:
+
+# Models to be computed by BIO++ (Gueguen et al., 2013) and PAML (Yang, 2007)
+# Implemented models: M0, M1, M2, M7, M8
+# Must be comma separated (ex: M0,M1,M2)
 models:
+
+# Option for using BIO++ for the detection of sites under positive selection
+# If True, parameter file will be automatically generated
+# Can be used to indicate the path to a BIO++ parameter file
 bppml:
+
+# Same as previously, but for extracting results from the results computed from bppml
 mixedlikelihood:
+
+# Option for using BIO++ for the detection of branches under positive selection
+# If True, parameter file will be automatically generated
+# Can be used to indicate the path to a BIO++ parameter file
 opb:
-gnh:
 ```
 
 ## 3/ Entry steps
