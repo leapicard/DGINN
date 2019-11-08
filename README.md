@@ -7,11 +7,13 @@ It automatizes all the necessary preliminary steps for evolutionary analyses, in
 Following the obtention of the alignements and corresponding phylogenies, three major genetic innovations: duplication events, recombination events, and signatures of positive selection.
 Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.org
 
+# Overview
+
 # Installation
 
 ## 1/ Necessary dependencies and softwares
 
-- Softwares: [Blast+ 2.6](https://www.ncbi.nlm.nih.gov/books/NBK279671/), [EMBOSS:6.6](http://en.bio-soft.net/format/emboss.html), [PhyML 3:3.1](https://github.com/stephaneguindon/phyml), [PRANK v.150803](http://wasabiapp.org/software/prank/prank_installation/), [Treerecs v1.0](https://gitlab.inria.fr/Phylophile/Treerecs), [HYPHY 2.220161014beta](http://www.hyphy.org/installation/), [PAML 4.9](http://abacus.gene.ucl.ac.uk/software/paml.html), [Bio++ v.2](https://github.com/BioPP)
+- Softwares: [EMBOSS:6.6](http://en.bio-soft.net/format/emboss.html), [PhyML 3:3.0](https://github.com/stephaneguindon/phyml), [PRANK v.150803](http://wasabiapp.org/software/prank/prank_installation/), [Treerecs v1.0](https://gitlab.inria.fr/Phylophile/Treerecs), [HYPHY 2.220161014beta](http://www.hyphy.org/installation/), [PAML 4.9](http://abacus.gene.ucl.ac.uk/software/paml.html), [Bio++ v.2](https://github.com/BioPP)
 - Python (>3.5) and packages: Biopython, ete3, collections, logging, shlex, os, numpy, scipy, requests, pandas, statistics, time, re, argparse
 
 ## 2/ Docker
@@ -53,7 +55,7 @@ Optional parameters:
 
 DGINN uses a parameter file to pass all the necessary arguments for lauching the pipeline.
 Two example files are provided in the main directory:
-one performing steps 1-7 (cf pipeline workflow) from the CDS of the gene of interest to the detection of recombination,
+one performing steps 1-7 (cf Overview) from the CDS of the gene of interest to the detection of recombination,
 and one performing step 8 for the detection of positive selection. 
 This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized over all alignments instead of doing them sequentially.
 ```
