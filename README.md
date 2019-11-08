@@ -156,17 +156,17 @@ opb:
 
 TEST
 
-| Step              | File(s)                                    | Format                |
-| ----------------- | ------------------------------------------ | --------------------- |
-| blast             | CDS of the gene of interest                | Fasta                 |
-| accession         | List of blast results                      | NCBI tabulated format |
-| fasta             | List of accession identifiers (one/line)   | Text                  |
-| orf               | mRNA sequences of orthologs                | Fasta                 |
-| prank             | CDS sequences of orthologs                 | Fasta                 |
-| phyml             | (codon) alignment of orthologs             | Fasta                 |
-| duplication       | (codon) alignment, gene tree, species tree | Fasta, newick, newick |
-| recombination     | (codon) alignment                          | Fasta                 |
-| positiveSelection | codon alignment, gene tree                 | Fasta, newick         |
+| Step              | File\(s\)                                    | Format                |
+|-------------------|----------------------------------------------|-----------------------|
+| blast             | CDS of the gene of interest                  | Fasta                 |
+| accession         | List of blast results                        | NCBI tabulated format |
+| fasta             | List of accession identifiers \(one/line\)   | Txt                   |
+| orf               | mRNA sequences of orthologs                  | Fasta                 |
+| prank             | CDS sequences of orthologs                   | Fasta                 |
+| phyml             | \(codon\) alignment of orthologs             | Fasta                 |
+| duplication       | \(codon\) alignment, gene tree, species tree | Fasta, newick, newick |
+| recombination     | \(codon\) alignment                          | Fasta                 |
+| positiveSelection | codon alignment, gene tree                   | Fasta, gene tree      |
 
 TEST
 
