@@ -52,18 +52,46 @@ Optional parameters:
 ## 2/ Parameter file
 
 DGINN uses a parameter file to pass all the necessary arguments for lauching the pipeline.
-All
+Two example files are provided in the main directory:
+one performing steps 1-7 (cf pipeline workflow) from the CDS of the gene of interest to the detection of recombination,
+and one performing step 8 for the detection of positive selection. 
+This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized 
 ```
+# Path or list of paths to the files needed to start the pipeline
+# Please refer to 3/ Entry steps to know which files are necessary depending on the step at which DGINN will start
 infile:
+
+# NCBI database on which the blast is to be performed (ex: nr)
+# Future implementations will include the possibility to perform the search on local databases
 blastdb:
+
+# Output directory for all results (will be automatically created if not specified)
 outdir:
+
+# Path to a file where progress of the pipeline will be logged (will be automatically created if not specified)
 logfile:
+
+# E-value for Blast (default: 10⁻⁴)
 evalue:
+
+# Coverage for Blast (default: 50)
 mincov:
+
+# Percentage of identity for Blast (default: 70)
 percID:
+
+# Can be used to limit the search on NCBI databases to certain set of species, to exclude others, etc.
+# https://www.ncbi.nlm.nih.gov/books/NBK3837/#EntrezHelp.Entrez_Searching_Options
 entryQuery:
+
+# Step at which to enter the pipeline (default: blast)
+# Please refer to 3/ Entry steps for names and necessary files
 step:
+
+# Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName:
+
+# C
 remote:
 APIKey:
 sptree:
