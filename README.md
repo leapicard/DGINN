@@ -59,10 +59,11 @@ DGINN uses a parameter file to pass all the necessary arguments for lauching the
 Two example files are provided in the main directory:
 1. one performing steps 1-7 (cf Overview) from the CDS of the gene of interest to the detection of recombination
 2. one performing step 8 for the detection of positive selection
+
 This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized over all alignments instead of doing them sequentially.
 ```
 # Path or list of paths to the files needed to start the pipeline
-# Please refer to 3/ Entry steps to know which files are necessary depending on the step at which DGINN will start
+# Please refer to **3/ Entry steps** for necessary files
 infile:
 
 # NCBI database on which the blast is to be performed (ex: nr)
@@ -110,7 +111,7 @@ sptree:
 # Option for the identification of duplication events (default: False)
 treerecs:
 
-# Minimum number of species for a duplication to be considered as delimiting a group of orthologs (default: 8)
+# Minimum number of species for assignment to an ortholog group (default: 8)
 nbspecies:
 
 # Option for the detection of recombination events (default: False)
@@ -119,16 +120,16 @@ gard:
 # Option for the detection of positive selection (default: False)
 positiveSelection:
 
-# P-value for Hyphy methods (BUSTED/MEME) (Pond et al., 2005) (default: 0.1)
+# P-value for Hyphy methods (BUSTED/MEME) (Pond *et al.*, 2005) (default: 0.1)
 hyphySeuil:
 
-# Option for using the Hyphy method BUSTED (Murrel et al., 2015) (default: False)
+# Option for using the Hyphy method BUSTED (Murrel *et al.*, 2015) (default: False)
 busted:
 
-# Option for using the Hyphy method BUSTED (Murrel et al., 2015) (default: False)
+# Option for using the Hyphy method BUSTED (Murrel *et al.*, 2015) (default: False)
 meme:
 
-# Models to be computed by BIO++ (Gueguen et al., 2013) and PAML (Yang, 2007)
+# Models to be computed by BIO++ (Gueguen *et al.*, 2013) and PAML (Yang, 2007)
 # Implemented models: M0, M1, M2, M7, M8
 # Must be comma separated (ex: M0,M1,M2)
 models:
