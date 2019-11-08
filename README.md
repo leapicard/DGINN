@@ -9,6 +9,8 @@ Any questions or suggestions about the program can be addressed to lea.picard [a
 
 # Overview
 
+![alt text](https://github.com/leapicard/DGINN/blob/master/etc/pipeline_diagram_1908.png)
+
 # Installation
 
 ## 1/ Necessary dependencies and softwares
@@ -55,8 +57,8 @@ Optional parameters:
 
 DGINN uses a parameter file to pass all the necessary arguments for lauching the pipeline.
 Two example files are provided in the main directory:
-one performing steps 1-7 (cf Overview) from the CDS of the gene of interest to the detection of recombination,
-and one performing step 8 for the detection of positive selection. 
+1. one performing steps 1-7 (cf Overview) from the CDS of the gene of interest to the detection of recombination
+2. one performing step 8 for the detection of positive selection
 This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized over all alignments instead of doing them sequentially.
 ```
 # Path or list of paths to the files needed to start the pipeline
