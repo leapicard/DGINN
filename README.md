@@ -154,8 +154,6 @@ opb:
 
 ## 3/ Entry steps
 
-TEST
-
 | Step              | File\(s\)                                    | Format                |
 |-------------------|----------------------------------------------|-----------------------|
 | blast             | CDS of the gene of interest                  | Fasta                 |
@@ -168,24 +166,29 @@ TEST
 | recombination     | \(codon\) alignment                          | Fasta                 |
 | positiveSelection | codon alignment, gene tree                   | Fasta, gene tree      |
 
-TEST
-
-| Step          | File(s)     | Format|
-| ------------- |---------------| ------|
-| col 3 is      | right-aligned | $1600 |
-| col 2 is      | centered      |   $12 |
-| zebra stripes | are neat      |    $1 |
-
-AGAIN
-
 ## 4/ Positive selection
 
 # Tutorial
 
 ## 1/ Example files
 
-example sh script
-example parameter file
+In the examples folder, two parameter files are provided.
+
+```python3 DGINN.py -p parameters.txt ```
+Will launch DGINN steps 1-7 on ex_CCDS.fasta by :
+* retrieving homologs of primate species in the NCBI *nr* database
+* detecting duplications and assigning ortholog groups of at least 8 species based on ex_spTree.tree
+* detecting recombination events
+
+```python3 DGINN.py -p parameters_possel.txt ```
+Will launch DGINN steps 1-7 on ex_CCDS.fasta by :
+* looking for positive selection on the gene using BUSTED
+* looking for sites under episodic positive selection using MEME
+* looking for sites under positive selection using models M0-NS, M1-NS, M2-NS, M7-NS and M8-NS from BIO++
+* looking for sites under positive selection using models M0, M1, M2, M7 and M8 from PAML codeml
+* looking for branches under positive selection using BIO++
+
+
 
 ## 2/ Validation data
 

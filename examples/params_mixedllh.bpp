@@ -1,0 +1,41 @@
+alphabet = Codon(letter=DNA)
+
+#----------------------------------------------------------------------------------------
+#                                            Input data
+#----------------------------------------------------------------------------------------
+
+# The sequence file to use (sequences must be aligned!)
+input.sequence.file=$(INPUTFILE)
+
+# The alignment format:
+input.sequence.format=$(FORMAT)
+
+#Sites to use:
+# all, nogap or complete (=only resolved chars)
+input.sequence.sites_to_use = all
+
+# Specify a maximum amount of gaps: may be an absolute number or a percentage.
+input.sequence.max_gap_allowed = 50%
+input.sequence.max_unresolved_allowed = 100%
+
+# ----------------------------------------------------------------------------------------
+#                                     Input tree file
+# ----------------------------------------------------------------------------------------
+
+input.tree.file = $(TREEFILE)
+input.tree.format = Newick
+
+
+# ----------------------------------------------------------------------------------------
+#                                     Model specification
+# ----------------------------------------------------------------------------------------
+
+params = $(PARAMS)
+
+
+# ----------------------------------------------------------------------------------------
+#                                     Mixed output
+# ----------------------------------------------------------------------------------------
+
+# Alignment information log file (site specific rates, probabilities, etc):
+output.likelihoods.file = $(OUTINFO)
