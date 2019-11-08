@@ -154,7 +154,9 @@ opb:
 
 ## 3/ Entry steps
 
-| Step              | File(s)                                    | Format                |
+TEST
+
+| Step              | File(s)                                    | Format                |
 | ----------------- | ------------------------------------------ | --------------------- |
 | blast             | CDS of the gene of interest                | Fasta                 |
 | accession         | List of blast results                      | NCBI tabulated format |
