@@ -61,6 +61,9 @@ Two example files are provided in the main directory:
 2. one performing step 8 for the detection of positive selection
 
 This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized over all alignments instead of doing them sequentially.
+
+Please be aware that fasta sequence names/queryName must follow the format speSpe_GENE_Id (ex: homSap_MX1_CCDS13673, macMul_APOBEC3G_NM_001198693).
+
 ```
 # Path or list of paths to the files needed to start the pipeline
 # Please refer to **3/ Entry steps** for necessary files
@@ -162,6 +165,7 @@ opb:
 | recombination     | (codon) alignment                          | Fasta                 |
 | positiveSelection | codon alignment, gene tree                 | Fasta, newick         |
 
+TEST
 
 ## 4/ Positive selection
 
