@@ -10,7 +10,7 @@ Any questions or suggestions about the program can be addressed to lea.picard [a
 
 # Overview
 
-![alt text](https://github.com/leapicard/DGINN/blob/master/etc/pipeline_diagram_1908.png)
+![alt text](https://github.com/leapicard/DGINN/blob/master/etc/pipeline_diagram.png)
 
 # Installation
 
@@ -167,7 +167,7 @@ opb:
 | positiveSelection | codon alignment, gene tree                   | Fasta, gene tree      |
 
 Though codon alignments are not technically necessary for the phyml, duplication and recombination steps, they are for positiveSelection.
-Thus, alignments 
+Thus, starting at steps upstream of positiveSelection with non codon alignments will probably lead to failure at the positiveSelection step.
 
 ## 4/ Positive selection
 
@@ -186,7 +186,7 @@ Will launch DGINN steps 1-7 on ex_CCDS.fasta by :
 
 ```python3 DGINN.py -p parameters_possel.txt```
 
-Will launch DGINN steps 1-7 on ex_CCDS.fasta by :
+Will launch DGINN step 8 on ex_CCDS.fasta by :
 * looking for positive selection on the gene using BUSTED
 * looking for sites under episodic positive selection using MEME
 * looking for sites under positive selection using models M0-NS, M1-NS, M2-NS, M7-NS and M8-NS from BIO++
@@ -195,16 +195,35 @@ Will launch DGINN steps 1-7 on ex_CCDS.fasta by :
 
 ## 2/ Validation data
 
-link to validation results repo
+All results from our validation of DGINN will be made available shortly.
 
 # Related content
 
 ## 1/ CCDSquery
 
-link to CCDSquery repo
+In the etc folder, a script entitled CCDSquery.py is included. 
+This script allows the user to download the CCDS sequences of human genes, by providing the properly formatted file obtained through HGNC.
+This file should at least contain a column titled "" and another titled "", as exemplified in examples/ex_CCDStable.txt.
+
+```
+python3 DGINN/etc/CCDSQuery.py -h
+usage: DGINN/etc/CCDSQuery.py [-h] -in <filename>
+
+This program get sequences' genes from HGNC Biomart.
+
+optional arguments:
+  -h, --help            show this help message and exit
+
+Mandatory input infos for running:
+  -in <filename>, --inFile <filename>
+                        Table of HGNC approved symbols (one per line) and
+                        corresponding CCDS accessions for the genes of
+                        interest, obtained from HGNC Biomart
+```
 
 ## 2/ Results extraction
 
-link to Results extraction repo
+Another script called parseResults.py can also be found in the etc folder. 
+
 
 

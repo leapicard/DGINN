@@ -20,6 +20,9 @@ def cmd(commandLine, choice):
 						 check=True, 
 						 stdout=subprocess.PIPE, 
 						 stderr=subprocess.PIPE)
+	
+	print(stdout)
+	print(stderr)
 
 ######ORF===================================================================================================================
 
@@ -212,8 +215,8 @@ def runPhyML(aln, geneDir):
 	os.remove(tmp)
 
 	# PhyML
+	print("phyml -i {:s} -v e -b -2".format(outPhy))
 	cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
-	
 	#logger.debug(cmd)
 	
 	return(outPhy)
