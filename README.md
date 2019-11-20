@@ -24,7 +24,7 @@ Any questions or suggestions about the program can be addressed to lea.picard [a
 A docker image will soon be available (link) to provide a way to use DGINN without requiring installation of any software except for [Docker](https://docs.docker.com/install/).
 
 ```{sh}
-docker pull link/tocome
+docker pull leapicard/dginn
 ```
 
 # Usage
@@ -225,5 +225,27 @@ Mandatory input infos for running:
 
 Another script called parseResults.py can also be found in the etc folder. 
 
+```
+python3 DGINN/etc/parseResults.py -h
+usage: DGINN/etc/parseResults.py [-h] [-v] [-dd] -in <filename>
+                                 [-o <path/to/directory>]
 
+This program creates a summary of DGINN's results.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --version         display DGINN/etc/parseResults.py version number and
+                        exit
+  -dd, --debug          enter verbose/debug mode
+
+Mandatory input infos for running:
+  -in <filename>, --inDir <filename>
+                        Path to directory of results
+
+Optional input infos (default values):
+  -o <path/to/directory>, --outdir <path/to/directory>
+                        folder for analysis results (path - by default output
+                        file will be saved in the incoming directory)
+
+```
 
