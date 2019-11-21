@@ -20,9 +20,6 @@ def cmd(commandLine, choice):
 						 check=True, 
 						 stdout=subprocess.PIPE, 
 						 stderr=subprocess.PIPE)
-	
-	print(stdout)
-	print(stderr)
 
 ######ORF===================================================================================================================
 
