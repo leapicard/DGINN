@@ -1,4 +1,4 @@
-infile:~/DGINN/examples/ex_aln.fasta,~/DGINN/examples/ex_genetree.fasta
+infile:ex_aln.fasta,ex_geneTree.tree
 blastdb:
 outdir:
 logfile:
@@ -19,6 +19,6 @@ busted:True
 meme:True
 models:M0,M1,M2,M7,M8
 paml:True
-bppml:~/DGINN/examples/params_bppml.bpp
-mixedlikelihood:~/DGINN/examples/params_mixedllh.bpp
+bppml:params_bppml.bpp
+mixedlikelihood:params_mixedllh.bpp
 opb:True
