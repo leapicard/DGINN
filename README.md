@@ -21,7 +21,7 @@ Any questions or suggestions about the program can be addressed to lea.picard [a
 
 ## 2/ Docker
 
-A docker image will soon be available (link) to provide a way to use DGINN without requiring installation of any software except for [Docker](https://docs.docker.com/install/).
+A docker image is available to provide a way to use DGINN without requiring installation of any software except for [Docker](https://docs.docker.com/install/).
 
 Get the docker:
 ```{sh}
@@ -29,13 +29,13 @@ docker pull leapicard/dginn
 ```
 Use the docker:
 ```{sh}
-docker run -v /path/to/working/directory:/data leapicard/dginn
+docker run -v /path/to/working/directory:/data leapicard/dginn -p parameters.txt
 ```
 /path/to/working/directory should be the complete path to the directory where all files necessary to run the pipeline are located (parameter file, infile(s), species tree, etc.)
 
 /data refers to the working directory within the docker and should not be changed.
 
-All other arguments are passed exactly as if DGINN were run through the command line directly from the script (see next section). However, one main difference is that all the files should be referred to by their name in the parameter file and be located within the working directory, while they can be referred by their path and be located in a different directory when running the script version.
+All other arguments are passed exactly as if DGINN were run through the command line directly from the script (such as -p parameters.txt / see next section). However, one main difference is that all the files should be referred to by their name in the parameter file and be located within the working directory, while they can be referred by their path and be located in a different directory when running the script version.
 
 # Usage
 
