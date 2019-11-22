@@ -68,9 +68,6 @@ RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.p
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
 
-#RUN useradd --create-home --shell /bin/bash currentuser
-#USER currentuser
-WORKDIR /currentuser
+WORKDIR /data
 ENTRYPOINT ["DGINN.py"]
 CMD ["-h"]
-

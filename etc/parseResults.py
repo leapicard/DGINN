@@ -53,7 +53,7 @@ def LRT(ll1, ll2, df):
 if __name__ == "__main__":
 	
 	# Parameters recovery
-	parser = argparse.ArgumentParser(prog=__file__, description='''This program constructs codon alignments and phylogeny from a gene HGNC approved symbol.''')
+	parser = argparse.ArgumentParser(prog=__file__, description='''This program creates a summary of DGINN's results.''')
 	parser.add_argument('-v', '--version', action='version', version='You are using %(prog)s version: ' + version, help=\
 						'display '+__file__+' version number and exit')
 	parser.add_argument('-dd', '--debug', dest='debug', action='store_true', help='enter verbose/debug mode')

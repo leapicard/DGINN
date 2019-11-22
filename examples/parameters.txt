@@ -1,4 +1,4 @@
-infile:~/DGINN/examples/ex_CCDS.fasta
+infile:ex_CCDS.fasta
 blastdb:nr
 outdir:
 logfile:
@@ -10,7 +10,7 @@ step:
 queryName:
 remote:yes
 APIKey:
-sptree:~/DGINN/examples/ex_spTree.tree
+sptree:ex_spTree.tree
 treerecs:True
 nbspecies:8
 gard:True
