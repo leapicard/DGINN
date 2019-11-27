@@ -34,6 +34,7 @@ class basicData:
 		self.blastRes = ""
 		self.lBlastRes = []
 		self.sptree = spTree
+		self.ORFs = ""
 		self.aln = aln
 		self.tree = tree
 		self.queryName = queryName
@@ -50,7 +51,10 @@ class basicData:
 			else:
 				self.o = aln.split(".")[0]+"_results_"+timeStamp+"/"
 			if wrongDir == "":
-				os.makedirs(self.o)
+				try:
+      				os.makedirs(self.o)
+				except FileExistsError:
+      				pass
 			else:
 				self.logger.warn("Provided path to output folder {:s} does not exist, defaulting to {:s}".format(wrongDir, self.o))
 	

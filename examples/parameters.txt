@@ -11,9 +11,9 @@ queryName:
 remote:yes
 APIKey:
 sptree:ex_spTree.tree
-treerecs:True
+duplication:True
 nbspecies:8
-gard:True
+recombination:True
 positiveSelection:False
 hyphySeuil:
 busted:

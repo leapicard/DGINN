@@ -180,7 +180,7 @@ def phymlRecEntry(Data, logger):
 			Data.geneName = orf.readline().split("_")[1]
 		
 	else:
-		logger.info("Provided file is not a multiple sequence alignment, terminating DGINN.")
+		logger.error("Provided file is not a multiple sequence alignment, terminating DGINN.")
 		
 	return Data
 

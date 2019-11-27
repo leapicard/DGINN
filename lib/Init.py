@@ -39,7 +39,7 @@ def parameterCommandLine(version, __file__):
 	
 	xargs = parser.add_argument_group('Optional parameters')
 	xargs.add_argument('-i', '--infile', metavar="<filename>", required=False, dest = 'infile', default="", 
-					  help = 'Path or list of paths to the file(s) needed to start the pipeline (if indicated, will take priority over the parameters file)')
+					  help = 'Path or list of paths (absolute or relative) to the file(s) needed to start the pipeline (if indicated, will take priority over the parameters file)')
 	xargs.add_argument('-q', '--query', metavar="<string>", required=False, dest = 'queryName', default="", 
 					  help = 'Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)')
 	xargs.add_argument('-host', '--hostfile', metavar="<filename>", required=False, dest = 'hostfile', default="", 
@@ -77,8 +77,8 @@ def paramDef(params, inf, queryName):
 			   "entryQuery", 
 			   "sptree", 
 			   "APIKey", 
-			   "gard", 
-			   "treerecs", 
+			   "recombination", 
+			   "duplication", 
 			   "nbspecies", 
 			   "positiveSelection", 
 			   "basename", 
@@ -100,7 +100,7 @@ def paramDef(params, inf, queryName):
 				if not temp[0].startswith("#"):
 					print(temp[0]+" is not a valid parameter.\n")
 			else:
-				dParams[temp[0]] = temp[1]
+				dParams[temp[0]] = temp[1].strip()
 	
 	#If infile(s) given through command line, takes priority
 	if inf != "":
@@ -222,9 +222,9 @@ def paramDef(params, inf, queryName):
 					"entryQuery":"", 
 					"APIKey":"", 
 					"sptree":"", 
-					"treerecs":False, 
+					"duplication":False, 
 					"nbspecies":8, 
-					"gard":False, 
+					"recombination":False, 
 					"remote":False, 
 					"step":"blast",
 					"positiveSelection":False, 
@@ -307,10 +307,10 @@ def initLogger(args, debug, version):
 									args["treefile"], 
 									args["queryName"])
 
-	if args["step"] == "duplication" and args["treerecs"] == False:
-		args["treerecs"] == True
-	elif args["step"] == "recombination" and args["gard"] == False:
-		args["gard"] == True
+	if args["step"] == "duplication" and args["duplication"] == False:
+		args["duplication"] == True
+	elif args["step"] == "recombination" and args["recombination"] == False:
+		args["recombination"] == True
 
 	logger.info("Reading input file {:s}".format(mainData.queryFile))
 	logger.info("Output directory: {:s}".format(mainData.o))

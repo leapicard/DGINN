@@ -10,9 +10,9 @@ step_id:positiveSelection
 remote:
 API_Key:
 sptree:
-treerecs:
+duplication:
 nbspecies:
-gard:
+recombination:
 positiveSelection:True
 hyphySeuil:
 busted:True

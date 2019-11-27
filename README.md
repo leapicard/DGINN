@@ -53,7 +53,7 @@ Mandatory parameters:
 
 Optional parameters:
   -i <filename>, --infile <filename>
-                        Path or list of paths to the file(s) needed to start
+                        Path or list of paths (absolute or relative) to the file(s) needed to start
                         the pipeline (if indicated, will take priority over
                         the parameters file)
   -q <string>, --query <string>
@@ -67,7 +67,7 @@ Optional parameters:
 ## 2/ Parameter file
 
 DGINN uses a parameter file to pass all the necessary arguments for lauching the pipeline.
-Two example files are provided in the main directory:
+Two example files are provided in the examples directory:
 1. one performing steps 1-7 (cf Overview) from the CDS of the gene of interest to the detection of recombination (parameters.txt)
 2. one performing step 8 for the detection of positive selection (parameters_possel.txt)
 
@@ -76,7 +76,7 @@ This is the recommended usage for DGINN, so that analyses for positive selection
 Please be aware that fasta sequence names/queryName must follow the format speSpe_GENE_Id (ex: homSap_MX1_CCDS13673, macMul_APOBEC3G_NM_001198693).
 
 ```
-# Path or list of paths to the files needed to start the pipeline
+# Path or list of paths (absolute or relative) to the files needed to start the pipeline
 # Please refer to **3/ Entry steps** for necessary files
 infile:
 
@@ -112,7 +112,7 @@ step:
 # Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName:
 
-# Determines if Blast is performed against local or NCBI databases (default: True)
+# Determines if Blast is performed against NCBI databases (default: True)
 remote:
 
 # NCBI API key to increase Blast speed, obtainable from the NCBI
@@ -123,13 +123,13 @@ APIKey:
 sptree:
 
 # Option for the identification of duplication events (default: False)
-treerecs:
+duplication:
 
 # Minimum number of species for assignment to an ortholog group (default: 8)
 nbspecies:
 
 # Option for the detection of recombination events (default: False)
-gard:
+recombination:
 
 # Option for the detection of positive selection (default: False)
 positiveSelection:
@@ -164,7 +164,7 @@ opb:
 
 ## 3/ Entry steps
 
-| Step              | File\(s\)                                    | Format                |
+| Step              | Necessary file\(s\)                                    | Format                |
 |-------------------|----------------------------------------------|-----------------------|
 | blast             | CDS of the gene of interest                  | Fasta                 |
 | accession         | List of blast results                        | NCBI tabulated format |
@@ -175,6 +175,9 @@ opb:
 | duplication       | \(codon\) alignment, gene tree, species tree | Fasta, newick, newick |
 | recombination     | \(codon\) alignment                          | Fasta                 |
 | positiveSelection | codon alignment, gene tree                   | Fasta, gene tree      |
+
+File order must be respected and follow the one indicated in this table.
+
 
 Though codon alignments are not technically necessary for the phyml, duplication and recombination steps, they are for positiveSelection.
 Thus, starting at steps upstream of positiveSelection with non codon alignments will probably lead to failure at the positiveSelection step.
@@ -220,7 +223,7 @@ Will launch DGINN step 8 on ex_aln.fasta and ex_genetree.tree by :
 
 All results from our validation of DGINN will be made available shortly.
 
-# Related content
+# Utility scripts
 
 ## 1/ CCDSquery
 

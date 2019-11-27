@@ -28,8 +28,8 @@ if __name__ == "__main__":
 			  "accessions", 
 			  "fasta", 
 			  "orf", 
-			  "prank", 
-			  "phyml", 
+			  "alignment", 
+			  "tree", 
 			  "duplication", 
 			  "recombination", 
 			  "positiveSelection"]
@@ -52,8 +52,8 @@ if __name__ == "__main__":
 								   debug, 
 								   version)
 	funcNeeded = Init.initPipeline(parameters["step"], lSteps)
-	Data.sptree, parameters["treerecs"] = TreeFunc.treeCheck(Data.sptree, 
-															 parameters["treerecs"], 
+	Data.sptree, parameters["duplication"] = TreeFunc.treeCheck(Data.sptree, 
+															 parameters["duplication"], 
 															 logger)
 	dAlTree = {}
 	Data.setGenAttr(parameters["step"])
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 			if lSteps[i] == firstStep:
 				LoadFileFunc.spTreeCheck(Data, 
 										 firstStep, 
-										 parameters["treerecs"])
+										 parameters["duplication"])
 				
 			if lSteps[i] == "blast":
 				Data.baseName = LoadFileFunc.baseNameInit(Data.baseName, 
@@ -95,24 +95,24 @@ if __name__ == "__main__":
 				
 			elif lSteps[i] == "fasta":
 				if parameters["step"] == "fasta":
-					Data = LoadFileFunc.getSeqEntry(Data, parameters["treerecs"])
+					Data = LoadFileFunc.getSeqEntry(Data, parameters["duplication"])
 
 				FastaResFunc.fastaCreation(Data, 
 										   logger, 
 										   parameters["remote"], 
 										   parameters["APIKey"], 
 										   parameters["step"], 
-										   parameters["treerecs"])
+										   parameters["duplication"])
 
 			elif lSteps[i] == "orf":
 				if parameters["step"] == "orf":
-					Data = LoadFileFunc.orfEntry(Data, parameters["treerecs"])
+					Data = LoadFileFunc.orfEntry(Data, parameters["duplication"])
 
 				AnalysisFunc.orfFinder(Data)
 				
 			elif lSteps[i] == "prank":
 				if parameters["step"] == "prank":
-					Data = LoadFileFunc.prankEntry(Data, parameters["treerecs"])
+					Data = LoadFileFunc.prankEntry(Data, parameters["duplication"])
 
 				AnalysisFunc.alnPrank(Data, logger)
 				fasCov = AnalysisFunc.covAln(Data.aln, 
@@ -133,7 +133,7 @@ if __name__ == "__main__":
 													  dAlTree, 
 													  logger)
 
-			elif lSteps[i] == "duplication" and parameters["treerecs"]:
+			elif lSteps[i] == "duplication" and parameters["duplication"]:
 				if parameters["step"] == "duplication":
 					Data, dAlTree = LoadFileFunc.duplPSEntry(Data, logger)
 
@@ -142,7 +142,7 @@ if __name__ == "__main__":
 												 parameters["nbspecies"], 
 												 logger)
 
-			elif lSteps[i] == "recombination" and parameters["gard"]:
+			elif lSteps[i] == "recombination" and parameters["duplication"]:
 				if parameters["step"] == "recombination":
 					Data = LoadFileFunc.phymlRecEntry(Data, logger)
 					dAlTree[Data.aln] = ""
