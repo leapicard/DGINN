@@ -34,7 +34,7 @@ def baseNameInit(baseName, queryFile, aln, logger):
 		elif aln != "":
 			baseName = aln.split(".")[0].split("/")[-1]
 		else:
-			logger.info("Basename can't be initialized.")
+			logger.error("Basename can't be initialized.")
 			sys.exit()
 	return baseName
 
@@ -84,7 +84,7 @@ def accnEntry(Data):
 									 Data.aln, 
 									 Data.logger)
 	else:
-		logger.info("The provided file is not a tabular output of Blast+, exiting DGINN.")
+		logger.error("The provided file is not a tabular output of Blast+, exiting DGINN.")
 		sys.exit()
 	
 	return Data
@@ -107,7 +107,7 @@ def getSeqEntry(Data, treeOption):
 
 		Data.lBlastRes = [ i.strip("\n") for i in open(Data.accnFile, "r").readlines() ]
 	else:
-		logger.info("Provided file is not a list of NCBI accessions, terminating DGINN.")
+		logger.error("Provided file is not a list of NCBI accessions, terminating DGINN.")
 		sys.exit()
 		
 	return Data
@@ -130,7 +130,7 @@ def orfEntry(Data, treeOption):
 									 Data.aln, 
 									 Data.logger)
 	else:
-		logger.info("The provided file is not a fasta of nucleotide sequences, exiting DGINN.")
+		logger.error("The provided file is not a fasta of nucleotide sequences, exiting DGINN.")
 		sys.exit()
 	
 	return Data
@@ -154,7 +154,7 @@ def prankEntry(Data, treeOption):
 			Data.geneName = orf.readline().split("_")[1]
 		
 	else:
-		logger.info("Provided file is not a fasta of sequences, terminating DGINN.")
+		logger.error("Provided file is not a fasta of sequences, terminating DGINN.")
 		sys.exit()
 		
 	return Data
@@ -207,7 +207,7 @@ def spTreeCheck(Data, firstStep, treeOption):
 											 Data.o)
 			setattr(Data, "cor", corSG)
 
-### rework this
+
 def duplPSEntry(Data, logger):
 	"""
 	Function handling start of the pipeline at the tree step.
@@ -224,33 +224,14 @@ def duplPSEntry(Data, logger):
 		Data.ORFs = Data.aln
 		Data.baseName = baseNameInit(Data.baseName, Data.queryFile, Data.aln, Data.logger)
 	else:
-		logger.info("Alignment and/or gene tree file have not been provided.")
+		logger.error("Alignment and/or gene tree file have not been provided.")
 		sys.exit()
 
-	return Data, dico
-
-def gardEntry(Data, parameters, logger):
-	"""
-	Function handling start of the pipeline at the GARD step.
-
-	@param1 Data: basicData object
-	@param2 parameters: Dico of parameters
-	@param3 logger: Logging object
-	@return Data: basicData object
-	"""
-	dico = {}
-	Data = communFuncEntry(Data, [], 1)
-	#AccessionFunc.createGeneDir(Data.o, Data.aln.split('/')[-1].split(".")[0])
-	if Data.tree != "" and Data.aln != "":
-		dico[Data.aln] = Data.tree
-	else:
-		logger.info("You didn't precise the alnfile or the treefile.")
-		sys.exit()
 	return Data, dico
 
 
 def pspEntry(Data, parameters, logger):
-	Data, dico = LoadFileFunc.duplPSEntry(Data, logger)
+	Data, dico = duplPSEntry(Data, logger)
 	
 	Data.alnFormat = parameters["alnformat"].title()
 

@@ -40,7 +40,8 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	logger = logging.getLogger("main")
 	dSpecies = {}
 	dId2Seq = {}
-	
+	lTax = []
+
 	Entrez.email="example@example.com"
 	Entrez.api_key = apiKey
 	
@@ -65,10 +66,13 @@ def remoteDl(lBlastRes, queryName, apiKey):
 		if tax == "synCon" or 'GBSeq_sequence' not in record.keys():
 			continue
 		else:
+			lTax.append(tax)
 			dId2Seq[tax+"_"+name+"_"+acc.split(".")[0]] = record['GBSeq_sequence'].upper()
 			
 	handle.close()
-	logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases.")
+	nbSp = len(set(lTax))
+	logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases \
+				({} different species represented in the retrieved sequences).".format(nbSp))
 	
 	return(dId2Seq)
 

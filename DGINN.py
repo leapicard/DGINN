@@ -110,8 +110,8 @@ if __name__ == "__main__":
 
 				AnalysisFunc.orfFinder(Data)
 				
-			elif lSteps[i] == "prank":
-				if parameters["step"] == "prank":
+			elif lSteps[i] == "alignment":
+				if parameters["step"] == "alignment":
 					Data = LoadFileFunc.prankEntry(Data, parameters["duplication"])
 
 				AnalysisFunc.alnPrank(Data, logger)
@@ -124,8 +124,8 @@ if __name__ == "__main__":
 											   Data.o)
 				Data.aln = newAln
 
-			elif lSteps[i] == "phyml":
-				if parameters["step"] == "phyml":
+			elif lSteps[i] == "tree":
+				if parameters["step"] == "tree":
 					Data = LoadFileFunc.phymlRecEntry(Data, logger)
 
 				dAlTree = AnalysisFunc.phyMLTree(Data, logger)

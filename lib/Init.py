@@ -95,12 +95,14 @@ def paramDef(params, inf, queryName):
 	with open(params, "r") as content:
 		dParams = {}
 		for line in content:
-			temp = line.strip("\n").split(":")
-			if temp[0] not in lParams:
-				if not temp[0].startswith("#"):
+			if line.startswith("#"):
+				pass
+			else
+				temp = line.strip("\n").split(":")
+				if temp[0] not in lParams:
 					print(temp[0]+" is not a valid parameter.\n")
-			else:
-				dParams[temp[0]] = temp[1].strip()
+				else:
+					dParams[temp[0]] = temp[1].strip()
 	
 	#If infile(s) given through command line, takes priority
 	if inf != "":

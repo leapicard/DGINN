@@ -54,7 +54,8 @@ def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, 
 				blasted = False
 			
 		f = open(blastRes, "w")
-		print(seqL)
+		nbSeq = 0
+
 		for record in NCBIXML.parse(resultHandle):
 			#f.write("# "+record.application+" "+record.version+"\n# Query: "+record.query+"\n# Database: "+record.database+"\n# Fields: subject id, ?\n# "+str(len(record.alignments))+" hits found\n")
 			f.write("# {} {}\n# Query: {}\n# Database: {}\
@@ -69,6 +70,7 @@ def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, 
 					qcov = hsp.align_length/seqL*100
 					if qcov > cov:
 						f.write(alignment.title+"\n")
+						nbSeq += 1
 		f.close()
 
 	else:
@@ -84,9 +86,9 @@ def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, 
 		logger.debug("Blast command: {:s}".format(cmdBlast))
 
 	if os.path.exists(blastRes) and os.stat(blastRes).st_size > 0:								
-		logger.info("Blast results written to: {:s}".format(blastRes))
+		logger.info("Blast results written to: {:s}, {} sequences retrieved.".format(blastRes, nbSeq))
 	else:
-		logger.error("Blast didn't run, exiting pipeline")
+		logger.error("Blast didn't run, exiting DGINN.")
 		sys.exit()
 
 	return(blastRes)
