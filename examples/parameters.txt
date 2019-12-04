@@ -1,4 +1,4 @@
-infile:ex_CCDS.fasta
+infile:ex_aln.fasta
 blastdb:nr
 outdir:
 logfile:
@@ -6,8 +6,8 @@ evalue:
 mincov:
 percID:
 entryQuery:Primates[Organism]
-step:
-queryName:
+step:tree
+queryName:homSap_MX1_CCDS13673
 remote:yes
 APIKey:
 sptree:ex_spTree.tree

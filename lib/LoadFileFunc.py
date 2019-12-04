@@ -193,11 +193,11 @@ def spTreeCheck(Data, firstStep, treeOption):
 				Data.seqFile, corSG = filterData(Data.sptree, 
 												 Data.seqFile, 
 												 Data.o)
-			elif firstStep == "prank":
+			elif firstStep == "alignment":
 				Data.ORFs, corSG = filterData(Data.sptree, 
 											  Data.ORFs, 
 											  Data.o)
-			elif firstStep == "phyml":
+			elif firstStep == "tree":
 				Data.aln, corSG = filterData(Data.sptree, 
 											 Data.aln, 
 											 Data.o)

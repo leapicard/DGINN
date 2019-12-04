@@ -212,9 +212,8 @@ def runPhyML(aln, geneDir):
 	os.remove(tmp)
 
 	# PhyML
-	print("phyml -i {:s} -v e -b -2".format(outPhy))
 	cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
-	#logger.debug(cmd)
+	logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
 	
 	return(outPhy)
 
@@ -311,11 +310,13 @@ def runGARD(aln, o, hostFile, logger):
 	@return gardRes: Path to GARD output file
 	"""
 
-	batchFile = o+aln.split("/")[-1].split(".")[0]+"_gard.bf"
 	gardRes = o+aln.split("/")[-1].split(".")[0]+".gard"
+	gardJson = o+aln.split("/")[-1].split(".")[0]+".json"
 	outGard = gardRes+"_out"
 	errGard = gardRes+"_err"
 	
+	# valid for hyphy 2.3
+	batchFile = o+aln.split("/")[-1].split(".")[0]+"_gard.bf"
 	with open(batchFile, "w") as bf:
 		bf.write("inputRedirect = {};\n")
 		bf.write("inputRedirect[\"01\"] = \"{:s}\";\n".format(aln))
@@ -325,10 +326,25 @@ def runGARD(aln, o, hostFile, logger):
 		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"GARD.bf\", inputRedirect);\n")
 	logger.debug("Batch file: {:s}".format(batchFile))
 	
+	"""
+	#for hyphy 2.5
+	if hostFile == "":
+		cmd = "mpirun -np 2 HYPHYMPI GARD --type codon --model HKY --alignment {:s} --output {:s} --output-lf {:s}".format(aln,
+																														   gardRes,
+																														   gardJson)
+	else:
+		cmd = "mpirun -np 2 -hostfile {:s} HYPHYMPI GARD --type codon --model HKY --alignment {:s} --output {:s} --output-lf {:s}".format(hostfile,
+																																		  aln,
+																									  									  gardRes,
+																									  									  gardJson)
+	"""
+
 	if hostFile == "":
 		cmd = "mpirun -np 2 HYPHYMPI {:s}".format(batchFile)
 	else:
 		cmd = "mpirun -np 2 -hostfile {:s} HYPHYMPI {:s}".format(hostFile, batchFile)
+
+
 	lCmd = shlex.split(cmd)
 	with open(outGard, "w") as o, open(errGard, "w") as e:
 		runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)

@@ -52,31 +52,35 @@ def pspAnalysis(data, parms, aln, tree, logger):
 		try:
 			SiteAnalysis.bppSite(dCtrls["bppml"], dCtrls["bppmixedlikelihood"], aln, data.alnFormat, tree, lModels, outDir, data.baseName, logger)
 		except Exception:
-			logger.info("Bio++ Site uncountered an unexpected error, skipping.")
+			logger.error("Bio++ Site uncountered an unexpected error, skipping.")
 	elif "bppml" or "bppmixedlikelihood" not in dCtrls:
-		logger.info("Part of parameters for Bio++ site analysis are completed but not all.")
-		logger.info("Analysis ignored (if unexpected, check paths to Bio++/bpp parameter files).")
+		logger.error("Part of parameters for Bio++ site analysis are completed but not all.")
+		logger.error("Analysis ignored (if unexpected, check paths to Bio++/bpp parameter files).")
 	elif "bppml" and "bppmixedlikelihood" not in dCtrls:
 		next
 	
 	lPSNodes = []
 	if "OPB" in dCtrls:
 		try:
-			lPSNodes = BranchAnalysis.bppBranch(dCtrls["OPB"], outDir, data.baseName, aln, data.alnFormat, tree, logger)	
+			params = BranchAnalysis.bppBranch(dCtrls["OPB"], outDir, data.baseName, aln, data.alnFormat, tree, logger)	
 		except Exception:
-			logger.info("Bio++ Branch Analysis uncountered an unexpected error, skipping.")
+			logger.error("Bio++ Branch Analysis uncountered an unexpected error, skipping.")
+		try:
+			lPSNodes = BranchAnalysis.parseNodes(params, logger)	
+		except Exception:
+			logger.error("Could not find info about positively selected branches in Bio++ results. If unexpected, check Bio++ parameter files for OPB.")
 	
 	if "OPB" and "GNH" in dCtrls and len(lPSNodes) > 1:
 		try:
 			BranchAnalysis.bppBranchSite(dCtrls["GNH"], lPSNodes, outDir, data.baseName, aln, data.alnFormat, tree, logger)
 		except Exception:
-			logger.info("Bio++ Pseudo Branch-Site Analysis uncountered an unexpected error, skipping.")
+			logger.error("Bio++ Pseudo Branch-Site Analysis uncountered an unexpected error, skipping.")
 	
 	if "MEME" in dCtrls:
 		try:
 			BranchAnalysis.memeBranchSite(aln, cladoFile, outDir, data.baseName, logger)
 		except Exception:
-			logger.info("MEME uncountered an unexpected error, skipping.")
+			logger.error("MEME uncountered an unexpected error, skipping.")
 					
 	logger.info("End analysis")
 	return(outDir)

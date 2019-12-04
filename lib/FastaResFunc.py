@@ -71,8 +71,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 			
 	handle.close()
 	nbSp = len(set(lTax))
-	logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases \
-				({} different species represented in the retrieved sequences).".format(nbSp))
+	logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases ({} different species represented in the retrieved sequences).".format(nbSp))
 	
 	return(dId2Seq)
 

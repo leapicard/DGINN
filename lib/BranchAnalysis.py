@@ -3,7 +3,6 @@ from AnalysisFunc import cmd
 
 def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 	### BRANCH ANALYSIS: BIO++ ONE PER BRANCH
-	lPSNodes = []
 	
 	logger.info("One Per Branch (BIO++)")
 	logger.info("OPB parameter file: {:s}".format(OPBFile))
@@ -32,8 +31,12 @@ def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 	argsOPB = "bppml \""+"\" \"".join([k+"="+v for k, v in dBppCmd.items()])+"\""
 	logger.debug(argsOPB)
 	runOPB = cmd(argsOPB, False)
-	
+
+	return(outParams)
+
+def parseNodes(outParams, logger):
 	# parse branches under positive selection
+	lPSNodes = []
 	lNSNodes = []
 
 	with open(outParams, "r") as op:

@@ -44,13 +44,14 @@ if __name__ == "__main__":
 	if threads < 2:
 		threads = 2
 	"""
-		
+	
 	parameters = Init.paramDef(parameters.params, 
 							   parameters.infile, 
 							   parameters.queryName)
 	Data, logger = Init.initLogger(parameters, 
 								   debug, 
 								   version)
+
 	funcNeeded = Init.initPipeline(parameters["step"], lSteps)
 	Data.sptree, parameters["duplication"] = TreeFunc.treeCheck(Data.sptree, 
 															 parameters["duplication"], 
@@ -68,16 +69,12 @@ if __name__ == "__main__":
 	
 	for i in range(len(lSteps)):
 		if funcNeeded[i] == True:
-			if lSteps[i] == firstStep:
-				LoadFileFunc.spTreeCheck(Data, 
-										 firstStep, 
-										 parameters["duplication"])
 				
 			if lSteps[i] == "blast":
 				Data.baseName = LoadFileFunc.baseNameInit(Data.baseName, 
 														  Data.queryFile, 
 														  Data.aln, 
-														  logger)			
+														  logger)		
 				
 				Data = BlastFunc.treatBlast(Data, 
 											parameters["evalue"], 
@@ -108,11 +105,21 @@ if __name__ == "__main__":
 				if parameters["step"] == "orf":
 					Data = LoadFileFunc.orfEntry(Data, parameters["duplication"])
 
+					if lSteps[i] == firstStep:
+						LoadFileFunc.spTreeCheck(Data, 
+												 firstStep, 
+											 	 parameters["duplication"])	
+
 				AnalysisFunc.orfFinder(Data)
 				
 			elif lSteps[i] == "alignment":
 				if parameters["step"] == "alignment":
 					Data = LoadFileFunc.prankEntry(Data, parameters["duplication"])
+
+					if lSteps[i] == firstStep:
+						LoadFileFunc.spTreeCheck(Data, 
+												 firstStep, 
+											 	 parameters["duplication"])	
 
 				AnalysisFunc.alnPrank(Data, logger)
 				fasCov = AnalysisFunc.covAln(Data.aln, 
@@ -128,6 +135,11 @@ if __name__ == "__main__":
 				if parameters["step"] == "tree":
 					Data = LoadFileFunc.phymlRecEntry(Data, logger)
 
+					if lSteps[i] == firstStep:
+						LoadFileFunc.spTreeCheck(Data, 
+												 firstStep, 
+											 	 parameters["duplication"])	
+
 				dAlTree = AnalysisFunc.phyMLTree(Data, logger)
 				dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
 													  dAlTree, 
@@ -136,6 +148,11 @@ if __name__ == "__main__":
 			elif lSteps[i] == "duplication" and parameters["duplication"]:
 				if parameters["step"] == "duplication":
 					Data, dAlTree = LoadFileFunc.duplPSEntry(Data, logger)
+
+					if lSteps[i] == firstStep:
+						LoadFileFunc.spTreeCheck(Data, 
+												 firstStep, 
+											 	 parameters["duplication"])	
 
 				dAlTree = TreeFunc.treeTreatment(Data, 
 												 dAlTree, 

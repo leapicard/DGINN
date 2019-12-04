@@ -97,7 +97,7 @@ def paramDef(params, inf, queryName):
 		for line in content:
 			if line.startswith("#"):
 				pass
-			else
+			else:
 				temp = line.strip("\n").split(":")
 				if temp[0] not in lParams:
 					print(temp[0]+" is not a valid parameter.\n")
@@ -148,8 +148,8 @@ def paramDef(params, inf, queryName):
 			  "accessions", 
 			  "fasta", 
 			  "orf", 
-			  "prank", 
-			  "phyml", 
+			  "alignment", 
+			  "tree", 
 			  "duplication", 
 			  "recombination", 
 			  "positiveSelection", 
@@ -273,7 +273,7 @@ def initLogger(args, debug, version):
 		if args["logfile"] == "":
 			args["logfile"] = args["alnfile"].split(".")[0]+"_DGINN_"+timeStamp+".log"
 		else:
-			args["logfile"] = args["alnfile"].split(".")[0]+args["logfile"]
+			args["logfile"] = args["logfile"]
 			
 	# create logger
 	#logging.basicConfig(level=logging.INFO)
@@ -331,14 +331,20 @@ def initPipeline(step, lStep):
 	"""
 
 	#Create a list of step to do
+	logger = logging.getLogger("main")
 	toDo = []
 	i = 0
 
-	while step.lower() != lStep[i].lower():
-			toDo.append(False)
-			i+=1
+	if step not in lStep:
+		logger.error("{} is not the name of a possible entry step. Possible entry steps are {}. Please provide a proper entry step name. Exiting DGINN.".format(step, lStep))
+		sys.exit()
 
-	while len(toDo) != len(lStep):
-			toDo.append(True)
+	else:
+		while step.lower() != lStep[i].lower():
+				toDo.append(False)
+				i+=1
 
-	return toDo
+		while len(toDo) != len(lStep):
+				toDo.append(True)
+
+		return toDo

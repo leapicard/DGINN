@@ -9,7 +9,6 @@ input.sequence.file=$(INPUTFILE)
 
 # The alignment format:
 input.sequence.format=$(FORMAT)
-#input.sequence.format=$(FORMAT)
 
 #Sites to use:
 # all, nogap or complete (=only resolved chars)
@@ -31,40 +30,14 @@ input.tree.format = Newick
 #                                     Model specification
 # ----------------------------------------------------------------------------------------
 
-## homogène + stationnaire (idem PAML)
-#nonhomogeneous = no
-#model = $(MODEL)
-
 ## mieux
 nonhomogeneous = general
 nonhomogeneous.number_of_models = 1
-nonhomogeneous.root_freq=F3X4(initFreqs=observed)
-#rate_distribution = Gamma(n=4)
 
 model1 = $(MODEL)
 model1.nodes_id=0:$(NODES)
 
-## one_per_branch: use M0 and fix kappa and thetas to emulate PAML FreeRatio
-#nonhomogeneous = one_per_branch
-#nonhomogeneous.root_freq=F3X4(initFreqs=observed)
-
-#model = YNGP_M0(frequencies=F3X4(initFreqs=observed))
-#nonhomogeneous_one_per_branch.shared_parameters = YN98.kappa, YN98.*theta*
-
-## use a different model on certain nodes
-## might be used to test hypothesis on branches of interest identified through one_per_branch
-#nonhomogeneous = general
-#nonhomogeneous.number_of_models = 2
-#nonhomogeneous.root_freq=F3X4(initFreqs=observed)
-
-#model1 = $(MODEL)
-#model1.nodes_id=0:5
-
-#model2 = $(MODEL)(kappa=$(MODEL).kappa_1)
-#model2.nodes_id=6:$(NODES)
-
-#nonhomogeneous.alias = $(MODEL).omega_2 -> $(MODEL).omega_1
-
+nonhomogeneous.root_freq=F3X4(initFreqs=observed)
 
 # ----------------------------------------------------------------------------------------
 #                                     Likelihood computation
@@ -86,7 +59,7 @@ likelihood.recursion = simple
 #   requires extra time for building the patterns.
 #   This is usually the best option, particularly for nucleotide data sets.
 
-likelihood.recursion_simple.compression = recursive
+likelihood.recursion_simple.compression = simple
 
 # ----------------------------------------------------------------------------------------
 #                                     Optimization
@@ -119,7 +92,6 @@ optimization.tolerance = 0.01
 # Should we write the resulting tree? none or file name.
 output.tree.file = $(OUTTREE)
 output.tree.format = Newick
-#output.tree.format = NHX
 
 # Write numerical parameter estimated values:
 output.estimates = $(OUTPARAMS)

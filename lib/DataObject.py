@@ -44,6 +44,13 @@ class basicData:
 		## init self.o
 		if os.path.exists(self.o):
 			self.o = os.path.abspath(self.o)+"/"
+		elif self.o != "" and not os.path.exists(self.o):
+			try:
+				os.makedirs(self.o)
+			except FileExistsError:
+				pass
+			if self.o.endswith("/"):
+				self.o = self.o+"/"
 		else:
 			wrongDir = self.o
 			if inFile != "":
@@ -52,9 +59,9 @@ class basicData:
 				self.o = aln.split(".")[0]+"_results_"+timeStamp+"/"
 			if wrongDir == "":
 				try:
-      				os.makedirs(self.o)
+					os.makedirs(self.o)
 				except FileExistsError:
-      				pass
+					pass
 			else:
 				self.logger.warn("Provided path to output folder {:s} does not exist, defaulting to {:s}".format(wrongDir, self.o))
 	
