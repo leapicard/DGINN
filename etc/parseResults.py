@@ -288,14 +288,14 @@ def ResPaml(posDir):
 if __name__ == "__main__":
 	
 	# Parameters recovery
-	parser = argparse.ArgumentParser(prog=__file__, description='''This program constructs codon alignments and phylogeny from a gene HGNC approved symbol.''')
+	parser = argparse.ArgumentParser(prog=__file__, description='''This program outputs a summary of the results obtained through running DGINN on a list of genes of interest.''')
 	parser.add_argument('-v', '--version', action='version', version='You are using %(prog)s version: ' + version, help=\
 						'display '+__file__+' version number and exit')
-	parser.add_argument('-dd', '--debug', dest='debug', action='store_true', help='enter verbose/debug mode')
+	#parser.add_argument('-dd', '--debug', dest='debug', action='store_true', help='enter verbose/debug mode')
 
 	filesReq = parser.add_argument_group('Mandatory input infos for running')
 	filesReq.add_argument('-in', '--inFile', metavar="<filename>", type=check, required=True, dest = 'inFile', help =\
-						'List of phylogenetic trees based on which DGINN (positive selection part) was run')
+						'List of all the directories containing the results from DGINN analyses on different genes.')
 	
 	files = parser.add_argument_group('Optional input infos (default values)')
 	files.add_argument('-o', '--outdir', metavar="<path/to/directory>", type=str, default="", required=False, dest = 'outDir', help =\

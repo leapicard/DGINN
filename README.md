@@ -6,7 +6,7 @@ It automatizes all the necessary preliminary steps for evolutionary analyses, in
 
 Following the obtention of the alignements and corresponding phylogenies, three major genetic innovations: duplication events, recombination events, and signatures of positive selection.
 
-Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.org
+Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.fr
 
 # Overview
 
@@ -66,9 +66,9 @@ Optional parameters:
 
 ## 2/ Parameter file
 
-DGINN uses a parameter file to pass all the necessary arguments for lauching the pipeline.
+DGINN uses a parameter file to pass all the necessary arguments for launching the pipeline.
 Two example files are provided in the examples directory:
-1. one performing steps 1-7 (cf Overview) from the CDS of the gene of interest to the detection of recombination (parameters.txt)
+1. one performing steps 1-7 (see Overview) from the CDS of the gene of interest to the detection of recombination (parameters.txt)
 2. one performing step 8 for the detection of positive selection (parameters_possel.txt)
 
 This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized over all alignments instead of doing them sequentially.
@@ -249,24 +249,23 @@ Mandatory input infos for running:
 
 ## 2/ Results extraction
 
-Another script called parseResults.py can also be found in the etc folder. It compiles all the results from DGINN found in the directory passed as argument and outputs a summary of them.
+Another script called parseResults.py can also be found in the etc folder. It compiles all the results from DGINN found in the directories listed in the file passed as argument and outputs a summary of them.
 
 ```
-python3 DGINN/etc/parseResults.py -h
-usage: DGINN/etc/parseResults.py [-h] [-v] [-dd] -in <filename>
-                                 [-o <path/to/directory>]
+python3 etc/parseResults.py -h
+usage: etc/parseResults.py [-h] [-v] -in <filename> [-o <path/to/directory>]
 
-This program creates a summary of DGINN's results.
+This program outputs a summary of the results obtained through running DGINN
+on a list of genes of interest.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -v, --version         display DGINN/etc/parseResults.py version number and
-                        exit
-  -dd, --debug          enter verbose/debug mode
+  -v, --version         display etc/parseResults.py version number and exit
 
 Mandatory input infos for running:
-  -in <filename>, --inDir <filename>
-                        Path to directory of results
+  -in <filename>, --inFile <filename>
+                        List of all the directories containing the results
+                        from DGINN analyses on different genes.
 
 Optional input infos (default values):
   -o <path/to/directory>, --outdir <path/to/directory>
