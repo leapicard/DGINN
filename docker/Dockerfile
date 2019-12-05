@@ -31,10 +31,6 @@ ENV PATH /opt/phyml/src:$PATH
 RUN git clone https://gitlab.inria.fr/Phylophile/Treerecs && cd Treerecs && cmake -DCMAKE_BUILD_TYPE=MinSizeRel . && make && make install
 ENV PATH /opt/Treerecs:$PATH
 
-## Install HYPHY
-RUN git clone https://github.com/veg/hyphy.git && cd hyphy && cmake . && make MPI && make MP && make install
-ENV PATH /opt/hyphy:$PATH
-
 ## Install BIO++
 RUN mkdir bpp && cd bpp && mkdir sources && cd sources && for d in bpp-core bpp-seq bpp-phyl bpp-popgen; \
 	do git clone https://github.com/BioPP/$d; \
@@ -67,6 +63,12 @@ ENV PYTHONPATH /usr/local/lib/python3.6/dist-packages:$PYTHONPATH
 RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.py
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
+
+## Install HYPHY
+#RUN git clone https://github.com/veg/hyphy.git && cd hyphy && cmake . && make MPI && make MP && make install
+WORKDIR /opt/hyphy
+RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch --depth 1 origin e1420457b4d0c9de8f206a78614c44525dc7be68 && git checkout FETCH_HEAD && cmake . && make MPI && make MP && make install
+ENV PATH /opt/hyphy:$PATH
 
 WORKDIR /data
 ENTRYPOINT ["DGINN.py"]

@@ -9,11 +9,11 @@
 ## Python modules
 import argparse, sys, os, numpy, pandas
 from Bio import SeqIO
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, OrderedDict, Counter
 from time import localtime, strftime
-from multiprocessing import Pool
 from statistics import median
 from scipy import stats
+
 
 #################################################
 ## Variables Globales
@@ -43,24 +43,259 @@ def LRT(ll1, ll2, df):
 	:params ll1, ll2: likelihood of the two models studied
 	:param df: degrees of freedom of difference between the two models
 	"""
+	stats.chisqprob = lambda chisq, df: stats.chi2.sf(chisq, df)
 	LR = abs(2*(ll1-ll2))
-	stats.chisqprob = lambda chisq, df: stats.chi2.sf(LR, df)
 	p = stats.chisqprob(LR, df)
 	return(LR, p)
+
+def countDupl(lFiles):
+	lDupl = [f.split(".")[0]+".best.fas" for f in lFiles if "_D" in f.split("/")[-1] and not ":" in f.split("/")[-1]]
 	
+	if len(lDupl) == 1:
+		return("{:d} duplication found.\n".format(len(lDupl)))
+	elif len(lDupl) > 1:
+		return("{:d} duplications found.\n".format(len(lDupl)))
+	else:
+		return("No duplication found.\n")
+
+def resDupl(lFiles):
+	lDupl = [f.split(".")[0]+".best.fas" for f in lFiles if "_D" in f.split("/")[-1] and not ":" in f.split("/")[-1]]
+	for f in lFiles:
+		if "remaining" in f.split("/")[-1] and ":" not in f.split("/")[-1]:
+			lDupl.append(f.split(".")[0]+".best.fas")
+	lRes = []
+	
+	for aln in lDupl:
+		dupl = SeqIO.parse(open(aln),'fasta')
+		ids = [ortho.id.split("_")[1] for ortho in dupl]
+		
+		if "_D" in aln.split("/")[-1]:
+			duplNb = aln.split("_")[-2].split(".")[0]
+		elif "remaining" in aln.split("/")[-1]:
+			duplNb = "remaining"
+			
+		mainName = max(set(ids), key=ids.count)
+		lRes.append("{:s}: {:d} orthologs (mainly: {:s})\n".format(duplNb, len(ids) ,mainName))
+	
+	return("".join(lRes))
+
+def resRecomb(lFiles):
+	lRecomb = [f.split(".")[0].split("/")[-1] for f in lFiles if ":" in f.split("/")[-1]]
+	res = ""
+	
+	if len(lRecomb) > 0:
+		lRecomb = sorted(lRecomb)	
+		lNames = []
+		
+		for aln in lRecomb:
+			if "mincov" in aln:
+				lNames.append(aln.split("_")[5])
+			elif "remaining" in aln:
+				lNames.append(aln.split("_")[5])
+			elif "_D" in aln:
+				lNames.append(aln.split("_")[4])
+		
+		dBkpts = Counter(lNames)
+		for event in dBkpts:
+			res += "Recombination events identified in {:s} ({:d} breakpoint(s))\n".format(event, dBkpts[event] - 1)
+	
+	else:
+		res = "No recombination events identified in any of the alignments.\n"
+		
+	return(res)
+	
+def ResBusted(baseName, posDir):
+	WG = posDir+"/busted/"+baseName+"_busted.out"
+	LRT = ""
+	
+	if os.path.exists(WG):
+		with open(WG, "r") as wg:
+			try:
+				p = wg.read().split("**")[-2].replace(" ", "").split("=")[1]
+				
+				if float(p) < 0.05:
+					LRT = "Y\t{}".format(p)
+				else:
+					LRT = "N\t{}".format(p)
+				
+				return("BUSTED\t{:s}\n".format(LRT))
+			except:
+				return("BUSTED\tna\n")
+	else:
+		return("BUSTED\tna\n")
+
+def ResMeme(baseName, posDir):
+	BS = posDir+"/meme/"+baseName+"_meme.out"
+	MemePss = posDir+"/"+baseName+"_meme_pss.fasta"
+	
+	if os.path.exists(BS):
+		try:
+			with open(BS, "r") as bs:
+				BSlines = bs.readlines()
+			
+			lRes = []
+			nbSites = 0
+			for line in BSlines:
+				if line.startswith("### ** Found"):
+					nbSites = int(line.split("_")[1])
+				
+			if nbSites > 0:
+				lRes = [int(line.split("|")[1].replace(" ", "")) for line in BSlines if line.startswith("|") and line.split("|")[1].replace(" ", "").isdigit()]
+					
+			if len(lRes) > 0:
+				completeRes = "MEME\t\t\t{:d}\t{}\n".format(len(lRes), lRes)
+				completeRes = completeRes.replace("[", "").replace("]", "")
+				return(completeRes)
+				dId2pss = OrderedDict()
+				for f in SeqIO.parse(open(aln),'fasta'):
+					fID, fSeq = f.id, str(f.seq)
+					fSeq2 = ""
+					for i in lRes:
+						fSeq2 += fSeq[i-1]
+					dId2pss[fID] = fSeq2
+				with open(MemePss, "w") as out:
+					out.write(dict2fasta(dId2pss))
+			else:
+				return("MEME\t\t\t0\n")
+		except:
+			return("MEME\t\t\tna\n")
+	else:
+		return("MEME\t\t\tna\n")
+
+def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName):
+	model1, model2 = models.split(" ")[0], models.split(" ")[1]
+	PssFile = posDir+"/"+baseName+"_bpp"+model2+"_pss.fasta"
+	
+	if model1 and model2 in dLogLlh.keys() and isinstance(dLogLlh[model1], float) and isinstance(dLogLlh[model2], float):
+		try:
+			if model1 and model2 in dLogLlh:
+				LR, p = LRT(dLogLlh[model1], dLogLlh[model2], 2)
+
+				if p < 0.05 and os.path.exists(dSAres[model2]):
+					df = pandas.read_csv(dSAres[model2], sep='\t')
+					w = float(df.columns[-2].split("=")[-1])*0.8
+					lRes1 = df[df.ix[:,-1]>w].ix[:,0].tolist()
+					lRes2 = df[df.ix[:,-2]>0.95].ix[:,0].tolist()
+					lRes = list(set(lRes1).intersection(lRes2))
+					pR = "Y\t{}".format(p)
+					
+					completeRes = "Bpp{:s}{:s}\t{:s}\t{:d}\t{}\n".format(model1, model2, pR, len(lRes), lRes)
+					completeRes = completeRes.replace("[", "").replace("]", "")
+					return(completeRes)
+					
+					dId2pss = OrderedDict()
+					for f in SeqIO.parse(open(aln),'fasta'):
+						fID, fSeq = f.id, str(f.seq)
+						fSeq2 = ""
+						for i in lRes:
+							fSeq2 += fSeq[i-1]
+						dId2pss[fID] = fSeq2
+					with open(PssFile, "w") as out:
+						out.write(dict2fasta(dId2pss))
+					
+				else:
+					pR = "N\t{}".format(p)
+					return("Bpp{:s}{:s}\t{:s}\n".format(model1, model2, pR))
+		except:
+			return("Bpp{:s}{:s}\tna\n".format(model1, model2))
+	else:
+		return("Bpp{:s}{:s}\tna\n".format(model1, model2))
+
+def ResBpp(baseName, posDir):
+	dSA = {}
+	dSAres = {}
+	dLogLlh = OrderedDict()
+	lModels = ["M1","M2","M7","M8"]
+	
+	for model in lModels:
+		dSA[model] = posDir+"/bpp_site/"+baseName+"_"+model+".params"
+		dSAres[model] = posDir+"/"+baseName+"_results"+model+".log"
+		
+		if os.path.exists(dSA[model]):
+			with open(dSA[model], "r") as params:
+				dLogLlh[model] = float(params.readline().strip().split("= ")[-1])
+		
+		else:
+			dLogLlh[model] = "na"
+				
+	m1m2 = ResBppExtract("M1 M2", dLogLlh, dSAres, posDir, baseName)
+	m7m8 = ResBppExtract("M7 M8", dLogLlh, dSAres, posDir, baseName)
+	
+	return(m1m2, m7m8, dLogLlh)
+
+def ResPamlExtract(models, dModelLlh, dModelFile):
+	model1, model2 = models.split(" ")[0], models.split(" ")[1]
+	
+	if model1 and model2 in dModelLlh and all(isinstance(value, float) for value in dModelLlh.values()):
+		LR, p = LRT(dModelLlh[model1], dModelLlh[model2], 2)
+		
+		if p < 0.05:
+			with open(dModelFile[model2], "r") as modFile:
+				content = modFile.read()
+				PSS = [int(line.strip().split(" ")[0]) for line in content.split("BEB")[1].split("The grid")[0].split(")")[-1].split("\n") if "*" in line]
+			
+			pR = "Y\t{}".format(p)
+			completeRes = "Paml{:s}{:s}\t{:s}\t{:d}\t{}\n".format(model1, model2, pR, len(PSS), PSS)
+			completeRes = completeRes.replace("[", "").replace("]", "")
+			return(completeRes)
+		
+		else:
+			pR = "N\t{}".format(p)
+			return("Paml{:s}{:s}\t{:s}\n".format(model1, model2, pR))
+	
+	else:
+		return("Paml{:s}{:s}\tna\n".format(model1, model2))
+
+def ResPaml(posDir):
+	PAML = posDir+"/paml_site/"
+	lModels = ["M1","M2","M7","M8"]
+	
+	if os.path.exists(PAML):
+		pamlDirs = sorted([os.path.join(PAML, dI) for dI in os.listdir(PAML) if os.path.isdir(os.path.join(PAML, dI))])
+		dModelLlh = OrderedDict()
+		dModelFile = {}
+		lnL = 0
+
+		for pDir in pamlDirs:
+			for model in lModels:
+				if model in pDir:
+					dModelFile[model] = pDir+"/out"
+					
+					with open(pDir+"/out", "r") as modelFile:
+						for line in modelFile.readlines():
+							if "lnL" in line:
+								dModelLlh[model] = float(line.split(":")[3].split("+")[0])
+								
+		for model in lModels:
+			if model not in dModelLlh.keys():
+				dModelLlh[model] = "na"
+	
+		try:
+			m1m2 = ResPamlExtract("M1 M2", dModelLlh, dModelFile)
+		except:
+			m1m2 = "na"
+		try:
+			m7m8 = ResPamlExtract("M7 M8", dModelLlh, dModelFile)
+		except:
+			m7m8 = "na"
+			
+		return(m1m2, m7m8, dModelLlh)
+	
+	else:
+		return("PAML\tna\n")
 
 ################### MAIN CODE ###################
 if __name__ == "__main__":
 	
 	# Parameters recovery
-	parser = argparse.ArgumentParser(prog=__file__, description='''This program creates a summary of DGINN's results.''')
+	parser = argparse.ArgumentParser(prog=__file__, description='''This program constructs codon alignments and phylogeny from a gene HGNC approved symbol.''')
 	parser.add_argument('-v', '--version', action='version', version='You are using %(prog)s version: ' + version, help=\
 						'display '+__file__+' version number and exit')
 	parser.add_argument('-dd', '--debug', dest='debug', action='store_true', help='enter verbose/debug mode')
 
 	filesReq = parser.add_argument_group('Mandatory input infos for running')
-	filesReq.add_argument('-in', '--inDir', metavar="<filename>", type=check, required=True, dest = 'inDir', help =\
-						'Path to directory of results')
+	filesReq.add_argument('-in', '--inFile', metavar="<filename>", type=check, required=True, dest = 'inFile', help =\
+						'List of phylogenetic trees based on which DGINN (positive selection part) was run')
 	
 	files = parser.add_argument_group('Optional input infos (default values)')
 	files.add_argument('-o', '--outdir', metavar="<path/to/directory>", type=str, default="", required=False, dest = 'outDir', help =\
@@ -69,170 +304,76 @@ if __name__ == "__main__":
 	
 	# Check parameters and get arguments
 	args = parser.parse_args()
-	inDir = args.inDir
+	inFile = args.inFile
+	inDir = "/".join(inFile.split("/")[0:-1])
 	outDir = args.outDir
 	if outDir == "":
 		outDir = inDir
 	debug = args.debug
 	
-	resFile = inDir+"_summary.res"
+	lDirs = [line.rstrip() for line in open(inFile)]
+	dSub2Cut = OrderedDict({sub:"/".join(sub.split("/")[0:-1])[0:-21]+".best.fas" for sub in lDirs if os.path.exists("/".join(sub.split("/")[0:-1])[0:-21]+".best.fas")})
+	
+	resFile = inDir+"/summary.res"
 	res = open(resFile, "w")
-	lFiles = [os.path.join(inDir, file) for file in os.listdir(inDir) if file.endswith(".phylip_phyml_tree.txt")]
+	res.write("FullName\tGene\tGeneSize\tOmega\tMethod\tPosSel\tPValue\tNbSites\tPSS\n")
 	
-	# Duplication
-	res.write("DUPLICATION\n")
-	lDupl = [f.split(".")[0]+".best.fas" for f in lFiles if "_D" in f.split("/")[-1] and not ":" in f.split("/")[-1]]
+	llhFile = inDir+"/llh_comp.tab"
+	llh = open(llhFile, "w")
+	llh.write("File\tMethod\tM1\tM2\tM7\tM8\n")
 	
-	if len(lDupl) > 0:
-		res.write("{:d} duplications found.\n".format(len(lDupl)))
-	else:
-		res.write("No duplication found.\n")
-			
-	# Recombination
-	res.write("\nRECOMBINATION\n")
-	lRecomb = [f.split(".")[0]+".best.fas" for f in lFiles if ":" in f.split("/")[-1]]
-	if len(lRecomb) > 0:
-		res.write("Recombination breakpoints identified.\n")
-	else:
-		res.write("No trace of recombination detected.\n")
-		
 	# Positive selection
-	res.write("\nPOSITIVE SELECTION\n\n")
-	subDirs = [os.path.join(inDir, dI) for dI in os.listdir(inDir) if os.path.isdir(os.path.join(inDir,dI))]
-	dDirAln = {}
-	print(subDirs)
-	exit()
+	#res.write("\nPOSITIVE SELECTION\n\n")
 	
-	for sub in subDirs:
-		dDirAln = {sub:aln.split(".")[0]+".best.fas" for aln in lFiles if aln.split(".")[0] == sub[0:-21]}
-		print(dDirAln)
-		exit()
-		aln = dDirAln[sub]
-		posDir = [os.path.join(sub, dir) for dir in os.listdir(sub) if os.path.isdir(os.path.join(sub, dir))][0]
+	for posDir, aln in dSub2Cut.items():
+		#print(aln)
 		baseName = aln.split("/")[-1].split(".")[0]
-		geneName = baseName.split("_")[0]
-		WG = posDir+"/whole_gene/"+baseName+"_busted.out"
-		BS = posDir+"/branch_site/"+baseName+"_meme.out"
-		dSA = {}
-		dSAres = {}
-		dLogLlh = {}
+		M0file = posDir+"/bpp_site/"+baseName+"_M0.params"
 		
-		res.write(baseName+"\n")
+		try:
+			with open(M0file, "r") as M0:
+				omega = M0.read().split("omega=")[1].split(")")[0]
+		except:
+			M0 = "na"
 		
-		if aln in lDupl:
-			dupl = SeqIO.parse(open(aln),'fasta')
-			ids = [ortho.id for ortho in dupl]
-			duplNb = aln.split("_")[-2].split(".")[0]
-			res.write("\n{:s}: {:d} orthologs\n".format(duplNb,len(ids)))
-			res.write(", ".join(ids)+"\n")
-			
-		if aln in lRecomb:
-			recomb = aln.split("_")[-1].split(".")[0][4:]
-			res.write("\nRecombination fragment: {:s}\n".format(recomb))
+		bust = ResBusted(baseName, posDir)
+		meme = ResMeme(baseName, posDir)
+		bpp1v2, bpp7v8, bppLlh = ResBpp(baseName, posDir)
+		paml1v2, paml7v8, pamlLlh = ResPaml(posDir)
 		
-		BppM2Pss = posDir+"/"+baseName+"_bppM2_pss.fasta"
-		BppM8Pss = posDir+"/"+baseName+"_bppM8_pss.fasta"
-		MemePss = posDir+"/"+baseName+"_meme_pss.fasta"
+		f = SeqIO.parse(open(aln),'fasta')
+		ids = [fasta.id.split("_")[1].upper() for fasta in f]
+		f = SeqIO.parse(open(aln),'fasta')
+		lLen = [len(str(fasta.seq)) for fasta in f]
 		
-		res.write("\nMethod\tp-value LRT\tsites\n")
+		if "frag" in baseName:
+			add = "["+"-".join(baseName.split("frag")[1].split("to"))+"]"
+			mainName = max(set(ids), key=ids.count)+add
+		else:
+			mainName = max(set(ids), key=ids.count)
 		
-		if os.path.exists(WG):
-			with open(WG, "r") as wg:
-				try:
-					LRTwg = wg.read().split("**")[-2].replace(" ", "")
-					res.write("BUSTED\t{:s}\n".format(LRTwg))
-				except:
-					res.write("BUSTED\tna\n")
-				
-		for model in ["M1","M2","M7","M8"]:
-			dSA[model] = posDir+"/site_analysis/"+baseName+"_"+model+".params"
-			dSAres[model] = posDir+"/"+baseName+"_results"+model+".log"
-			if os.path.exists(dSA[model]):
-				with open(dSA[model], "r") as params:
-					dLogLlh[model] = float(params.readline().strip().split("= ")[-1])
+		splitName = baseName.split("_")
+		shortName = baseName.split("_")[0]
+		for elt in splitName:
+			if "gp" in elt:
+				shortName += "_"+elt.replace("D", "").replace("gp", "-")
+			if "mincov" in elt:
+				shortName += "_all"
+			if "remaining" in elt:
+				shortName += "_rem"
+			if ":" in elt:
+				shortName += "_"+elt.replace("frag", "")
 		
-		if "M1" and "M2" in dLogLlh.keys():
-			try:
-				if "M1" and "M2" in dLogLlh:
-					LR, p = LRT(dLogLlh["M1"], dLogLlh["M2"], 2)
-					
-					if p < 0.05 and os.path.exists(dSAres["M2"]):
-						df = pandas.read_csv(dSAres["M2"], sep='\t')
-						w = float(df.columns[-2].split("=")[-1])*0.8
-						lRes = df[df.ix[:,-1]>w].ix[:,0].tolist()
-						res.write("Bppml (M1 vs M2)\tp={:f}\t{:d} sites {}\n".format(p, len(lRes), lRes))
-						
-						dId2pss = OrderedDict()
-						for f in SeqIO.parse(open(aln),'fasta'):
-							fID, fSeq = f.id, str(f.seq)
-							fSeq2 = ""
-							for i in lRes:
-								fSeq2 += fSeq[i-1]
-							dId2pss[fID] = fSeq2
-						with open(BppM2Pss, "w") as out:
-							out.write(dict2fasta(dId2pss))
-						
-					else:
-						res.write("Bppml (M1 vs M2)\tp={:f}\n".format(p))
-			except:
-				res.write("na")
-				
-		if "M7" and "M8" in dLogLlh.keys():
-			try:
-				if "M7" and "M8" in dLogLlh:
-					LR, p = LRT(dLogLlh["M7"], dLogLlh["M8"], 2)
-					
-					if p < 0.05 and os.path.exists(dSAres["M8"]):
-						df = pandas.read_csv(dSAres["M8"], sep='\t')
-						w = float(df.columns[-2].split("=")[-1])*0.8
-						lRes = df[df.ix[:,-1]>w].ix[:,0].tolist()
-						res.write("Bppml (M7 vs M8)\tp={:f}\t{:d} sites {}\n".format(p, len(lRes), lRes))
-						
-						dId2pss = OrderedDict()
-						for f in SeqIO.parse(open(aln),'fasta'):
-							fID, fSeq = f.id, str(f.seq)
-							fSeq2 = ""
-							for i in lRes:
-								fSeq2 += fSeq[i-1]
-							dId2pss[fID] = fSeq2
-						with open(BppM8Pss, "w") as out:
-							out.write(dict2fasta(dId2pss))
-						
-					else:
-						res.write("Bppml (M7 vs M8)\tp={:f}\n".format(p))
-			except:
-				res.write("na")
-									
-		if os.path.exists(BS):
-			try:
-				with open(BS, "r") as bs:
-					BSlines = bs.readlines()
-				
-				lRes = []
-				nbSites = 0
-				for line in BSlines:
-					if line.startswith("### ** Found"):
-						nbSites = int(line.split("_")[1])
-					
-				if nbSites > 0:
-					lRes = [int(line.split("|")[1].replace(" ", "")) for line in BSlines if line.startswith("|") and line.split("|")[1].replace(" ", "").isdigit()]
-						
-				if len(lRes) > 0:
-					res.write("MEME\t\t{:d} sites (p<0.05) {}\n".format(len(lRes), lRes))
-					dId2pss = OrderedDict()
-					for f in SeqIO.parse(open(aln),'fasta'):
-						fID, fSeq = f.id, str(f.seq)
-						fSeq2 = ""
-						for i in lRes:
-							fSeq2 += fSeq[i-1]
-						dId2pss[fID] = fSeq2
-					with open(MemePss, "w") as out:
-						out.write(dict2fasta(dId2pss))
-				else:
-					res.write("MEME\t\tNo positively selected sites detected\n")
-			except:
-				res.write("na")
-		res.write("\n")
+		base = shortName+"\t"+mainName+"\t"+str(max(lLen)/3)+"\t"+omega+"\t"
+		for x in [bust, bpp1v2, bpp7v8, paml1v2, paml7v8, meme]:
+			res.write(base+x)
 		
+		bppLlhRes = [str(value) for value in bppLlh.values()]
+		pamlLlhRes = [str(value) for value in pamlLlh.values()]
+		llh.write(baseName+"\tBPP\t"+"\t".join(bppLlhRes)+"\n")
+		llh.write(baseName+"\tPAML\t"+"\t".join(pamlLlhRes)+"\n")
+	
+	
 	res.close()
+	llh.close()	
 	print("Parsed results found in {:s}".format(resFile))
