@@ -4,11 +4,12 @@ outdir:
 logfile:
 evalue:
 mincov:
-perc_id:
-entry_query:
-step_id:positiveSelection
+percID:
+entryQuery:
+step:positiveSelection
+queryName:
 remote:
-API_Key:
+APIKey:
 sptree:
 duplication:
 nbspecies:
