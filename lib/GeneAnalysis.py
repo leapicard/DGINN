@@ -22,7 +22,7 @@ def hyphyBusted(alnFile, cladoFile, outDir, baseName, logger):
 	outWG = outDir+"busted/"
 	if not os.path.exists(outWG):
 		subprocess.Popen("mkdir "+outWG, shell =  True).wait()
-	resBusted = outWG+aln.split("/")[-1].split(".")[0]+"_busted.res"
+	resBusted = outWG+alnFile.split("/")[-1].split(".")[0]+"_busted.res"
 	outBusted = open(outWG+baseName+"_busted.out", "w")
 	errBusted = open(outWG+baseName+"_busted.err", "w")
 	

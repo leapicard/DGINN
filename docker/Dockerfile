@@ -70,6 +70,10 @@ WORKDIR /opt/hyphy
 RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch --depth 1 origin e1420457b4d0c9de8f206a78614c44525dc7be68 && git checkout FETCH_HEAD && cmake . && make MPI && make MP && make install
 ENV PATH /opt/hyphy:$PATH
 
-WORKDIR /data
+## add user to circumvent problem of running mpirun as root
+RUN useradd -ms /bin/bash newuser
+USER newuser
+WORKDIR /newuser
+
 ENTRYPOINT ["DGINN.py"]
 CMD ["-h"]

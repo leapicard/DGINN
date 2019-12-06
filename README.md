@@ -29,7 +29,7 @@ docker pull leapicard/dginn
 ```
 Use the docker:
 ```{sh}
-docker run -v /path/to/working/directory:/data leapicard/dginn -p parameters.txt
+docker run -v /path/to/working/directory:/newuser leapicard/dginn -p parameters.txt
 ```
 /path/to/working/directory should be the complete path to the directory where all files necessary to run the pipeline are located (parameter file, infile(s), species tree, etc.)
 

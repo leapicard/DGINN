@@ -22,4 +22,4 @@ models:M0,M1,M2,M7,M8
 paml:True
 bppml:params_bppml.bpp
 mixedlikelihood:params_mixedllh.bpp
-opb:True
+opb:False
