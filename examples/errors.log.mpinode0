@@ -1,6 +1,0 @@
-
-Error:Could not find source dataset file "PROMPT_FOR_FILE" (resolved to '/usr/local/lib/hyphy/TemplateBatchFiles/010010')
-Path stack:
-	/usr/local/lib/hyphy/
-	/home/lea/Documents/DGINN/examples/ex_aln_results_201912091712/
-	/usr/local/lib/hyphy/TemplateBatchFiles/

@@ -69,7 +69,7 @@ ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
 ## Install HYPHY
 #RUN git clone https://github.com/veg/hyphy.git && cd hyphy && cmake . && make MPI && make MP && make install
 WORKDIR /opt/hyphy
-RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch --depth 1 origin e1420457b4d0c9de8f206a78614c44525dc7be68 && git checkout FETCH_HEAD && cmake . && make MPI && make MP && make install
+RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch --depth 1 origin fd90f0c0fdcf72529665b0790539faa551f45ba6 && git checkout FETCH_HEAD && cmake . && make MPI && make MP && make install
 ENV PATH /opt/hyphy:$PATH
 
 ## add user to circumvent problem of running mpirun as root
