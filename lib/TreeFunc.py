@@ -35,13 +35,13 @@ def treeCheck(treePath, optionTree, logger):
 	"""
 	if treePath != "":
 		if not os.path.exists(treePath):
-			logger.info("The path for the species tree doesn't exist.")
-			logger.info("Treerecs option will be set to False.")
+			logger.warning("The path for the species tree doesn't exist.")
+			logger.warning("Treerecs option will be set to False.")
 			optionTree = False
 		else:
 			if not ete3.Tree(treePath):
-				logger.info("The species tree is corrupted.")
-				logger.info("Treerecs option will be set to False.")
+				logger.warning("The species tree is corrupted.")
+				logger.warning("Treerecs option will be set to False.")
 				optionTree = False
 
 	return treePath, optionTree
@@ -188,7 +188,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 		lOut = []
 		sp = set([leaf.S for leaf in testTree])
 		dDupl2Seq = {}
-		print("TRY 4")
+		
 		# as long as the number of species left in the tree is equal or superior to the cut-off specified by the user and there still are nodes annoted with duplication events
 		while len(sp) > int(nbSp) - 1 and len(dNb2Node.keys()) > 0:
 			# start from the most recent duplications (ie, the furthest node)

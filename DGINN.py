@@ -122,14 +122,15 @@ if __name__ == "__main__":
 											 	 parameters["duplication"])	
 
 				AnalysisFunc.alnPrank(Data, logger)
-				fasCov = AnalysisFunc.covAln(Data.aln, 
+				fasCov, nbOut = AnalysisFunc.covAln(Data.aln, 
 											 parameters["mincov"], 
 											 Data.queryName, 
 											 Data.o)
-				newAln = AnalysisFunc.runPrank(fasCov, 
-											   Data.geneName, 
-											   Data.o)
-				Data.aln = newAln
+				if nbOut > 0:
+					newAln = AnalysisFunc.runPrank(fasCov, 
+												   Data.geneName, 
+												   Data.o)
+					Data.aln = newAln
 
 			elif lSteps[i] == "tree":
 				if parameters["step"] == "tree":
@@ -153,13 +154,13 @@ if __name__ == "__main__":
 						LoadFileFunc.spTreeCheck(Data, 
 												 firstStep, 
 											 	 parameters["duplication"])	
-
+				
 				dAlTree = TreeFunc.treeTreatment(Data, 
-												 dAlTree, 
-												 parameters["nbspecies"], 
-												 logger)
+													 dAlTree, 
+													 parameters["nbspecies"], 
+													 logger)
 
-			elif lSteps[i] == "recombination" and parameters["duplication"]:
+			elif lSteps[i] == "recombination" and parameters["recombination"]:
 				if parameters["step"] == "recombination":
 					Data = LoadFileFunc.phymlRecEntry(Data, logger)
 					dAlTree[Data.aln] = ""

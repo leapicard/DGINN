@@ -3,6 +3,7 @@ import logging, subprocess, shlex, os, ete3
 from Bio import SeqIO, AlignIO
 from collections import defaultdict, OrderedDict
 from itertools import chain
+from statistics import median
 
 ######Functions=============================================================================================================
 
@@ -162,11 +163,11 @@ def covAln(aln, cov, queryName, o):
 		
 		logger.info("Discarded {:d} sequences".format(nbOut))
 	
-		return(outCov)
+		return(outCov, nbOut)
 	
 	else:
-		logger.info("Provided query name not found in the alignment, skipping coverage check.")
-		return(aln)
+		logger.warning("Provided query name not found in the alignment, skipping coverage check.")
+		return(aln, 0)
 
 def alnPrank(data, logger):
 	"""
@@ -246,6 +247,9 @@ def cutLongBranches(aln, dAlnTree, logger):
 	"""
 	logger.info("Looking for long branches.")
 	loadTree = ete3.Tree(dAlnTree[aln])
+	dist = [leaf.dist for leaf in loadTree.traverse()]
+	medianDist = median(dist)
+	longDist = medianDist * 50
 	matches = [leaf for leaf in loadTree.traverse() if leaf.dist>50.0]
 	
 	if len(matches) > 0:
@@ -447,7 +451,11 @@ def parseGard(kh, aln, pvalue, o, logger):
 			index = 0
 			for x in range(1,len(lBP)):
 				dFrag = {}
-				extension = "{:d}to{:d}".format(lBP[x-1], lBP[x])
+				if lBP[x-1] == 0:
+					extension = "{:d}to{:d}".format(lBP[x-1], lBP[x])
+				else:
+					extension = "{:d}to{:d}".format(lBP[x-1]-1, lBP[x])
+
 				outFrag = o+aln.split("/")[-1].split(".")[0]+"_frag"+extension+".best.fas"
 				for name in lNameGene:
 					dFrag[name] = lFrag[index]

@@ -60,7 +60,9 @@ RUN pip3 install --target /usr/local/lib/python3.6/dist-packages numpy \
 RUN pip3 install --target /usr/local/lib/python3.6/dist-packages --upgrade ete3
 ENV PYTHONPATH /usr/local/lib/python3.6/dist-packages:$PYTHONPATH
 
+RUN echo $PATH
 RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.py
+RUN cd /opt/DGINN/lib/ && sed 's/mpirun -np 2/mpirun -np 2 --allow-run-as-root/g' AnalysisFunc.py > AnalysisFunc2.py && rm AnalysisFunc.py && mv AnalysisFunc2.py AnalysisFunc.py
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
 
@@ -71,9 +73,12 @@ RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch
 ENV PATH /opt/hyphy:$PATH
 
 ## add user to circumvent problem of running mpirun as root
-RUN useradd -ms /bin/bash newuser
-USER newuser
-WORKDIR /newuser
-
+#WORKDIR /
+#RUN useradd newuser
+#RUN mkdir -p newuser && chown -R newuser:newuser /newuser
+#RUN ls -la
+#USER newuser
+#WORKDIR /newuser
+#ADD entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["DGINN.py"]
-CMD ["-h"]
+#CMD ["-h"]
