@@ -3,7 +3,7 @@ import logging, subprocess, shlex, os, ete3
 from Bio import SeqIO, AlignIO
 from collections import defaultdict, OrderedDict
 from itertools import chain
-from statistics import median
+from statistics import median, mean
 
 ######Functions=============================================================================================================
 
@@ -18,9 +18,10 @@ def cmd(commandLine, choice):
 	lCmd = shlex.split(commandLine)
 	run = subprocess.run(lCmd, 
 						 shell=choice, 
-						 check=True, 
+						 check=True,
 						 stdout=subprocess.PIPE, 
 						 stderr=subprocess.PIPE)
+	#print(subprocess.PIPE)
 
 ######ORF===================================================================================================================
 
@@ -193,8 +194,11 @@ def runPhyML(aln, geneDir):
 	@return outPhy: Path to PhyML results file
 	"""
 	# convert to Phylip format and replace eventual "!" symbols (relic from using MACSE)
-	outPhy = geneDir+aln.split("/")[-1].split(".")[0]+".phylip"
+	origin = os.getcwd()
+	os.chdir(geneDir)
+	outPhy = aln.split("/")[-1].split(".")[0]+".phylip"
 	tmp = geneDir+aln.split("/")[-1].split(".")[0]+".tmp"
+	tmp2 = geneDir+"tmp.phylip"
 	logger = logging.getLogger("main")
 	
 	with open(aln, "rU") as aln:
@@ -215,8 +219,9 @@ def runPhyML(aln, geneDir):
 	# PhyML
 	cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
 	logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
+	os.chdir(origin)
 	
-	return(outPhy)
+	return(geneDir+outPhy)
 
 
 def phyMLTree(data, logger):
@@ -249,8 +254,9 @@ def cutLongBranches(aln, dAlnTree, logger):
 	loadTree = ete3.Tree(dAlnTree[aln])
 	dist = [leaf.dist for leaf in loadTree.traverse()]
 	medianDist = median(dist)
-	longDist = medianDist * 50
-	matches = [leaf for leaf in loadTree.traverse() if leaf.dist>50.0]
+	meanDist = mean(dist)
+	longDist = meanDist * 50
+	matches = [leaf for leaf in loadTree.traverse() if leaf.dist>longDist]
 	
 	if len(matches) > 0:
 		logger.info("{} long branches found, separating alignments.".format(len(matches)))

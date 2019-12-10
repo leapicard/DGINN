@@ -60,16 +60,16 @@ RUN pip3 install --target /usr/local/lib/python3.6/dist-packages numpy \
 RUN pip3 install --target /usr/local/lib/python3.6/dist-packages --upgrade ete3
 ENV PYTHONPATH /usr/local/lib/python3.6/dist-packages:$PYTHONPATH
 
-RUN echo $PATH
+RUN ls -la
 RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.py
-RUN cd /opt/DGINN/lib/ && sed 's/mpirun -np 2/mpirun -np 2 --allow-run-as-root/g' AnalysisFunc.py > AnalysisFunc2.py && rm AnalysisFunc.py && mv AnalysisFunc2.py AnalysisFunc.py
+#RUN cd /opt/DGINN/lib/ && sed 's/mpirun -np 2/mpirun -np 2 --allow-run-as-root/g' AnalysisFunc.py > AnalysisFunc2.py && rm AnalysisFunc.py && mv AnalysisFunc2.py AnalysisFunc.py
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
 
 ## Install HYPHY
 #RUN git clone https://github.com/veg/hyphy.git && cd hyphy && cmake . && make MPI && make MP && make install
 WORKDIR /opt/hyphy
-RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch --depth 1 origin fd90f0c0fdcf72529665b0790539faa551f45ba6 && git checkout FETCH_HEAD && cmake . && make MPI && make MP && make install
+RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch --depth 1 origin e1420457b4d0c9de8f206a78614c44525dc7be68 && git checkout FETCH_HEAD && cmake . && make HYPHYMPI && make HYPHYMP && make install
 ENV PATH /opt/hyphy:$PATH
 
 ## add user to circumvent problem of running mpirun as root
@@ -80,5 +80,9 @@ ENV PATH /opt/hyphy:$PATH
 #USER newuser
 #WORKDIR /newuser
 #ADD entrypoint.sh /usr/local/bin/entrypoint.sh
-ENTRYPOINT ["DGINN.py"]
+#ENTRYPOINT ["bash"]
+#ENTRYPOINT ["HYPHYMP /opt/hyphy/res/TemplateBatchFiles/SelectionAnalyses/BUSTED.bf"]
+#ENTRYPOINT ["mpirun -np 2 HYPHYMPI"]
 #CMD ["-h"]
+
+ENTRYPOINT ["DGINN.py"]
