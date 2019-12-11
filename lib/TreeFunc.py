@@ -290,31 +290,37 @@ def treeTreatment(data, dAlnTree, nbSp, logger):
 	@param2 logger: Logging object
 	"""
 	#try:
-	data.filtTree = filterTree(data.tree, 
-							   data.sptree, 
-							   data.cor)
-	logger.info("Cleaning the tree")
+	dAlnTree2 = {}
+	print(dAlnTree2)
+	for aln, tree in dAlnTree.items():
+		print(aln)
+		filtTree = filterTree(tree, 
+							  data.sptree, 
+							  data.cor)
+		logger.info("Cleaning the tree")
 
-	logger.info("Running Treerecs")
-	recTree = runTreerecs(data.filtTree, 
-						  data.sptree, 
-						  data.o)
-	setattr(data, "recTree", recTree)
+		logger.info("Running Treerecs")
+		recTree = runTreerecs(filtTree, 
+							  data.sptree, 
+							  data.o)
+		#setattr(data, "recTree", recTree)
 
-	lFastaFile = treeParsing(data.ORFs, 
-							 data.recTree, 
-							 nbSp, 
-							 data.o, 
-							 logger)
-	setattr(data, "duplication", lFastaFile)
-	
-	if len(lFastaFile) > 0:
-		for orthoGp in data.duplication:
-			aln = AnalysisFunc.runPrank(orthoGp, 
-									    data.geneName, 
-									    data.o)
-			tree = AnalysisFunc.runPhyML(aln, data.o)
-			dAlnTree[aln] = tree+"_phyml_tree.txt"
+		lFastaFile = treeParsing(data.ORFs, 
+								 recTree, 
+								 nbSp, 
+								 data.o, 
+								 logger)
+		setattr(data, "duplication", lFastaFile)
+		
+		if len(lFastaFile) > 0:
+			for orthoGp in data.duplication:
+				aln = AnalysisFunc.runPrank(orthoGp, 
+										    data.geneName, 
+										    data.o)
+				tree = AnalysisFunc.runPhyML(aln, data.o)
+				dAlnTree2[aln] = tree+"_phyml_tree.txt"
+
+	dAlnTree.update(dAlnTree2)
 
 	return dAlnTree
 

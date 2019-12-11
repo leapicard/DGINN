@@ -157,9 +157,9 @@ if __name__ == "__main__":
 													  logger)
 
 				dAlTree = TreeFunc.treeTreatment(Data, 
-													 dAlTree, 
-													 parameters["nbspecies"], 
-													 logger)
+												 dAlTree, 
+												 parameters["nbspecies"], 
+												 logger)
 
 			elif lSteps[i] == "recombination" and parameters["recombination"]:
 				if parameters["step"] == "recombination":

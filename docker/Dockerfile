@@ -67,7 +67,6 @@ RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch
 ENV PATH /opt/hyphy:$PATH
 
 WORKDIR /opt
-RUN ls
 RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.py
 #RUN cd /opt/DGINN/lib/ && sed 's/mpirun -np 2/mpirun -np 2 --allow-run-as-root/g' AnalysisFunc.py > AnalysisFunc2.py && rm AnalysisFunc.py && mv AnalysisFunc2.py AnalysisFunc.py
 ENV PATH /opt/DGINN/:$PATH
