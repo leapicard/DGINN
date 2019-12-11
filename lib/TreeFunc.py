@@ -291,7 +291,7 @@ def treeTreatment(data, dAlnTree, nbSp, logger):
 	"""
 	#try:
 	dAlnTree2 = {}
-	print(dAlnTree2)
+	lFastaFile = []
 	for aln, tree in dAlnTree.items():
 		print(aln)
 		filtTree = filterTree(tree, 
@@ -305,20 +305,21 @@ def treeTreatment(data, dAlnTree, nbSp, logger):
 							  data.o)
 		#setattr(data, "recTree", recTree)
 
-		lFastaFile = treeParsing(data.ORFs, 
+		lFastaFile.append(treeParsing(data.ORFs, 
 								 recTree, 
 								 nbSp, 
 								 data.o, 
-								 logger)
-		setattr(data, "duplication", lFastaFile)
+								 logger))
+	
+	setattr(data, "duplication", lFastaFile)
 		
-		if len(lFastaFile) > 0:
-			for orthoGp in data.duplication:
-				aln = AnalysisFunc.runPrank(orthoGp, 
-										    data.geneName, 
-										    data.o)
-				tree = AnalysisFunc.runPhyML(aln, data.o)
-				dAlnTree2[aln] = tree+"_phyml_tree.txt"
+	if len(lFastaFile) > 0:
+		for orthoGp in data.duplication:
+			aln = AnalysisFunc.runPrank(orthoGp, 
+									    data.geneName, 
+									    data.o)
+			tree = AnalysisFunc.runPhyML(aln, data.o)
+			dAlnTree2[aln] = tree+"_phyml_tree.txt"
 
 	dAlnTree.update(dAlnTree2)
 
