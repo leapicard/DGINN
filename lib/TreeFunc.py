@@ -305,11 +305,11 @@ def treeTreatment(data, dAlnTree, nbSp, logger):
 							  data.o)
 		#setattr(data, "recTree", recTree)
 
-		lFastaFile.append(treeParsing(data.ORFs, 
-								 recTree, 
-								 nbSp, 
-								 data.o, 
-								 logger))
+		lFastaFile += treeParsing(data.ORFs, 
+								  recTree, 
+								  nbSp, 
+								  data.o, 
+								  logger)
 	
 	setattr(data, "duplication", lFastaFile)
 		
