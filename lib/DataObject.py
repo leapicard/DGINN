@@ -76,6 +76,5 @@ class basicData:
 			self.queryName = accn.id
 		else:
 			if self.queryName == "":
-				self.logger.warn("queryName is not provided, exiting DGINN.")
-				sys.exit()
+				self.logger.warn("queryName is not provided, coverage check will not run.")
 	
