@@ -1,5 +1,0 @@
-2019-12-13 14:16:12,908 - main - INFO - Starting /home/lea/Documents/DGINN/lib/Init.py (v1.0)
-2019-12-13 14:16:12,908 - main - INFO - Reading input file ex_aln.fasta
-2019-12-13 14:16:12,908 - main - INFO - Output directory: /home/lea/Documents/DGINN/examples/ex_aln_results_201912131416
-2019-12-13 14:16:12,908 - main - INFO - Analysis will begin at the tree step
-2019-12-13 14:16:12,930 - main - INFO - Running PhyML to produce gene phylogenetic tree
