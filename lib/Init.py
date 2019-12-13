@@ -120,13 +120,13 @@ def paramDef(params, inf, queryName):
 	if len(dParams["infile"]) > 1:
 		for entryfile in dParams["infile"]:
 			if FormatFunc.isCCDSFasta(entryfile):
-				dParams["queryFile"] = entryfile
+				dParams["queryFile"] = os.path.abspath(entryfile)
 			if FormatFunc.isAln(entryfile):
-				dParams["alnfile"] = entryfile
+				dParams["alnfile"] = os.path.abspath(entryfile)
 			if FormatFunc.isTree(entryfile):
-				dParams["treefile"] = entryfile
+				dParams["treefile"] = os.path.abspath(entryfile)
 	else:
-		dParams["queryFile"] = dParams["infile"][0]
+		dParams["queryFile"] = os.path.abspath(dParams["infile"][0])
 	
 	if "queryFile" in dParams.keys() and dParams["queryFile"] != "":
 		dParams["infile"] = dParams["queryFile"]	

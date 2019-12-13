@@ -33,10 +33,10 @@ class basicData:
 		self.sequence = ""
 		self.blastRes = ""
 		self.lBlastRes = []
-		self.sptree = os.path.abspath(spTree)
+		self.sptree = spTree
 		self.ORFs = ""
-		self.aln = os.path.abspath(aln)
-		self.tree = os.path.abspath(tree)
+		self.aln = aln
+		self.tree = tree
 		self.queryName = queryName
 		self.alnFormat = "Fasta"
 		self.baseName = ""
