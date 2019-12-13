@@ -70,7 +70,6 @@ WORKDIR /opt/hyphy
 RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch --depth 1 origin e1420457b4d0c9de8f206a78614c44525dc7be68 && git checkout FETCH_HEAD && cmake . && make HYPHYMPI && make HYPHYMP && make install
 ENV PATH /opt/hyphy:$PATH
 
-RUN ls -la
 WORKDIR /opt
 RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.py
 #RUN cd /opt/DGINN/lib/ && sed 's/mpirun -np 2/mpirun -np 2 --allow-run-as-root/g' AnalysisFunc.py > AnalysisFunc2.py && rm AnalysisFunc.py && mv AnalysisFunc2.py AnalysisFunc.py
