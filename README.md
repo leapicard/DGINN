@@ -31,7 +31,7 @@ Use the docker:
 ```{sh}
 docker run --rm -u $(id -u $USER):$(id -u $USER) -v $PWD:$PWD -w $PWD leapicard/dginn
 ```
-The command should be run as is, and should work on both Mac and Linux systems.
+The command should be run as is, and should work on both Mac and Linux systems, provided the user belong to the 'docker' group (please refer to the [Docker Documentation](https://docs.docker.com/install/linux/linux-postinstall/) for help about setting the user as part of this group on Linux.)
 
 All other arguments are passed exactly as if DGINN were run through the command line directly from the script (such as -p parameters.txt / see next section). However, one main difference is that all the files should be referred to by their name in the parameter file and be located within the working directory, while they can be referred by their path and be located in a different directory when running the script version.
 

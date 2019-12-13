@@ -197,8 +197,9 @@ def runPhyML(aln, geneDir):
 	origin = os.getcwd()
 	os.chdir(geneDir)
 	outPhy = aln.split("/")[-1].split(".")[0]+".phylip"
-	tmp = geneDir+aln.split("/")[-1].split(".")[0]+".tmp"
-	tmp2 = geneDir+"tmp.phylip"
+	aln = aln.split("/")[-1]
+	tmp = aln.split("/")[-1].split(".")[0]+".tmp"
+	
 	logger = logging.getLogger("main")
 	
 	with open(aln, "rU") as aln:

@@ -55,10 +55,14 @@ RUN pip3 install --target /usr/local/lib/python3.6/dist-packages numpy \
 	pandas \
 	requests \
 	biopython \
-	setuptools 
+	setuptools \
+	pyqt5 \
+	six \
+	lxml
 
 RUN pip3 install --target /usr/local/lib/python3.6/dist-packages --upgrade ete3
 ENV PYTHONPATH /usr/local/lib/python3.6/dist-packages:$PYTHONPATH
+
 
 ## Install HYPHY
 #RUN git clone https://github.com/veg/hyphy.git && cd hyphy && cmake . && make MPI && make MP && make install
@@ -72,18 +76,8 @@ RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.p
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
 
-## add user to circumvent problem of running mpirun as root
-#WORKDIR /
-#RUN useradd newuser
-#RUN mkdir -p newuser && chown -R newuser:newuser /newuser
-#RUN ls -la
-#USER newuser
-#WORKDIR /newuser
-#ADD entrypoint.sh /usr/local/bin/entrypoint.sh
-#ENTRYPOINT ["bash"]
-#ENTRYPOINT ["HYPHYMP /opt/hyphy/res/TemplateBatchFiles/SelectionAnalyses/BUSTED.bf"]
-#ENTRYPOINT ["mpirun -np 2 HYPHYMPI"]
-#CMD ["-h"]
-
+#WORKDIR ~
+ENV PATH /usr/local/lib/python3.6/dist-packages:$PATH
+#RUN ete3
 ENTRYPOINT ["DGINN.py"]
 CMD ["-h"]
