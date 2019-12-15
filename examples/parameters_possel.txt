@@ -19,7 +19,7 @@ hyphySeuil:
 busted:False
 meme:False
 models:M0,M1,M2
-paml:True
-bppml:False
-mixedlikelihood:False
+paml:False
+bppml:True
+mixedlikelihood:True
 opb:False

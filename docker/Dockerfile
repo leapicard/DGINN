@@ -35,13 +35,13 @@ ENV PATH /opt/Treerecs:$PATH
 RUN mkdir bpp && cd bpp && mkdir sources && cd sources && for d in bpp-core bpp-seq bpp-phyl bpp-popgen; \
 	do git clone https://github.com/BioPP/$d; \
 	cd $d; \
-	cmake -DCMAKE_INSTALL_PREFIX=~/bpp -DCMAKE_LIBRARY_PATH=~/bpp/lib -DCMAKE_INCLUDE_PATH=~/bpp/include -DBUILD_TESTING=FALSE ./; \
+	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
 	make; \
 	make install; \
 	cd ..; \
 	done
 
-RUN cd bpp && git clone http://biopp.univ-montp2.fr/git/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=~/bpp ./ -DINFO=FALSE && make && make install
+RUN cd bpp && git clone http://biopp.univ-montp2.fr/git/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ -DINFO=FALSE && make && make install
 ENV PATH /opt/bpp/bppsuite/bppSuite/:$PATH
 ENV CPATH /opt/bpp/include:$CPATH
 ENV LIBRARY_PATH /opt/bpp/lib:$LIBRARY_PATH
@@ -79,6 +79,6 @@ ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
 
 #WORKDIR ~/
-#RUN codeml
+RUN ls /opt/bpp
 ENTRYPOINT ["DGINN.py"]
 CMD ["-h"]

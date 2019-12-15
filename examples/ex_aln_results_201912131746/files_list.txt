@@ -1,1 +1,0 @@
-/home/lea/Documents/DGINN/examples/ex_aln.fasta	/home/lea/Documents/DGINN/examples/ex_geneTree.tree
