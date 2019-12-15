@@ -1,0 +1,1 @@
+/usr/lib/paml/data/codeml.ctl

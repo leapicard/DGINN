@@ -71,13 +71,14 @@ RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch
 ENV PATH /opt/hyphy:$PATH
 
 WORKDIR /opt
+RUN git clone https://github.com/binlu1981/paml && cd paml && cd src && make
+ENV PATH /opt/paml/src/:$PATH
 RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.py
 #RUN cd /opt/DGINN/lib/ && sed 's/mpirun -np 2/mpirun -np 2 --allow-run-as-root/g' AnalysisFunc.py > AnalysisFunc2.py && rm AnalysisFunc.py && mv AnalysisFunc2.py AnalysisFunc.py
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
 
-#WORKDIR ~
-ENV PATH /usr/local/lib/python3.6/dist-packages:$PATH
-#RUN ete3
+#WORKDIR ~/
+#RUN codeml
 ENTRYPOINT ["DGINN.py"]
 CMD ["-h"]

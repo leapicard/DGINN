@@ -1,0 +1,18 @@
+2019-12-13 17:46:44,849 - main - INFO - Starting /opt/DGINN/lib/Init.py (v1.0)
+2019-12-13 17:46:44,850 - main - INFO - Reading input file /home/lea/Documents/DGINN/examples/ex_aln.fasta
+2019-12-13 17:46:44,853 - main - INFO - Output directory: /home/lea/Documents/DGINN/examples/ex_aln_results_201912131746/
+2019-12-13 17:46:44,853 - main - INFO - Analysis will begin at the positiveSelection step
+2019-12-13 17:46:44,854 - main - WARNING - queryName is not provided, coverage check will not run.
+2019-12-13 17:46:44,854 - main - INFO - Starting positive selection analyses.
+2019-12-13 17:46:44,854 - main - INFO - Alignement file: /home/lea/Documents/DGINN/examples/ex_aln.fasta
+2019-12-13 17:46:44,854 - main - INFO - Gene Tree file: /home/lea/Documents/DGINN/examples/ex_geneTree.tree
+2019-12-13 17:46:44,858 - main - INFO - Location of entry files: /home/lea/Documents/DGINN/examples/ex_aln_results_201912131746/positive_selection_results_201912131746/
+2019-12-13 17:46:44,858 - main - INFO - Alignement: /home/lea/Documents/DGINN/examples/ex_aln.fasta
+2019-12-13 17:46:44,858 - main - INFO - Alignement is in Fasta format.
+2019-12-13 17:46:44,858 - main - INFO - Tree: /home/lea/Documents/DGINN/examples/ex_geneTree.tree
+2019-12-13 17:46:44,859 - main - INFO - There are 96 nodes in the provided tree.
+2019-12-13 17:46:44,859 - main - INFO - POSITIVE SELECTION ANALYSIS: 
+2019-12-13 17:46:44,859 - main - INFO - Analysis to be run:
+2019-12-13 17:46:44,859 - main - INFO - Site (codeml)
+2019-12-13 17:46:44,889 - main - INFO - PAML codeml
+2019-12-13 17:46:44,889 - main - INFO - Running M0

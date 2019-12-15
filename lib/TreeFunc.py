@@ -150,10 +150,10 @@ def filterTree(tree, spTree, cor):
 		if z in dCor.keys() and dCor[z] in g2:
 			g1Genes.append(z)
 
-	if len(g1Genes) < len(g1)/2:
+	"""if len(g1Genes) < len(g1)/2:
 		print(len(g1Genes))
 		print(len(g1)/2)
-		exit()
+		exit()"""
 
 	t1.prune(set(g1Genes))
 	out = tree.replace(".tree", "_filtered.tree")
@@ -293,7 +293,6 @@ def treeTreatment(data, dAlnTree, nbSp, logger):
 	dAlnTree2 = {}
 	lFastaFile = []
 	for aln, tree in dAlnTree.items():
-		print(aln)
 		filtTree = filterTree(tree, 
 							  data.sptree, 
 							  data.cor)

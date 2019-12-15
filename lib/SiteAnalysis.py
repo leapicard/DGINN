@@ -39,7 +39,6 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	dLogLlh = {}		# dictionary(model:logllh)
 	
 	for model in lModels:
-		print(model)
 		# take into account the specificities of each model (number of classes n for example)
 		if int(model[1]) > 2:
 			dModelSyntax[model] = dModelSyntax[model].replace(model+"(", model+"(n=8, ")
