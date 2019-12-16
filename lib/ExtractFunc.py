@@ -1,3 +1,4 @@
+#coding: utf8
 import logging
 
 """This file pools the necessary functions to treat the input file of genes and their CCDS accessions."""
@@ -14,7 +15,7 @@ def makeAccnsFile(lBlastRes, queryName, outDir):
 	"""
 
 	# write all accessions to new file
-	outBlastn = outDir+queryName.split("_")[1]+"_accns.txt"
+	outBlastn = outDir+queryName.split("_")[0:2][-1]+"_accns.txt"
 	logger = logging.getLogger("main")
 	geneAllAccns = "\n".join(set(lBlastRes))
 	
