@@ -64,7 +64,7 @@ class basicData:
 					pass
 			else:
 				self.logger.warn("Provided path to output folder {:s} does not exist, defaulting to {:s}".format(wrongDir, self.o))
-	
+		self.o = os.path.abspath(self.o)+"/"
 	
 	def setGenAttr(self, step):
 		
@@ -76,6 +76,5 @@ class basicData:
 			self.queryName = accn.id
 		else:
 			if self.queryName == "":
-				self.logger.warn("queryName is not provided, exiting DGINN.")
-				sys.exit()
+				self.logger.warn("queryName is not provided, coverage check will not run.")
 	

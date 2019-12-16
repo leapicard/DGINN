@@ -29,11 +29,9 @@ docker pull leapicard/dginn
 ```
 Use the docker:
 ```{sh}
-docker run -v /path/to/working/directory:/newuser leapicard/dginn -p parameters.txt
+docker run --rm -u $(id -u $USER):$(id -u $USER) -v $PWD:$PWD -w $PWD leapicard/dginn
 ```
-/path/to/working/directory should be the complete path to the directory where all files necessary to run the pipeline are located (parameter file, infile(s), species tree, etc.)
-
-/data refers to the working directory within the docker and should not be changed.
+The command should be run as is, and should work on both Mac and Linux systems, provided the user belong to the 'docker' group (please refer to the [Docker Documentation](https://docs.docker.com/install/linux/linux-postinstall/) for help about setting the user as part of this group on Linux.)
 
 All other arguments are passed exactly as if DGINN were run through the command line directly from the script (such as -p parameters.txt / see next section). However, one main difference is that all the files should be referred to by their name in the parameter file and be located within the working directory, while they can be referred by their path and be located in a different directory when running the script version.
 

@@ -142,9 +142,6 @@ if __name__ == "__main__":
 											 	 parameters["duplication"])	
 
 				dAlTree = AnalysisFunc.phyMLTree(Data, logger)
-				dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
-													  dAlTree, 
-													  logger)
 
 			elif lSteps[i] == "duplication" and parameters["duplication"]:
 				if parameters["step"] == "duplication":
@@ -155,10 +152,14 @@ if __name__ == "__main__":
 												 firstStep, 
 											 	 parameters["duplication"])	
 				
+				dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
+													  dAlTree, 
+													  logger)
+
 				dAlTree = TreeFunc.treeTreatment(Data, 
-													 dAlTree, 
-													 parameters["nbspecies"], 
-													 logger)
+												 dAlTree, 
+												 parameters["nbspecies"], 
+												 logger)
 
 			elif lSteps[i] == "recombination" and parameters["recombination"]:
 				if parameters["step"] == "recombination":

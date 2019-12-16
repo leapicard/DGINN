@@ -16,10 +16,10 @@ nbspecies:
 recombination:
 positiveSelection:True
 hyphySeuil:
-busted:True
-meme:True
-models:M0,M1,M2,M7,M8
-paml:True
-bppml:params_bppml.bpp
-mixedlikelihood:params_mixedllh.bpp
+busted:False
+meme:False
+models:M0,M1,M2
+paml:False
+bppml:True
+mixedlikelihood:True
 opb:False

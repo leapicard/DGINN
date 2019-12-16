@@ -197,8 +197,9 @@ def runPhyML(aln, geneDir):
 	origin = os.getcwd()
 	os.chdir(geneDir)
 	outPhy = aln.split("/")[-1].split(".")[0]+".phylip"
-	tmp = geneDir+aln.split("/")[-1].split(".")[0]+".tmp"
-	tmp2 = geneDir+"tmp.phylip"
+	aln = aln.split("/")[-1]
+	tmp = aln.split("/")[-1].split(".")[0]+".tmp"
+	
 	logger = logging.getLogger("main")
 	
 	with open(aln, "rU") as aln:
@@ -268,7 +269,7 @@ def cutLongBranches(aln, dAlnTree, logger):
 			gp = node.get_children()
 			lNewGp = list(chain.from_iterable([x.get_leaf_names() for x in gp]))
 		
-			newAln = aln.split(".")[0]+"_split"+str(matches.index(node)+1)+".fasta"
+			newAln = aln.split(".")[0]+"_part"+str(matches.index(node)+1)+".fasta"
 			
 			dNewAln = {gene:dID2Seq[gene] for gene in lNewGp}
 			for k in lNewGp:
@@ -280,7 +281,7 @@ def cutLongBranches(aln, dAlnTree, logger):
 			
 			dAlnTree[newAln] = ""
 		
-		alnLeft = aln.split(".")[0]+"_split"+str(len(matches)+1)+".fasta"
+		alnLeft = aln.split(".")[0]+"_part"+str(len(matches)+1)+".fasta"
 		with open(alnLeft, "w") as fasta:
 			fasta.write(FastaResFunc.dict2fasta(dID2Seq))
 		
@@ -303,9 +304,11 @@ def checkPhyMLTree(data, dAlnTree, logger):
 			tree = runPhyML(aln, data.o)
 			dAlnTree2[aln] = tree+"_phyml_tree.txt"
 			
-	dAlnTree.update(dAlnTree2)
-		
-	return(dAlnTree)
+	#dAlnTree.update(dAlnTree2)
+	if len(dAlnTree2) > 0:
+		return(dAlnTree2)
+	else:
+		return(dAlnTree)
 		
 #######=================================================================================================================
 

@@ -6,7 +6,11 @@ def hyphyBusted(alnFile, cladoFile, outDir, baseName, logger):
 	
 	# Valid for Hyphy 2.3
 	# create BUSTED batch file for the gene
-	bustedFile = outDir+baseName+"_busted.bf"
+	outWG = outDir+"busted/"
+	if not os.path.exists(outWG):
+		subprocess.Popen("mkdir "+outWG, shell =  True).wait()
+
+	bustedFile = outWG+baseName+"_busted.bf"
 	with open(bustedFile, "w") as bf:
 		bf.write("inputRedirect = {};\n")
 		bf.write("inputRedirect[\"01\"] = \"Universal\";\n")
@@ -19,9 +23,6 @@ def hyphyBusted(alnFile, cladoFile, outDir, baseName, logger):
 
 	# run BUSTED
 	### find way to suppress stderr
-	outWG = outDir+"busted/"
-	if not os.path.exists(outWG):
-		subprocess.Popen("mkdir "+outWG, shell =  True).wait()
 	resBusted = outWG+alnFile.split("/")[-1].split(".")[0]+"_busted.res"
 	outBusted = open(outWG+baseName+"_busted.out", "w")
 	errBusted = open(outWG+baseName+"_busted.err", "w")

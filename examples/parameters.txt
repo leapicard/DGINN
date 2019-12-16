@@ -7,7 +7,7 @@ mincov:
 percID:
 entryQuery:Primates[Organism]
 step:tree
-queryName:homSap_MX1_CCDS13673
+queryName:
 remote:yes
 APIKey:
 sptree:ex_spTree.tree
