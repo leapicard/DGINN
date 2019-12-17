@@ -16,7 +16,7 @@ def makeAccnsFile(lBlastRes, queryName, outDir):
 
 	# write all accessions to new file
 	outBlastn = outDir+queryName.split("_")[0:2][-1]+"_accns.txt"
-	logger = logging.getLogger("main")
+	logger = logging.getLogger("main.accessions")
 	geneAllAccns = "\n".join(set(lBlastRes))
 	
 	logger.debug(geneAllAccns)

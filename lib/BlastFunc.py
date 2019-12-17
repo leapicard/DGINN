@@ -7,7 +7,7 @@ from time import sleep
 
 """This file pools the necessary functions to run Blast and parse its results."""
 
-def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, query, logger):
+def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, query):
 	"""
 	Function running Blast on the provided gene list.
 	
@@ -19,11 +19,11 @@ def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, 
 	@param6 apiKey: Key for the API of NCBI
 	@param7 remote: Boolean (online database or not)
 	@param8 query: Strings which will select the database online
-	@param9 logger: Logging object
 	@return blastRes: Path to Blast results file
 	"""
 	# Blast results file
 	blastRes = outDir+baseName+"_blastres.tsv"
+	logger = logging.getLogger("main.blast")
 	logger.info("Running Blast")
 
 	if remote:
@@ -101,7 +101,7 @@ def parseBlast(blastRes):
 	@param2 logger: Logging object
 	@return lGeneRes: list of all the accessions of homologous genes found through Blast
 	"""
-	logger = logging.getLogger("main")
+	logger = logging.getLogger("main.accessions")
 	
 	with open(blastRes, "r") as blast:
 		listBlastRes = blast.readlines()
@@ -131,16 +131,15 @@ def treatBlast(data, evalue, percId, cov, apiKey, remote, query):
 	"""
 
 	data.blastRes = blast(data.queryFile, 
-						  data.o, 
-						  data.baseName, 
-						  data.db, 
-						  evalue, 
-						  percId, 
-						  cov, 
-						  apiKey, 
-						  remote, 
-						  query, 
-						  data.logger)
+			      data.o, 
+			      data.baseName, 
+			      data.db, 
+			      evalue, 
+			      percId, 
+			      cov, 
+			      apiKey, 
+			      remote, 
+			      query)
 	data.lBlastRes = parseBlast(data.blastRes)
 
 	return data
