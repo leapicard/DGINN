@@ -54,10 +54,11 @@ def paramDef(params, inf, queryName):
 	"""
 	Check the parameters in the file.
 
-	@param infile: path's file
+	@param inf: path's file
 	@return defaultParam: dico of parameters
 	"""
-	
+
+	params=params.strip()
 	if not os.path.exists(params):
 		print("The provided parameter file does not exist, try again.")
 		sys.exit()
@@ -106,9 +107,9 @@ def paramDef(params, inf, queryName):
 	
 	#If infile(s) given through command line, takes priority
 	if inf != "":
-		dParams["infile"] = inf.split(",")
+		dParams["infile"] = list(map(str.strip,inf.split(",")))
 	else:
-		dParams["infile"] = dParams["infile"].split(",")
+		dParams["infile"] = list(map(str.strip,dParams["infile"].split(",")))
 		
 	#Idem queryName
 	if queryName != "":
@@ -318,7 +319,7 @@ def initLogger(args, debug, version):
 	logger.info("Output directory: {:s}".format(mainData.o))
 	logger.info("Analysis will begin at the {:s} step".format(args["step"]))
 
-	return mainData, logger
+	return mainData
 
 
 def initPipeline(step, lStep):

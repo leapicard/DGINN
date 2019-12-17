@@ -17,17 +17,18 @@ def checkPath(path, attrNames):
 		print("The file with the {:s} information does not exist.".format(attrNames))
 		sys.exit()
 
-def baseNameInit(baseName, queryFile, aln, logger):
+def baseNameInit(baseName, queryFile, aln, step = ""):
 	"""
 	Initialization of the attribut basename
 
 	@param1 baseName: String
 	@param2 queryFile: Path
 	@param3 aln: Path
-	@param4 logger: An object logging
+        @param4
 	@return baseName: String
 	"""
 	
+	logger = logging.getLogger(".".join(["main",step]))
 	if baseName == "":
 		if queryFile != "":
 			baseName = queryFile.split(".")[0].split("/")[-1]
@@ -74,18 +75,17 @@ def accnEntry(Data):
 	@param Data: basicData object 
 	@return data: basicData object
 	"""
-	logger = logging.getLogger("main")
-	
 	if FormatFunc.isBlastRes(Data.queryFile):
 		Data.blastRes = Data.queryFile
 		Data.lBlastRes = BlastFunc.parseBlast(Data.blastRes)
 		Data.baseName = baseNameInit(Data.baseName, 
-									 Data.queryFile, 
-									 Data.aln, 
-									 Data.logger)
+					     Data.queryFile, 
+					     Data.aln,
+                                             "accessions")
 	else:
-		logger.error("The provided file is not a tabular output of Blast+, exiting DGINN.")
-		sys.exit()
+	  logger = logging.getLogger("main.accessions")
+	  logger.error("The provided file is not a tabular output of Blast+, exiting DGINN.")
+	  sys.exit()
 	
 	return Data
 
@@ -96,19 +96,18 @@ def getSeqEntry(Data, treeOption):
 	@param Data: basicData object 
 	@return data: basicData object
 	"""
-	logger = logging.getLogger("main")
-	
 	if FormatFunc.isAccns(Data.queryFile):
 		Data.accnFile = Data.queryFile
 		Data.baseName = baseNameInit(Data.baseName, 
-									 Data.queryFile, 
-									 Data.accnFile, 
-									 Data.logger)
+					     Data.queryFile, 
+					     Data.accnFile,
+                                             "fasta")
 
 		Data.lBlastRes = [ i.strip("\n") for i in open(Data.accnFile, "r").readlines() ]
 	else:
-		logger.error("Provided file is not a list of NCBI accessions, terminating DGINN.")
-		sys.exit()
+	  logger = logging.getLogger("main.fasta")
+	  logger.error("Provided file is not a list of NCBI accessions, terminating DGINN.")
+	  sys.exit()
 		
 	return Data
 
@@ -121,17 +120,17 @@ def orfEntry(Data, treeOption):
 	@param2 treeOption: Boolean
 	@return data: basicData object
 	"""
-	logger = logging.getLogger("main")
 	
 	if FormatFunc.isFasta(Data.queryFile):
 		Data.seqFile = Data.queryFile
 		Data.baseName = baseNameInit(Data.baseName, 
-									 Data.queryFile, 
-									 Data.aln, 
-									 Data.logger)
+					     Data.queryFile, 
+					     Data.aln,
+                                             "orf")
 	else:
-		logger.error("The provided file is not a fasta of nucleotide sequences, exiting DGINN.")
-		sys.exit()
+	  logger = logging.getLogger("main.orf")
+	  logger.error("The provided file is not a fasta of nucleotide sequences, exiting DGINN.")
+	  sys.exit()
 	
 	return Data
 
@@ -146,41 +145,44 @@ def prankEntry(Data, treeOption):
 	if FormatFunc.isFasta(Data.queryFile):
 		Data.ORFs = Data.queryFile
 		Data.baseName = baseNameInit(Data.baseName, 
-									 Data.queryFile, 
-									 Data.ORFs, 
-									 Data.logger)
+					     Data.queryFile, 
+					     Data.ORFs, 
+					     "alignment")
 		
 		with open(Data.ORFs) as orf:
 			Data.geneName = orf.readline().split("_")[1]
 		
 	else:
-		logger.error("Provided file is not a fasta of sequences, terminating DGINN.")
-		sys.exit()
+          logger = logging.getLogger("main.alignment")
+          logger.error("Provided file is not a fasta of sequences, terminating DGINN.")
+          sys.exit()
 		
 	return Data
 
-def phymlRecEntry(Data, logger):
+def phymlRecEntry(Data, step = "tree"):
 	"""
 	Function handling start of the pipeline at the phyml step.
 
 	@param1 Data: basicData object
 	@param2 treeOption: Boolean
-	@param3 logger: An object logging
 	@return Data: basicData object
 	"""
+
 	if FormatFunc.isAln(Data.queryFile):
 		Data.aln = Data.queryFile
 		Data.ORFs = Data.queryFile
 		Data.baseName = baseNameInit(Data.baseName, 
-									 Data.queryFile, 
-									 Data.aln, 
-									 Data.logger)
+					     Data.queryFile, 
+					     Data.aln, 
+					     step)
 		
 		with open(Data.aln) as orf:
 			Data.geneName = orf.readline().split("_")[1]
 		
 	else:
-		logger.error("Provided file is not a multiple sequence alignment, terminating DGINN.")
+	  logger=logging.getLogger(".".join(["main",step]))
+	  logger.error("Provided file is not a multiple sequence alignment, terminating DGINN.")
+	  sys.exit()
 		
 	return Data
 
@@ -208,21 +210,24 @@ def spTreeCheck(Data, firstStep, treeOption):
 			setattr(Data, "cor", corSG)
 
 
-def duplPSEntry(Data, logger):
+def duplPSEntry(Data, step = "duplication"):
 	"""
 	Function handling start of the pipeline at the tree step.
 
 	@param Data: basicData object
-	@param2 logger: Logging object
 	@return Data: basicData object
 	"""
+	logger=logging.getLogger(".".join(["main",step]))
 	dico = {}
 	if Data.aln != "" and Data.tree != "":
 		logger.info("Alignement file: "+Data.aln)
 		logger.info("Gene Tree file: "+Data.tree)
 		dico[Data.aln] = Data.tree
 		Data.ORFs = Data.aln
-		Data.baseName = baseNameInit(Data.baseName, Data.queryFile, Data.aln, Data.logger)
+		Data.baseName = baseNameInit(Data.baseName,
+                                             Data.queryFile,
+                                             Data.aln,
+                                             "duplication")
 	else:
 		logger.error("Alignment and/or gene tree file have not been provided.")
 		sys.exit()
@@ -230,8 +235,8 @@ def duplPSEntry(Data, logger):
 	return Data, dico
 
 
-def pspEntry(Data, parameters, logger):
-	Data, dico = duplPSEntry(Data, logger)
+def pspEntry(Data, parameters):  
+	Data, dico = duplPSEntry(Data, "positiveSelection")
 	
 	Data.alnFormat = parameters["alnformat"].title()
 

@@ -1,14 +1,14 @@
 import PSPFunc, ExtractFunc, GeneAnalysis, SiteAnalysis, BranchAnalysis, os
 from time import localtime, strftime
+import logging
 
-def pspAnalysis(data, parms, aln, tree, logger):
+def pspAnalysis(data, parms, aln, tree):
 	"""
 	procedure which execute functions for psp step
 
 	@param1 data: basicData object
-	@param2 logger: Logging object
 	"""
-
+	logger=logging.getLogger("main.positiveSelection")
 	dCtrls, lModels = PSPFunc.getParams(parms["models"], parms["paml"], parms["bppml"], parms["mixedlikelihood"], parms["busted"], parms["meme"], parms["opb"], parms["gnh"])
 	timeStamp = strftime("%Y%m%d%H%M", localtime())
 	outDir = data.o+"positive_selection_results_"+timeStamp+"/"

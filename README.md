@@ -29,7 +29,7 @@ docker pull leapicard/dginn
 ```
 Use the docker:
 ```{sh}
-docker run --rm -u $(id -u $USER):$(id -u $USER) -v $PWD:$PWD -w $PWD leapicard/dginn
+docker run --rm -u $(id -u $USER):$(id -u $USER) -e HOME=. -v $PWD:$PWD -w $PWD leapicard/dginn -p <filename>
 ```
 The command should be run as is, and should work on both Mac and Linux systems, provided the user belong to the 'docker' group (please refer to the [Docker Documentation](https://docs.docker.com/install/linux/linux-postinstall/) for help about setting the user as part of this group on Linux.)
 
@@ -165,7 +165,7 @@ opb:
 | Step              | Necessary file\(s\)                          | Format                |
 |-------------------|----------------------------------------------|-----------------------|
 | blast             | CDS of the gene of interest                  | Fasta                 |
-| accession         | List of blast results                        | NCBI tabulated format |
+| accessions        | List of blast results                        | NCBI tabulated format (tsv) |
 | fasta             | List of accession identifiers \(one/line\)   | Txt                   |
 | orf               | mRNA sequences of orthologs                  | Fasta                 |
 | alignment         | CDS sequences of orthologs                   | Fasta                 |

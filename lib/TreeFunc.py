@@ -23,16 +23,16 @@ def getLeaves(path):
 	return lGene
 
 
-def treeCheck(treePath, optionTree, logger):
+def treeCheck(treePath, optionTree):
 	"""
 	Check if the tree isn't corruped
 
 	@param1 treePath: tree's path
 	@param2 optionTree: Boolean (treerecs option)
-	@param3 logger: Logging object
 	@return1 treePath: tree's path
 	@return2 optionTree: Boolean (treerecs option)
 	"""
+	logger=logging.getLogger("main")
 	if treePath != "":
 		if not os.path.exists(treePath):
 			logger.warning("The path for the species tree doesn't exist.")
@@ -282,14 +282,14 @@ def runTreerecs(tree, sptree, o):
 	return recTree
 
 
-def treeTreatment(data, dAlnTree, nbSp, logger):
+def treeTreatment(data, dAlnTree, nbSp):
 	"""
 	Procedure which execute all functions for the tree step.
 
 	@param1 data: basicData object
-	@param2 logger: Logging object
 	"""
 	#try:
+	logger=logging.getLogger("main.duplication")
 	dAlnTree2 = {}
 	lFastaFile = []
 	for aln, tree in dAlnTree.items():

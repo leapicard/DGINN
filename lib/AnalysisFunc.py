@@ -36,7 +36,7 @@ def getORFs(catFile, queryName, geneDir):
 	"""
 
 	outORFraw = geneDir+catFile.split("/")[-1].split(".")[0]+"_allORFs.fasta"
-	logger = logging.getLogger("main")
+	logger = logging.getLogger("main.orf")
 	
 	cmd("getorf -sequence {:s} -outseq {:s} -table 0 -find 3 -noreverse".format(catFile, outORFraw), False)
 	
@@ -115,7 +115,7 @@ def runPrank(ORFs, geneName, o):
 	@param3 geneDir: Gene Directory
 	@return outPrank: Path to Prank results file
 	"""
-	logger = logging.getLogger("main")
+	logger = logging.getLogger("main.alignment")
 	logger.info("Started Prank codon alignment")
 	outPrank = o+ORFs.split("/")[-1].split(".")[0]+"_prank"
 	
@@ -140,7 +140,7 @@ def covAln(aln, cov, queryName, o):
 	"""
 	
 	dId2Seq = {fasta.id:str(fasta.seq) for fasta in SeqIO.parse(open(aln),'fasta')}
-	logger = logging.getLogger("main")
+	logger = logging.getLogger("main.alignment")
 	
 	if queryName in dId2Seq:
 		logger.info("Discarding sequences with less than {:d}% coverage of query.".format(cov))
@@ -170,12 +170,11 @@ def covAln(aln, cov, queryName, o):
 		logger.warning("Provided query name not found in the alignment, skipping coverage check.")
 		return(aln, 0)
 
-def alnPrank(data, logger):
+def alnPrank(data):
 	"""
 	Function creating alignment (aln) attribute in each gene object of the list.
 
 	@param1 data: basicdata object
-	@param2 logger: Logging object
 	"""
 	aln = runPrank(data.ORFs, 
 				   data.geneName, 
@@ -200,7 +199,7 @@ def runPhyML(aln, geneDir):
 	aln = aln.split("/")[-1]
 	tmp = aln.split("/")[-1].split(".")[0]+".tmp"
 	
-	logger = logging.getLogger("main")
+	logger = logging.getLogger("main.tree")
 	
 	with open(aln, "rU") as aln:
 		aln = aln.read().replace("!", "N")
@@ -225,14 +224,14 @@ def runPhyML(aln, geneDir):
 	return(geneDir+outPhy)
 
 
-def phyMLTree(data, logger):
+def phyMLTree(data):
 	"""
 	Function creating tree attribute in each gene object of the list.
 
 	@param1 data: List of gene objects
-	@param2 logger: Logging object
 	@return dAlnTree: Updated dictionary of alignments and their corresponding trees
 	"""
+	logger=logging.getLogger("main.tree")
 	dAlnTree = {}
 	logger.info("Running PhyML to produce gene phylogenetic tree")
 	TreesFile = runPhyML(data.aln, data.o)
@@ -284,7 +283,7 @@ def cutLongBranches(aln, dAlnTree, logger):
 		alnLeft = aln.split(".")[0]+"_part"+str(len(matches)+1)+".fasta"
 		with open(alnLeft, "w") as fasta:
 			fasta.write(FastaResFunc.dict2fasta(dID2Seq))
-		
+			logger.info("\tNew alignment:%s"%{alnLeft})
 		dAlnTree[alnLeft] = ""
 		dAlnTree.pop(aln, None)
 		
@@ -293,7 +292,8 @@ def cutLongBranches(aln, dAlnTree, logger):
 	
 	return(dAlnTree)
 
-def checkPhyMLTree(data, dAlnTree, logger):
+def checkPhyMLTree(data, dAlnTree, step="duplication"):
+	logger=logging.getLogger(".".join(["main",step]))
 	dAlnTree = cutLongBranches(data.aln, dAlnTree, logger)
 	dAlnTree2 = {}
 	
@@ -471,7 +471,9 @@ def parseGard(kh, aln, pvalue, o, logger):
 					index += 1
 				with open(outFrag, "w") as outF:
 					outF.write(FastaResFunc.dict2fasta(dFrag))
-				lOutFrag.append(outFrag)
+					logger.info("\tNew alignment: %s"%{outFrag})
+					outF.close()
+					lOutFrag.append(outFrag)
 
 			return lOutFrag
 		else:
@@ -479,7 +481,7 @@ def parseGard(kh, aln, pvalue, o, logger):
 	else:
 		return []
 
-def gardRecomb(data, pvalue, dAT, hostFile, logger):
+def gardRecomb(data, pvalue, dAT, hostFile):
 	"""
 	Procedure which execute gard functions on each alignment given.
 
@@ -489,6 +491,7 @@ def gardRecomb(data, pvalue, dAT, hostFile, logger):
 	@param4 logger: Logging object
 	"""
 	#try:
+	logger=logging.getLogger("main.recombination")
 	setattr(data, "lGard", [])
 	nb = 1
 	dFrag = {}

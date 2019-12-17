@@ -25,14 +25,14 @@ if __name__ == "__main__":
 
 	#List of steps
 	lSteps = ["blast", 
-			  "accessions", 
-			  "fasta", 
-			  "orf", 
-			  "alignment", 
-			  "tree", 
-			  "duplication", 
-			  "recombination", 
-			  "positiveSelection"]
+		  "accessions", 
+		  "fasta", 
+		  "orf", 
+		  "alignment", 
+		  "tree", 
+		  "duplication", 
+		  "recombination", 
+		  "positiveSelection"]
 
 	#Initializing necessary variables for pipeline execution
 	parse = Init.parameterCommandLine(version, "DGINN")
@@ -46,16 +46,15 @@ if __name__ == "__main__":
 	"""
 	
 	parameters = Init.paramDef(parameters.params, 
-							   parameters.infile, 
-							   parameters.queryName)
-	Data, logger = Init.initLogger(parameters, 
-								   debug, 
-								   version)
-
+				   parameters.infile, 
+				   parameters.queryName)
+	Data = Init.initLogger(parameters, 
+			       debug, 
+			       version)
+        
 	funcNeeded = Init.initPipeline(parameters["step"], lSteps)
 	Data.sptree, parameters["duplication"] = TreeFunc.treeCheck(Data.sptree, 
-															 parameters["duplication"], 
-															 logger)
+								    parameters["duplication"])
 	dAlTree = {}
 	Data.setGenAttr(parameters["step"])
 	
@@ -73,8 +72,7 @@ if __name__ == "__main__":
 			if lSteps[i] == "blast":
 				Data.baseName = LoadFileFunc.baseNameInit(Data.baseName, 
 														  Data.queryFile, 
-														  Data.aln, 
-														  logger)		
+														  Data.aln)
 				
 				Data = BlastFunc.treatBlast(Data, 
 											parameters["evalue"], 
@@ -92,14 +90,13 @@ if __name__ == "__main__":
 				
 			elif lSteps[i] == "fasta":
 				if parameters["step"] == "fasta":
-					Data = LoadFileFunc.getSeqEntry(Data, parameters["duplication"])
+				  Data = LoadFileFunc.getSeqEntry(Data, parameters["duplication"])
 
 				FastaResFunc.fastaCreation(Data, 
-										   logger, 
-										   parameters["remote"], 
-										   parameters["APIKey"], 
-										   parameters["step"], 
-										   parameters["duplication"])
+							   parameters["remote"], 
+							   parameters["APIKey"], 
+							   parameters["step"], 
+							   parameters["duplication"])
 
 			elif lSteps[i] == "orf":
 				if parameters["step"] == "orf":
@@ -121,7 +118,7 @@ if __name__ == "__main__":
 												 firstStep, 
 											 	 parameters["duplication"])	
 
-				AnalysisFunc.alnPrank(Data, logger)
+				AnalysisFunc.alnPrank(Data)
 				fasCov, nbOut = AnalysisFunc.covAln(Data.aln, 
 											 parameters["mincov"], 
 											 Data.queryName, 
@@ -134,18 +131,18 @@ if __name__ == "__main__":
 
 			elif lSteps[i] == "tree":
 				if parameters["step"] == "tree":
-					Data = LoadFileFunc.phymlRecEntry(Data, logger)
+					Data = LoadFileFunc.phymlRecEntry(Data)
 
 					if lSteps[i] == firstStep:
 						LoadFileFunc.spTreeCheck(Data, 
 												 firstStep, 
 											 	 parameters["duplication"])	
 
-				dAlTree = AnalysisFunc.phyMLTree(Data, logger)
+				dAlTree = AnalysisFunc.phyMLTree(Data)
 
 			elif lSteps[i] == "duplication" and parameters["duplication"]:
 				if parameters["step"] == "duplication":
-					Data, dAlTree = LoadFileFunc.duplPSEntry(Data, logger)
+					Data, dAlTree = LoadFileFunc.duplPSEntry(Data)
 
 					if lSteps[i] == firstStep:
 						LoadFileFunc.spTreeCheck(Data, 
@@ -153,50 +150,46 @@ if __name__ == "__main__":
 											 	 parameters["duplication"])	
 				
 				dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
-													  dAlTree, 
-													  logger)
+													  dAlTree)
 
 				dAlTree = TreeFunc.treeTreatment(Data, 
 												 dAlTree, 
-												 parameters["nbspecies"], 
-												 logger)
+												 parameters["nbspecies"])
 
 			elif lSteps[i] == "recombination" and parameters["recombination"]:
 				if parameters["step"] == "recombination":
-					Data = LoadFileFunc.phymlRecEntry(Data, logger)
+					Data = LoadFileFunc.phymlRecEntry(Data, "main.recombination")
 					dAlTree[Data.aln] = ""
 
 				dAlTree = AnalysisFunc.gardRecomb(Data, 
 												  parameters["hyphySeuil"], 
 												  dAlTree, 
-												  hostfile, 
-												  logger)
+												  hostfile)
 
 			elif lSteps[i] == "positiveSelection" and parameters["positiveSelection"]:
-				logger.info("Starting positive selection analyses.")
+
+			  logger = logging.getLogger("main.positiveSelection")
+			  logger.info("Starting positive selection analyses.")
 				
-				if parameters["step"] == "positiveSelection":
-					Data, dAlTree = LoadFileFunc.pspEntry(Data, 
-														  parameters, 
-														  logger)
+			  if parameters["step"] == "positiveSelection":
+			    Data, dAlTree = LoadFileFunc.pspEntry(Data, 
+								  parameters)
 			
-				listArgsPosSel =  []
-				for aln in dAlTree:
-					listArgs = [Data, 
-								parameters, 
-								aln, 
-								dAlTree[aln], 
-								logger]
-					listArgsPosSel.append(listArgs)
+			    listArgsPosSel =  []
+			    for aln in dAlTree:
+			      listArgs = [Data, 
+					  parameters, 
+					  aln, 
+					  dAlTree[aln]]
+			      listArgsPosSel.append(listArgs)
 					
-					with open(Data.o+"files_list.txt", "w") as fAT:
-						fAT.write(aln+"\t"+dAlTree[aln])
-						
-					PosSelFunc.pspAnalysis(Data, 
-										   parameters, 
-										   aln, 
-										   dAlTree[aln], 
-										   logger)
+			      with open(Data.o+"files_list.txt", "w") as fAT:
+		                fAT.write(aln+"\t"+dAlTree[aln])
+		                PosSelFunc.pspAnalysis(Data, 
+						       parameters, 
+						       aln, 
+						       dAlTree[aln])
 				
-				logger.info("Finished positive selection analyses.")	
-				
+		                logger.info(" Ouput in file %s"%(Data.o+"files_list.txt"))
+			    logger.info("Finished positive selection analyses.")
+			    

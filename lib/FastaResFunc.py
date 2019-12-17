@@ -1,3 +1,4 @@
+import os
 import LoadFileFunc
 import logging, sys
 from Bio import Entrez
@@ -37,7 +38,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	@return1 outCat: Path to the file containing the sequences and the new IDs
 	@return2 corSG: Path
 	"""
-	logger = logging.getLogger("main")
+	logger = logging.getLogger("main.accessions")
 	dSpecies = {}
 	dId2Seq = {}
 	lTax = []
@@ -46,7 +47,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	Entrez.api_key = apiKey
 	
 	handle = Entrez.efetch(db="nuccore", id=lBlastRes , idtype="acc", retmode="xml")
-	records = Entrez.parse(handle)
+	records = list(Entrez.read(handle))
 	
 	for record in records:
 		acc = record['GBSeq_primary-accession']
@@ -77,7 +78,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 
 
 def sizeCheck(dId2Seq):
-	logger = logging.getLogger("main")
+	logger = logging.getLogger("main.accessions")
 	
 	dId2Len = {Id:len(seq) for Id, seq in dId2Seq.items()}
 	m = median(dId2Len.values())
@@ -118,22 +119,22 @@ def catFile(queryFile, dId2Seq, firstFasta):
 	return(firstFasta)
 	
 
-def fastaCreation(data, logger, remote, apiKey, step, treerecs):
+def fastaCreation(data, remote, apiKey, step, treerecs):
 	"""
 	Function handling the creation of fasta files in the pipeline.
 
 	@param1 data: basicdata object
-	@param2 logger: Logger object
-	@param3 remote: Boolean (online database or not)
-	@param4 apiKey: Key for the API of NCBI
-	@param5 treerecs: Booleans
+	@param2 remote: Boolean (online database or not)
+	@param3 apiKey: Key for the API of NCBI
+	@param4 treerecs: Booleans
 	"""
-	
+
 	if remote:
 		dId2Seq = remoteDl(data.lBlastRes, data.queryName, apiKey)
 	else: ### need to code this!!!!
-		logger.info("Local retrieval of information not yet implemented, exiting DGINN.")
-		sys.exit()
+	  logger = logging.getLogger("main.fasta")
+	  logger.info("Local retrieval of information not yet implemented, exiting DGINN.")
+	  sys.exit()
 	
 	dId2Seq = sizeCheck(dId2Seq)
 	
