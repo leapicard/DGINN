@@ -116,8 +116,8 @@ def runPrank(ORFs, geneName, o):
 	@return outPrank: Path to Prank results file
 	"""
 	logger = logging.getLogger("main.alignment")
-	logger.info("Started Prank codon alignment")
 	outPrank = o+ORFs.split("/")[-1].split(".")[0]+"_prank"
+	logger.info("Started Prank codon alignment on file %s"%(o+ORFs.split("/")[-1].split(".")[0]+".fasta"))
 	
 	cmd("prank -d={:s} -o={:s} -codon -F".format(ORFs, outPrank), False)
 	
@@ -277,13 +277,14 @@ def cutLongBranches(aln, dAlnTree, logger):
 			# create new file of sequences
 			with open(newAln, "w") as fasta:
 				fasta.write(FastaResFunc.dict2fasta(dNewAln))
+				logger.info(" New alignment:%s"%{newAln})
 			
 			dAlnTree[newAln] = ""
 		
 		alnLeft = aln.split(".")[0]+"_part"+str(len(matches)+1)+".fasta"
 		with open(alnLeft, "w") as fasta:
 			fasta.write(FastaResFunc.dict2fasta(dID2Seq))
-			logger.info("\tNew alignment:%s"%{alnLeft})
+			logger.info(" New alignment:%s"%{alnLeft})
 		dAlnTree[alnLeft] = ""
 		dAlnTree.pop(aln, None)
 		
@@ -343,13 +344,13 @@ def runGARD(aln, o, hostFile, logger):
 	#for hyphy 2.5
 	if hostFile == "":
 		cmd = "mpirun -np 2 HYPHYMPI GARD --type codon --model HKY --alignment {:s} --output {:s} --output-lf {:s}".format(aln,
-																														   gardRes,
-																														   gardJson)
+        gardRes,
+	gardJson)
 	else:
-		cmd = "mpirun -np 2 -hostfile {:s} HYPHYMPI GARD --type codon --model HKY --alignment {:s} --output {:s} --output-lf {:s}".format(hostfile,
-																																		  aln,
-																									  									  gardRes,
-																									  									  gardJson)
+	cmd = "mpirun -np 2 -hostfile {:s} HYPHYMPI GARD --type codon --model HKY --alignment {:s} --output {:s} --output-lf {:s}".format(hostfile,
+        aln,
+        gardRes,
+	gardJson)
 	"""
 
 	if hostFile == "":
@@ -360,8 +361,18 @@ def runGARD(aln, o, hostFile, logger):
 
 	lCmd = shlex.split(cmd)
 	with open(outGard, "w") as o, open(errGard, "w") as e:
-		runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
-	
+          nbrun=1
+          ## To catch subprocess.CalledProcessError when unsolved problem with GARD
+          ## see https://github.com/veg/hyphy/issues/854
+          ## try GARD twice...
+          while nbrun<=2:
+            try:
+              if (nbrun>1):
+                logger.info("Error on running GARD: try again")
+              runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
+            except subprocess.CalledProcessError:
+              nbrun+=1
+              
 	logger.debug(cmd)
 	return(gardRes)
 
@@ -498,21 +509,25 @@ def gardRecomb(data, pvalue, dAT, hostFile):
 	for aln in dAT:
 		logger.info("Running GARD on {:s}".format(aln))
 		gardRes = runGARD(aln, 
-						  data.o, 
-						  hostFile, 
-						  data.logger)
+				  data.o, 
+				  hostFile, 
+				  data.logger)
 			
 		logger.info("Checked for recombination using HYPHY GARD.")
-				
+
+		if os.stat(gardRes).st_size==0: # If pb in running GARD
+		  logger.info("Problem runnin GARD: no parsing of GARD results.")
+		  continue
+		
 		procGardRes = procGARD(gardRes, aln)
 		#data.lGard.append(listGardProc)
 		logger.info("Extracted GARD results.")
 
 		parsedFragments = parseGard(procGardRes, 
-									aln, 
-									float(pvalue), 
-									data.o, 
-									logger)
+					    aln, 
+					    float(pvalue), 
+					    data.o, 
+					    logger)
 
 		logger.info("Parsed GARD results.")
 		if len(parsedFragments) > 0:

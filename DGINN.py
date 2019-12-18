@@ -70,101 +70,101 @@ if __name__ == "__main__":
 		if funcNeeded[i] == True:
 				
 			if lSteps[i] == "blast":
-				Data.baseName = LoadFileFunc.baseNameInit(Data.baseName, 
-														  Data.queryFile, 
-														  Data.aln)
+			  Data.baseName = LoadFileFunc.baseNameInit(Data.baseName, 
+								    Data.queryFile, 
+								    Data.aln)
 				
-				Data = BlastFunc.treatBlast(Data, 
-											parameters["evalue"], 
-											parameters["percID"], 
-											parameters["mincov"], 
-											parameters["APIKey"], 
-											parameters["remote"], 
-											parameters["entryQuery"])
+			  Data = BlastFunc.treatBlast(Data, 
+						      parameters["evalue"], 
+						      parameters["percID"], 
+						      parameters["mincov"], 
+						      parameters["APIKey"], 
+						      parameters["remote"], 
+						      parameters["entryQuery"])
 			
 			elif lSteps[i] == "accessions":
-				if parameters["step"] == "accessions":
-					Data = LoadFileFunc.accnEntry(Data)	
+			  if parameters["step"] == "accessions":
+			    Data = LoadFileFunc.accnEntry(Data)	
 
-				ExtractFunc.treatAccns(Data)
+			  ExtractFunc.treatAccns(Data)
 				
 			elif lSteps[i] == "fasta":
-				if parameters["step"] == "fasta":
-				  Data = LoadFileFunc.getSeqEntry(Data, parameters["duplication"])
+			  if parameters["step"] == "fasta":
+			    Data = LoadFileFunc.getSeqEntry(Data, parameters["duplication"])
 
-				FastaResFunc.fastaCreation(Data, 
-							   parameters["remote"], 
-							   parameters["APIKey"], 
-							   parameters["step"], 
-							   parameters["duplication"])
+			  FastaResFunc.fastaCreation(Data, 
+						     parameters["remote"], 
+						     parameters["APIKey"], 
+						     parameters["step"], 
+						     parameters["duplication"])
 
 			elif lSteps[i] == "orf":
-				if parameters["step"] == "orf":
-					Data = LoadFileFunc.orfEntry(Data, parameters["duplication"])
+			  if parameters["step"] == "orf":
+			    Data = LoadFileFunc.orfEntry(Data, parameters["duplication"])
 
-					if lSteps[i] == firstStep:
-						LoadFileFunc.spTreeCheck(Data, 
-												 firstStep, 
-											 	 parameters["duplication"])	
+			    if lSteps[i] == firstStep:
+			      LoadFileFunc.spTreeCheck(Data, 
+						       firstStep, 
+						       parameters["duplication"])	
 
-				AnalysisFunc.orfFinder(Data)
+			  AnalysisFunc.orfFinder(Data)
 				
 			elif lSteps[i] == "alignment":
-				if parameters["step"] == "alignment":
-					Data = LoadFileFunc.prankEntry(Data, parameters["duplication"])
+			  if parameters["step"] == "alignment":
+			    Data = LoadFileFunc.prankEntry(Data, parameters["duplication"])
 
-					if lSteps[i] == firstStep:
-						LoadFileFunc.spTreeCheck(Data, 
-												 firstStep, 
-											 	 parameters["duplication"])	
+			    if lSteps[i] == firstStep:
+			      LoadFileFunc.spTreeCheck(Data, 
+						       firstStep, 
+						       parameters["duplication"])	
 
-				AnalysisFunc.alnPrank(Data)
-				fasCov, nbOut = AnalysisFunc.covAln(Data.aln, 
-											 parameters["mincov"], 
-											 Data.queryName, 
-											 Data.o)
-				if nbOut > 0:
-					newAln = AnalysisFunc.runPrank(fasCov, 
-												   Data.geneName, 
-												   Data.o)
-					Data.aln = newAln
+			  AnalysisFunc.alnPrank(Data)
+			  fasCov, nbOut = AnalysisFunc.covAln(Data.aln, 
+							      parameters["mincov"], 
+							      Data.queryName, 
+							      Data.o)
+			  if nbOut > 0:
+			    newAln = AnalysisFunc.runPrank(fasCov, 
+							   Data.geneName, 
+							   Data.o)
+			    Data.aln = newAln
 
 			elif lSteps[i] == "tree":
-				if parameters["step"] == "tree":
-					Data = LoadFileFunc.phymlRecEntry(Data)
+			  if parameters["step"] == "tree":
+			    Data = LoadFileFunc.phymlRecEntry(Data)
 
-					if lSteps[i] == firstStep:
-						LoadFileFunc.spTreeCheck(Data, 
-												 firstStep, 
-											 	 parameters["duplication"])	
+			    if lSteps[i] == firstStep:
+			      LoadFileFunc.spTreeCheck(Data, 
+						       firstStep, 
+						       parameters["duplication"])	
 
-				dAlTree = AnalysisFunc.phyMLTree(Data)
+			  dAlTree = AnalysisFunc.phyMLTree(Data)
 
 			elif lSteps[i] == "duplication" and parameters["duplication"]:
-				if parameters["step"] == "duplication":
-					Data, dAlTree = LoadFileFunc.duplPSEntry(Data)
+			  if parameters["step"] == "duplication":
+			    Data, dAlTree = LoadFileFunc.duplPSEntry(Data)
+			    if lSteps[i] == firstStep:
+			      dTree=dAlTree.pop(Data.aln)
+			      LoadFileFunc.spTreeCheck(Data, 
+						       firstStep, 
+						       parameters["duplication"])
+			      dAlTree[Data.aln]=dTree
+			      dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
+			                                            dAlTree)
 
-					if lSteps[i] == firstStep:
-						LoadFileFunc.spTreeCheck(Data, 
-												 firstStep, 
-											 	 parameters["duplication"])	
-				
-				dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
-													  dAlTree)
-
-				dAlTree = TreeFunc.treeTreatment(Data, 
-												 dAlTree, 
-												 parameters["nbspecies"])
+			      dAlTree = TreeFunc.treeTreatment(Data, 
+							       dAlTree, 
+							       parameters["nbspecies"])
 
 			elif lSteps[i] == "recombination" and parameters["recombination"]:
-				if parameters["step"] == "recombination":
-					Data = LoadFileFunc.phymlRecEntry(Data, "main.recombination")
-					dAlTree[Data.aln] = ""
+			  if parameters["step"] == "recombination":
+			    Data = LoadFileFunc.phymlRecEntry(Data, "main.recombination")
+			    dAlTree[Data.aln] = ""
 
-				dAlTree = AnalysisFunc.gardRecomb(Data, 
-												  parameters["hyphySeuil"], 
-												  dAlTree, 
-												  hostfile)
+			  dAlTree = AnalysisFunc.gardRecomb(Data, 
+							    parameters["hyphySeuil"], 
+							    dAlTree, 
+							    hostfile)
 
 			elif lSteps[i] == "positiveSelection" and parameters["positiveSelection"]:
 
