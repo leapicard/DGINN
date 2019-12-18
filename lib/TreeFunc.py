@@ -274,8 +274,9 @@ def runTreerecs(tree, sptree, o):
 	"""
 	recTree = o+tree.split("/")[-1].replace(".txt","_recs.nhx")
 	val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX:svg".format(tree, 
-																	     sptree, 
-																	     o)
+
+                                                                             sptree,
+                                                                             o)
 	
 	AnalysisFunc.cmd(val, False)
 	
@@ -294,21 +295,21 @@ def treeTreatment(data, dAlnTree, nbSp):
 	lFastaFile = []
 	for aln, tree in dAlnTree.items():
 		filtTree = filterTree(tree, 
-							  data.sptree, 
-							  data.cor)
+				      data.sptree, 
+				      data.cor)
 		logger.info("Cleaning the tree")
 
 		logger.info("Running Treerecs")
 		recTree = runTreerecs(filtTree, 
-							  data.sptree, 
-							  data.o)
+				      data.sptree, 
+				      data.o)
 		#setattr(data, "recTree", recTree)
 
 		lFastaFile += treeParsing(data.ORFs, 
-								  recTree, 
-								  nbSp, 
-								  data.o, 
-								  logger)
+					  recTree, 
+					  nbSp, 
+					  data.o, 
+					  logger)
 	
 	setattr(data, "duplication", lFastaFile)
 		

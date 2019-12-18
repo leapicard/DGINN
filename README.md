@@ -162,17 +162,17 @@ opb:
 
 ## 3/ Entry steps
 
-| Step              | Necessary file\(s\)                          | Format                |
-|-------------------|----------------------------------------------|-----------------------|
-| blast             | CDS of the gene of interest                  | Fasta                 |
-| accessions        | List of blast results                        | NCBI tabulated format (tsv) |
-| fasta             | List of accession identifiers \(one/line\)   | Txt                   |
-| orf               | mRNA sequences of orthologs                  | Fasta                 |
-| alignment         | CDS sequences of orthologs                   | Fasta                 |
-| tree              | \(codon\) alignment of orthologs             | Fasta                 |
-| duplication       | \(codon\) alignment, gene tree, species tree | Fasta, newick, newick |
-| recombination     | \(codon\) alignment                          | Fasta                 |
-| positiveSelection | codon alignment, gene tree                   | Fasta, gene tree      |
+| Step              | Necessary file\(s\)                          | Format                     |
+|-------------------|----------------------------------------------|----------------------------|
+| blast             | CDS of the gene of interest                  | Fasta                      |
+| accessions        | List of blast results                        | NCBI tabulated format (tsv)|
+| fasta             | List of accession identifiers \(one/line\)   | Txt                        |
+| orf               | mRNA sequences of orthologs                  | Fasta                      |
+| alignment         | CDS sequences of orthologs                   | Fasta                      |
+| tree              | \(codon\) alignment of orthologs             | Fasta                      |
+| duplication       | \(codon\) alignment, gene tree               | Fasta, newick              |
+| recombination     | \(codon\) alignment                          | Fasta                      |
+| positiveSelection | codon alignment, gene tree                   | Fasta, gene tree           |
 
 File order must be respected and follow the one indicated in this table.
 

@@ -187,27 +187,23 @@ def phymlRecEntry(Data, step = "tree"):
 	return Data
 
 def spTreeCheck(Data, firstStep, treeOption):
-	if treeOption:
-		checkPath(Data.sptree, "species's tree")
+  if treeOption:
+    checkPath(Data.sptree, "species's tree")
 		
-		if not hasattr(Data, 'cor'):
-			if firstStep == "orf":
-				Data.seqFile, corSG = filterData(Data.sptree, 
-												 Data.seqFile, 
-												 Data.o)
-			elif firstStep == "alignment":
-				Data.ORFs, corSG = filterData(Data.sptree, 
-											  Data.ORFs, 
-											  Data.o)
-			elif firstStep == "tree":
-				Data.aln, corSG = filterData(Data.sptree, 
-											 Data.aln, 
-											 Data.o)
-			elif firstStep == "duplication":
-				Data.aln, corSG = filterData(Data.sptree, 
-											 Data.aln, 
-											 Data.o)
-			setattr(Data, "cor", corSG)
+    if not hasattr(Data, 'cor'):
+      if firstStep == "orf":
+        Data.seqFile, corSG = filterData(Data.sptree,
+                                         Data.seqFile,
+                                         Data.o)
+      elif firstStep == "alignment":
+        Data.ORFs, corSG = filterData(Data.sptree,
+                                      Data.ORFs,
+                                      Data.o)
+      elif firstStep == "tree" or firstStep == "duplication":
+        Data.aln, corSG = filterData(Data.sptree,
+                                     Data.aln,
+                                     Data.o)
+      setattr(Data, "cor", corSG)
 
 
 def duplPSEntry(Data, step = "duplication"):

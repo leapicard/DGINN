@@ -141,7 +141,8 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
 	
 	tree = EvolTree(treeFile)
-	os.mkdir(outDir+"paml_site/")
+	if not os.path.exists(outDir+"paml_site/"):
+	  os.mkdir(outDir+"paml_site/")
 	tree.workdir = outDir+"paml_site/"
 	tree.link_to_alignment(alnFile, "Fasta")
 	logger.info("PAML codeml")
