@@ -361,18 +361,21 @@ def runGARD(aln, o, hostFile, logger):
 
 	lCmd = shlex.split(cmd)
 	with open(outGard, "w") as o, open(errGard, "w") as e:
-          nbrun=1
+          nbrun=2
           ## To catch subprocess.CalledProcessError when unsolved problem with GARD
           ## see https://github.com/veg/hyphy/issues/854
           ## try GARD twice...
-          while nbrun<=2:
+          while nbrun>0:
             try:
-              if (nbrun>1):
-                logger.info("Error on running GARD: try again")
               runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
-            except subprocess.CalledProcessError:
-              nbrun+=1
-              
+            except subprocess.CalledProcessError as err:
+              logger.info("Error: " + str(err))
+              nbrun-=1
+              if nbrun>0:
+                logger.info("Try again running GARD: ")
+              else:
+                logger.info("Abort recombination analysis.")
+                
 	logger.debug(cmd)
 	return(gardRes)
 
@@ -516,7 +519,7 @@ def gardRecomb(data, pvalue, dAT, hostFile):
 		logger.info("Checked for recombination using HYPHY GARD.")
 
 		if os.stat(gardRes).st_size==0: # If pb in running GARD
-		  logger.info("Problem runnin GARD: no parsing of GARD results.")
+		  logger.info("Problem running GARD: no parsing of GARD results.")
 		  continue
 		
 		procGardRes = procGARD(gardRes, aln)
