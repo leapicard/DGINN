@@ -112,6 +112,7 @@ def paramDef(params, inf, queryName):
 		dParams["infile"] = list(map(str.strip,dParams["infile"].split(",")))
 	for f in dParams["infile"]:
 	  if not os.path.exists(f):
+	    logger = logging.getLogger("main")
 	    logger.error("Infile %s does not exist."%f)
 	    sys.exit()
             
