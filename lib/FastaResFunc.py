@@ -47,8 +47,10 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	Entrez.api_key = apiKey
 	
 	handle = Entrez.efetch(db="nuccore", id=lBlastRes , idtype="acc", retmode="xml")
-	records = list(Entrez.read(handle))
-	
+	records=list(Entrez.read(handle))
+	handle.close()
+	  
+	logger.info("Retrieve %d sequences."%(len(records)))
 	for record in records:
 		acc = record['GBSeq_primary-accession']
 		tax = record['GBSeq_organism'].split(" ")
@@ -63,14 +65,13 @@ def remoteDl(lBlastRes, queryName, apiKey):
 					break
 					
 		if "." in name or "-" in name:
-			name = "pot"+queryName.split("_")[1]
+			name = "pot"+queryName.split("_")[0:2][-1]
 		if tax == "synCon" or 'GBSeq_sequence' not in record.keys():
 			continue
 		else:
 			lTax.append(tax)
 			dId2Seq[tax+"_"+name+"_"+acc.split(".")[0]] = record['GBSeq_sequence'].upper()
 			
-	handle.close()
 	nbSp = len(set(lTax))
 	logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases ({} different species represented in the retrieved sequences).".format(nbSp))
 	
