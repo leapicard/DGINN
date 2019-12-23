@@ -71,7 +71,9 @@ Two example files are provided in the examples directory:
 
 This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized over all alignments instead of doing them sequentially.
 
-Please be aware that fasta sequence names/queryName must follow the format speSpe_GENE_Id (ex: homSap_MX1_CCDS13673, macMul_APOBEC3G_NM_001198693).
+Please be aware that fasta sequence name **and** queryName must follow
+the format speSpe_GENE_Id (ex: homSap_MX1_CCDS13673,
+macMul_APOBEC3G_NM_001198693).
 
 ```
 # Path or list of paths (absolute or relative) to the files needed to start the pipeline
