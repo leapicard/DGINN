@@ -1,3 +1,4 @@
+#coding: utf8
 import FastaResFunc, ExtractFunc
 import logging, subprocess, shlex, os, ete3
 from Bio import SeqIO, AlignIO
@@ -83,8 +84,9 @@ def getORFs(catFile, queryName, geneDir):
 	outORF = outORFraw.replace("_allORFs.fasta","_longestORFs.fasta")
 
 	with open(outORF, "w") as outO:
-		outO.write(FastaResFunc.dict2fasta(dId2Longest))
-	
+	  outO.write(FastaResFunc.dict2fasta(dId2Longest))
+	  out0.close()
+	  
 	logger.info("Extracted longest ORFs: {:s}".format(outORF))
 
 	return(outORF)
@@ -116,8 +118,8 @@ def runPrank(ORFs, geneName, o):
 	@return outPrank: Path to Prank results file
 	"""
 	logger = logging.getLogger("main.alignment")
+	logger.info("Started Prank codon alignment")
 	outPrank = o+ORFs.split("/")[-1].split(".")[0]+"_prank"
-	logger.info("Started Prank codon alignment on file %s"%(o+ORFs.split("/")[-1].split(".")[0]+".fasta"))
 	
 	cmd("prank -d={:s} -o={:s} -codon -F".format(ORFs, outPrank), False)
 	
@@ -160,8 +162,8 @@ def covAln(aln, cov, queryName, o):
 		nbOut = len(dId2Seq) - len(dKeep)
 		
 		with open(outCov, "w") as outC:
-			outC.write(FastaResFunc.dict2fasta(dKeep))
-		
+		  outC.write(FastaResFunc.dict2fasta(dKeep))
+		  outC.close()
 		logger.info("Discarded {:d} sequences".format(nbOut))
 	
 		return(outCov, nbOut)
@@ -202,10 +204,12 @@ def runPhyML(aln, geneDir):
 	logger = logging.getLogger("main.tree")
 	
 	with open(aln, "rU") as aln:
-		aln = aln.read().replace("!", "N")
-		with open(tmp, "w") as temp:
-			temp.write(aln)
-			
+          aln = aln.read().replace("!", "N")
+          aln.close()
+          with open(tmp, "w") as temp:
+            temp.write(aln)
+            temp.close()
+            
 	input_handle = open(tmp, "rU")
 	output_handle = open(outPhy, "w")
 	
@@ -276,15 +280,16 @@ def cutLongBranches(aln, dAlnTree, logger):
 			
 			# create new file of sequences
 			with open(newAln, "w") as fasta:
-				fasta.write(FastaResFunc.dict2fasta(dNewAln))
-				logger.info(" New alignment:%s"%{newAln})
-			
+			  fasta.write(FastaResFunc.dict2fasta(dNewAln))
+			  faste.close()
+                          
 			dAlnTree[newAln] = ""
 		
 		alnLeft = aln.split(".")[0]+"_part"+str(len(matches)+1)+".fasta"
 		with open(alnLeft, "w") as fasta:
-			fasta.write(FastaResFunc.dict2fasta(dID2Seq))
-			logger.info(" New alignment:%s"%{alnLeft})
+		  fasta.write(FastaResFunc.dict2fasta(dID2Seq))
+		  logger.info("\tNew alignment:%s"%{alnLeft})
+		  fasta.close()
 		dAlnTree[alnLeft] = ""
 		dAlnTree.pop(aln, None)
 		
@@ -332,25 +337,21 @@ def runGARD(aln, o, hostFile, logger):
 	# valid for hyphy 2.3
 	batchFile = o+aln.split("/")[-1].split(".")[0]+"_gard.bf"
 	with open(batchFile, "w") as bf:
-		bf.write("inputRedirect = {};\n")
-		bf.write("inputRedirect[\"01\"] = \"{:s}\";\n".format(aln))
-		bf.write("inputRedirect[\"02\"] = \"010010\";\n")
-		bf.write("inputRedirect[\"03\"] = \"None\";\n")
-		bf.write("inputRedirect[\"04\"] = \"{:s}\";\n".format(gardRes))
-		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"GARD.bf\", inputRedirect);\n")
+	  bf.write("inputRedirect = {};\n")
+	  bf.write("inputRedirect[\"01\"] = \"{:s}\";\n".format(aln))
+	  bf.write("inputRedirect[\"02\"] = \"010010\";\n")
+	  bf.write("inputRedirect[\"03\"] = \"None\";\n")
+	  bf.write("inputRedirect[\"04\"] = \"{:s}\";\n".format(gardRes))
+	  bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"GARD.bf\", inputRedirect);\n")
+	  bf.close()
 	logger.debug("Batch file: {:s}".format(batchFile))
 	
 	"""
 	#for hyphy 2.5
 	if hostFile == "":
-		cmd = "mpirun -np 2 HYPHYMPI GARD --type codon --model HKY --alignment {:s} --output {:s} --output-lf {:s}".format(aln,
-        gardRes,
-	gardJson)
+		cmd = "mpirun -np 2 HYPHYMPI GARD --type codon --model HKY --alignment {:s} --output {:s} --output-lf {:s}".format(aln,	gardRes, gardJson)
 	else:
-	cmd = "mpirun -np 2 -hostfile {:s} HYPHYMPI GARD --type codon --model HKY --alignment {:s} --output {:s} --output-lf {:s}".format(hostfile,
-        aln,
-        gardRes,
-	gardJson)
+		cmd = "mpirun -np 2 -hostfile {:s} HYPHYMPI GARD --type codon --model HKY --alignment {:s} --output {:s} --output-lf {:s}".format(hostfile, aln, gardRes, gardJson)
 	"""
 
 	if hostFile == "":
@@ -361,21 +362,9 @@ def runGARD(aln, o, hostFile, logger):
 
 	lCmd = shlex.split(cmd)
 	with open(outGard, "w") as o, open(errGard, "w") as e:
-          nbrun=2
-          ## To catch subprocess.CalledProcessError when unsolved problem with GARD
-          ## see https://github.com/veg/hyphy/issues/854
-          ## try GARD twice...
-          while nbrun>0:
-            try:
-              runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
-            except subprocess.CalledProcessError as err:
-              logger.info("Error: " + str(err))
-              nbrun-=1
-              if nbrun>0:
-                logger.info("Try again running GARD: ")
-              else:
-                logger.info("Abort recombination analysis.")
-                
+	  runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
+	  o.close()
+	  e.close()
 	logger.debug(cmd)
 	return(gardRes)
 
@@ -404,8 +393,9 @@ def procGARD(gardRes, aln):
 	cmd = "HYPHYMP {:s}".format(batchFile)
 	lCmd = shlex.split(cmd)
 	with open(outGardProc, "w") as o, open(errGardProc, "w") as e:
-		runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
-	
+	  runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
+	  o.close()
+	  e.close()
 	return(outGardProc)
 
 def parseGard(kh, aln, pvalue, o, logger):
@@ -420,9 +410,9 @@ def parseGard(kh, aln, pvalue, o, logger):
 	"""
 	lBP = []
 	with open(kh, "r") as f:
-		lLine = f.readlines()
-		finalIndex = len(lLine)
-	
+	  lLine = f.readlines()
+	  finalIndex = len(lLine)
+	  f.close()
 	index = 0
 	while lLine[index].startswith("Breakpoint") != True and index < finalIndex:
 		index += 1
@@ -484,10 +474,10 @@ def parseGard(kh, aln, pvalue, o, logger):
 					dFrag[name] = lFrag[index]
 					index += 1
 				with open(outFrag, "w") as outF:
-					outF.write(FastaResFunc.dict2fasta(dFrag))
-					logger.info("\tNew alignment: %s"%{outFrag})
-					outF.close()
-					lOutFrag.append(outFrag)
+				  outF.write(FastaResFunc.dict2fasta(dFrag))
+				  logger.info("\tNew alignment: %s"%{outFrag})
+				  outF.close()
+				  lOutFrag.append(outFrag)
 
 			return lOutFrag
 		else:
@@ -512,25 +502,21 @@ def gardRecomb(data, pvalue, dAT, hostFile):
 	for aln in dAT:
 		logger.info("Running GARD on {:s}".format(aln))
 		gardRes = runGARD(aln, 
-				  data.o, 
-				  hostFile, 
-				  data.logger)
+						  data.o, 
+						  hostFile, 
+						  data.logger)
 			
 		logger.info("Checked for recombination using HYPHY GARD.")
-
-		if os.stat(gardRes).st_size==0: # If pb in running GARD
-		  logger.info("Problem running GARD: no parsing of GARD results.")
-		  continue
-		
+				
 		procGardRes = procGARD(gardRes, aln)
 		#data.lGard.append(listGardProc)
 		logger.info("Extracted GARD results.")
 
 		parsedFragments = parseGard(procGardRes, 
-					    aln, 
-					    float(pvalue), 
-					    data.o, 
-					    logger)
+									aln, 
+									float(pvalue), 
+									data.o, 
+									logger)
 
 		logger.info("Parsed GARD results.")
 		if len(parsedFragments) > 0:

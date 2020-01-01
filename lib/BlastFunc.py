@@ -105,14 +105,12 @@ def parseBlast(blastRes):
 	
 	with open(blastRes, "r") as blast:
 		listBlastRes = blast.readlines()
-		
+		blast.close()		
 		listAcc = []
 		
 		for hit in listBlastRes:
 			if not hit.startswith("#"):
-				hs=hit.split("|")[-2]
-				if not hs in listAcc:
-				  listAcc.append(hs)
+				listAcc.append(hit.split("|")[-2])
 		
 	logger.debug(listAcc)
 	logger.info("Extracted gene accessions from blast results")

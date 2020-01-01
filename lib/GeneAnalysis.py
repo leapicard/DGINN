@@ -19,6 +19,7 @@ def hyphyBusted(alnFile, cladoFile, outDir, baseName, logger):
 		bf.write("inputRedirect[\"04\"] = \"All\";\n")
 		bf.write("inputRedirect[\"05\"] = \"\";\n")
 		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"SelectionAnalyses\" + DIRECTORY_SEPARATOR + \"BUSTED.bf\", inputRedirect);")
+		bf.close()
 	logger.info("Batch file: {:s}".format(bustedFile))
 
 	# run BUSTED

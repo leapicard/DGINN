@@ -65,33 +65,33 @@ def paramDef(params, inf, queryName):
 
 	#Parsing
 	lParams = ["infile", 
-		   "queryName", 
-		   "queryFile", 
-		   "blastdb", 
-		   "outdir", 
-		   "logfile", 
-		   "evalue", 
-		   "mincov", 
-		   "percID", 
-		   "step", 
-		   "remote", 
-		   "entryQuery", 
-		   "sptree", 
-		   "APIKey", 
-		   "recombination", 
-		   "duplication", 
-		   "nbspecies", 
-		   "positiveSelection", 
-		   "basename", 
-		   "hyphySeuil", 
-		   "busted", 
-		   "meme", 
-		   "models", 
-		   "paml", 
-		   "bppml", 
-		   "mixedlikelihood", 
-		   "opb", 
-		   "gnh"]
+			   "queryName", 
+			   "queryFile", 
+			   "blastdb", 
+			   "outdir", 
+			   "logfile", 
+			   "evalue", 
+			   "mincov", 
+			   "percID", 
+			   "step", 
+			   "remote", 
+			   "entryQuery", 
+			   "sptree", 
+			   "APIKey", 
+			   "recombination", 
+			   "duplication", 
+			   "nbspecies", 
+			   "positiveSelection", 
+			   "basename", 
+			   "hyphySeuil", 
+			   "busted", 
+			   "meme", 
+			   "models", 
+			   "paml", 
+			   "bppml", 
+			   "mixedlikelihood", 
+			   "opb", 
+			   "gnh"]
 			   
 	with open(params, "r") as content:
 		dParams = {}
@@ -104,21 +104,19 @@ def paramDef(params, inf, queryName):
 					print(temp[0]+" is not a valid parameter.\n")
 				else:
 					dParams[temp[0]] = temp[1].strip()
+		content.close()
 	
 	#If infile(s) given through command line, takes priority
 	if inf != "":
 		dParams["infile"] = list(map(str.strip,inf.split(",")))
 	else:
 		dParams["infile"] = list(map(str.strip,dParams["infile"].split(",")))
-	for f in dParams["infile"]:
-	  if not os.path.exists(f):
-	    logger = logging.getLogger("main")
-	    logger.error("Infile %s does not exist."%f)
-	    sys.exit()
-            
+		
 	#Idem queryName
 	if queryName != "":
 		dParams["queryName"] = queryName
+	else:
+		dParams["queryName"] = dParams["queryName"]
 	
 	#If list of file given, split and check what each file is
 	if len(dParams["infile"]) > 1:
@@ -197,13 +195,13 @@ def paramDef(params, inf, queryName):
 					
 			elif opt == "models":
 				ltemp = []
-				for M in dParams[opt].split(","):
-					if M.strip(" ") == "":
-						next
-					elif M.strip(" ") not in ["M0", "M1", "M2", "M7", "M8", "M8a"]:
-						print(M+" isn't a valid model.")
-					else:
-						ltemp.append(M)
+				for M in map(str.strip,dParams[opt].split(",")):
+				  if M == "":
+				    next
+				  elif M not in ["M0", "M1", "M2", "M7", "M8", "M8a"]:
+				    print(M + " isn't a valid model.")
+				  else:
+				    ltemp.append(M)
 				dParams[opt] = ",".join(ltemp)
 
 	elif dParams["step"] == "positiveSelection":
@@ -249,8 +247,8 @@ def paramDef(params, inf, queryName):
 					"gnh":False}
 	
 	for i in defaultParam:
-		if i in dParams.keys() and dParams[i] != "":
-			defaultParam[i] = dParams[i]
+	  if i in dParams.keys() and dParams[i] != "":
+	    defaultParam[i] = dParams[i]
 	
 	return defaultParam
 
@@ -261,20 +259,23 @@ def initLogger(args, debug, version):
 	@param1 args: Object containing pipeline parameters
 	@param2 debug: if the option debug is set
 	@param3 version: Pipeline version
-	@return mainData: Filled basicData object
+	@return1 mainData: Filled basicData object
+	@return2 logger: Logging object
 	"""
 	
 	## Log
 	### Set up the log directory
 	timeStamp = strftime("%Y%m%d%H%M", localtime())
 	if args["infile"] != "":
-	  if args["logfile"] == "":
-	    args["logfile"] = args["infile"].split(".")[0]+"_DGINN_"+timeStamp+".log"
-	  else:
-	    args["logfile"] = args["infile"].split(".")[0]+args["logfile"]
+		if args["logfile"] == "":
+			args["logfile"] = args["infile"].split(".")[0]+"_DGINN_"+timeStamp+".log"
+		else:
+			args["logfile"] = args["infile"].split(".")[0]+args["logfile"]
 	else:
-	  if args["logfile"] == "":
-	    args["logfile"] = args["alnfile"].split(".")[0]+"_DGINN_"+timeStamp+".log"
+		if args["logfile"] == "":
+			args["logfile"] = args["alnfile"].split(".")[0]+"_DGINN_"+timeStamp+".log"
+		else:
+			args["logfile"] = args["logfile"]
 			
 	# create logger
 	#logging.basicConfig(level=logging.INFO)
