@@ -47,10 +47,8 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	Entrez.api_key = apiKey
 	
 	handle = Entrez.efetch(db="nuccore", id=lBlastRes , idtype="acc", retmode="xml")
-	records=list(Entrez.read(handle))
-	handle.close()
-	  
-	logger.info("Retrieve %d sequences."%(len(records)))
+	records = list(Entrez.read(handle))
+	
 	for record in records:
 		acc = record['GBSeq_primary-accession']
 		tax = record['GBSeq_organism'].split(" ")
@@ -65,13 +63,14 @@ def remoteDl(lBlastRes, queryName, apiKey):
 					break
 					
 		if "." in name or "-" in name:
-			name = "pot"+queryName.split("_")[0:2][-1]
+			name = "pot"+queryName.split("_")[1]
 		if tax == "synCon" or 'GBSeq_sequence' not in record.keys():
 			continue
 		else:
 			lTax.append(tax)
 			dId2Seq[tax+"_"+name+"_"+acc.split(".")[0]] = record['GBSeq_sequence'].upper()
 			
+	handle.close()
 	nbSp = len(set(lTax))
 	logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases ({} different species represented in the retrieved sequences).".format(nbSp))
 	
@@ -111,19 +110,13 @@ def catFile(queryFile, dId2Seq, firstFasta):
 	logger = logging.getLogger("main")
 	
 	with open(queryFile, "r") as query:
-          query = query.readlines()
-          name=query[0].strip().replace(">", "")
-          lseq=[]
-          for l in query[1:]:
-            if l.find(">")!=-1:
-              break
-            else:
-              lseq+=l
-          
-          dId2Seq[name] = "".join(map(str.strip,lseq))
-	with open(firstFasta, "w") as fasta:
-	  fasta.write(dict2fasta(dId2Seq))
+		query = query.readlines()
+		query.close()
+		dId2Seq[query[0].strip().replace(">", "")] = query[1]
 	
+		with open(firstFasta, "w") as fasta:
+			fasta.write(dict2fasta(dId2Seq))
+			fasta.close()	
 	return(firstFasta)
 	
 
@@ -152,6 +145,7 @@ def fastaCreation(data, remote, apiKey, step, treerecs):
 	else:
 		with open(firstFasta, "w") as out:
 			out.write(dict2fasta(dId2Seq))
+			out.close()
 	setattr(data, "seqFile", firstFasta)
 	
 	if treerecs:
