@@ -1,25 +1,87 @@
+# Path or list of paths (absolute or relative) to the files needed to start the pipeline
 infile:ex_aln.fasta,ex_geneTree.tree
+
+# NCBI database on which the blast is to be performed (ex: nr)
+# Future implementations will include the possibility to perform the search on local databases
 blastdb:
+
+# Output directory for all results
+# Automatically created if not specified
 outdir:
+
+# Path to a file where progress of the pipeline will be logged
+# Automatically created if not specified
 logfile:
+
+# E-value for Blast (default: 10⁻⁴)
 evalue:
+
+# Coverage for Blast (default: 50)
 mincov:
+
+# Percentage of identity for Blast (default: 70)
 percID:
+
+# Can be used to limit the search on NCBI databases to certain set of species, to exclude others, etc.
+# https://www.ncbi.nlm.nih.gov/books/NBK3837/#EntrezHelp.Entrez_Searching_Options
 entryQuery:
-step:positiveSelection
+
+# Step at which to enter the pipeline (default: blast)
+step:step:positiveSelection
+
+# Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName:
+
+# Determines if Blast is performed against NCBI databases (default: True)
 remote:
+
+# NCBI API key to increase Blast speed, obtainable from the NCBI
 APIKey:
+
+# Path to the species tree for the detection of duplication events and ortholog group assignment
+# Species names must be formated as speSpe or speSpeSpe (ex: homSap, gorGorGor)
 sptree:
+
+# Option for the identification of duplication events (default: False)
 duplication:
+
+# Minimum number of species for assignment to an ortholog group (default: 8)
 nbspecies:
+
+# Option for the detection of recombination events (default: False)
 recombination:
+
+# Option for the detection of positive selection (default: False)
 positiveSelection:True
+
+# P-value for Hyphy methods (BUSTED/MEME) (Pond *et al.*, 2005) (default: 0.1)
 hyphySeuil:
+
+# Option for using the Hyphy method BUSTED (Murrel *et al.*, 2015) (default: False)
 busted:False
+
+# Option for using the Hyphy method BUSTED (Murrel *et al.*, 2015) (default: False)
 meme:False
+
+# Models to be computed by BIO++ (Gueguen *et al.*, 2013) and PAML (Yang, 2007)
+# Implemented models: M0, M1, M2, M7, M8
+# Must be comma separated (ex: M0,M1,M2)
 models:M0,M1,M2
+
+# Option for using codeml for the detection of sites under positive selection
+# If True, parameter file will be automatically generated
 paml:False
+
+# Option for using BIO++ for the detection of sites under positive selection
+# If True, parameter file will be automatically generated
+# Can also be used to indicate the path to a BIO++ parameter file
 bppml:True
+
+# Same as previously, but for extracting results from the results
+# computed from bppml
 mixedlikelihood:True
+
+# Option for using BIO++ for the detection of branches under positive selection
+# If True, parameter file will be automatically generated
+# Can be used to indicate the path to a BIO++ parameter file
 opb:False

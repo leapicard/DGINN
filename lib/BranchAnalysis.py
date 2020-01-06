@@ -18,12 +18,12 @@ def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 	
 	# create dictionary with all elements of the two argument lists to build commands
 	dBppCmd = {"INPUTFILE": alnFile, 
-			   "FORMAT": alnFormat, 
-			   "TREEFILE": treeFile, 
-			   "OUTTREE": outTree, 
-			   "OUTPARAMS": outParams, 
-			   "BACKUP": outBackup, 
-			   "param": OPBFile}
+		   "FORMAT": alnFormat, 
+		   "TREEFILE": treeFile, 
+		   "OUTTREE": outTree, 
+		   "OUTPARAMS": outParams, 
+		   "BACKUP": outBackup, 
+		   "param": OPBFile}
 		
 	# running bppml
 	logger.info("Running Branch optimization")
@@ -51,7 +51,7 @@ def parseNodes(outParams, logger):
 					lPSNodes.append(node)
 				else:
 					lNSNodes.append(node)
-
+		op.close()
 	logger.info("Nodes under positive selection {}".format(lPSNodes))
 	logger.info("Nodes under neutral or negative selection {}".format(lNSNodes))
 
@@ -116,7 +116,7 @@ def memeBranchSite(aln, cladoFile, outDir, baseName, logger):
 		bf.write("inputRedirect[\"04\"] = \"All\";\n")
 		bf.write("inputRedirect[\"05\"] = \"0.1\";\n")
 		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"SelectionAnalyses\" + DIRECTORY_SEPARATOR + \"MEME.bf\", inputRedirect);")
-
+		bf.close()
 	logger.info("MEME batch file: {:s}".format(memeFile))
 	
 	# run MEME

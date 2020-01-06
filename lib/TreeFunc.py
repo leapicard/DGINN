@@ -90,7 +90,8 @@ def assocFile(sptree, path, dirName):
 	with open(out, "w") as cor:
 		for i in dSp2Gen:
 			cor.write(i+"\t"+dSp2Gen[i]+"\n")
-
+		cor.close()
+                        
 	return out
 
 def supData(filePath, corFile, dirName):
@@ -106,7 +107,7 @@ def supData(filePath, corFile, dirName):
 	with open(corFile, "r") as corSG:
 		corSG = corSG.readlines()
 		lGene = [ i.split("\t")[0] for i in corSG ]
-
+		corFile.close()
 	newDico = {}
 	for accn in SeqIO.parse(open(filePath, "r"), "fasta"):
 		if accn.id in lGene:
@@ -115,7 +116,7 @@ def supData(filePath, corFile, dirName):
 	out = dirName+filePath.replace(".fasta", "_filtered.fasta").split("/")[-1]
 	with open(out, "w") as newVer:
 		newVer.write(FastaResFunc.dict2fasta(newDico))
-
+		newVer.close()
 	return out
 
 #=========================================================================================================================
@@ -136,7 +137,7 @@ def filterTree(tree, spTree, cor):
 	lCor = []
 	with open(cor, "r") as lCor:
 		lCor = lCor.readlines()
-
+		lCor.close()
 	dCor = {}
 	dCorInv = {}
 	for i in lCor:
@@ -176,6 +177,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 	
 	with open(recTree, "r") as tree:
 		reconTree = tree.readlines()[1]
+		tree.close()
 		testTree = ete3.Tree(reconTree)
 		
 		seqs = SeqIO.parse(open(ORF),'fasta')
@@ -233,7 +235,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 							# create new file of orthologous sequences
 							with open(outFile, "w") as fasta:
 								fasta.write(FastaResFunc.dict2fasta(dOrtho2Seq))
-						
+								fasta.close()						
 							# remove the node from the tree
 							removed = gp.detach()
 						
@@ -253,13 +255,14 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 					
 					with open(outFile, "w") as fasta:
 						fasta.write(FastaResFunc.dict2fasta(dRemain))
+						fasta.close()
 					lOut.append(outFile)
 				else:
 					logger.info("Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(list(dRemain.keys())))
 				
 	logger.info("{:d} duplications detected by Treerecs, extracting {:d} groups of at least {} orthologs.".format(len(dupl), 
-																												  nDuplSign, 
-																												  nbSp))
+														      nDuplSign,
+                                                                                                                      nbSp))
 
 	return lOut
 	
@@ -274,9 +277,8 @@ def runTreerecs(tree, sptree, o):
 	"""
 	recTree = o+tree.split("/")[-1].replace(".txt","_recs.nhx")
 	val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX:svg".format(tree, 
-
-                                                                             sptree,
-                                                                             o)
+									     sptree, 
+									     o)
 	
 	AnalysisFunc.cmd(val, False)
 	
@@ -316,8 +318,8 @@ def treeTreatment(data, dAlnTree, nbSp):
 	if len(lFastaFile) > 0:
 		for orthoGp in data.duplication:
 			aln = AnalysisFunc.runPrank(orthoGp, 
-									    data.geneName, 
-									    data.o)
+						    data.geneName, 
+						    data.o)
 			tree = AnalysisFunc.runPhyML(aln, data.o)
 			dAlnTree2[aln] = tree+"_phyml_tree.txt"
 

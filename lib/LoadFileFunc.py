@@ -63,7 +63,8 @@ def parseLFile(path):
 	"""
 	with open(path, "r") as listFile:
 		listFile = listFile.readlines()
-
+		listFile.close()
+	
 	return [i.strip("\n") for i in listFile]
 
 ##==============================================================================================================================
@@ -151,7 +152,7 @@ def prankEntry(Data, treeOption):
 		
 		with open(Data.ORFs) as orf:
 			Data.geneName = orf.readline().split("_")[1]
-		
+			orf.close()		
 	else:
           logger = logging.getLogger("main.alignment")
           logger.error("Provided file is not a fasta of sequences, terminating DGINN.")
@@ -178,7 +179,7 @@ def phymlRecEntry(Data, step = "tree"):
 		
 		with open(Data.aln) as orf:
 			Data.geneName = orf.readline().split("_")[1]
-		
+			orf.close()		
 	else:
 	  logger=logging.getLogger(".".join(["main",step]))
 	  logger.error("Provided file is not a multiple sequence alignment, terminating DGINN.")
@@ -187,23 +188,35 @@ def phymlRecEntry(Data, step = "tree"):
 	return Data
 
 def spTreeCheck(Data, firstStep, treeOption):
-  if treeOption:
-    checkPath(Data.sptree, "species's tree")
+	if treeOption:
+		checkPath(Data.sptree, "species's tree")
 		
-    if not hasattr(Data, 'cor'):
-      if firstStep == "orf":
-        Data.seqFile, corSG = filterData(Data.sptree,
-                                         Data.seqFile,
-                                         Data.o)
-      elif firstStep == "alignment":
-        Data.ORFs, corSG = filterData(Data.sptree,
-                                      Data.ORFs,
-                                      Data.o)
-      elif firstStep == "tree" or firstStep == "duplication":
-        Data.aln, corSG = filterData(Data.sptree,
-                                     Data.aln,
-                                     Data.o)
-      setattr(Data, "cor", corSG)
+		if not hasattr(Data, 'cor'):
+			if firstStep == "orf":
+				Data.seqFile, corSG = filterData(Data.sptree, 
+
+								 Data.seqFile, 
+
+				                                 Data.o)
+			elif firstStep == "alignment":
+				Data.ORFs, corSG = filterData(Data.sptree, 
+
+							      Data.ORFs, 
+
+				                              Data.o)
+			elif firstStep == "tree":
+				Data.aln, corSG = filterData(Data.sptree, 
+
+				                             Data.aln, 
+
+				                             Data.o)
+			elif firstStep == "duplication":
+				Data.aln, corSG = filterData(Data.sptree, 
+
+				                             Data.aln, 
+
+				                             Data.o)
+			setattr(Data, "cor", corSG)
 
 
 def duplPSEntry(Data, step = "duplication"):

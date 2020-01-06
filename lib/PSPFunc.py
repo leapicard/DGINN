@@ -1,6 +1,6 @@
 from scipy import stats
 from collections import OrderedDict
-import re, os, logging
+import sys, re, os, logging
 
 def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 	# Check analyses to be run and where the parameters file are
@@ -30,7 +30,7 @@ def supBoot(outDir, baseName, treeFile, logger):
 	cladoFile = outDir+baseName+"_clado.tree"
 	with open(cladoFile, "w") as clado:
 		clado.write(leanTree(treeFile))
-	
+		clado.close()	
 	logger.debug(leanTree(treeFile))
 	return cladoFile
 
@@ -40,7 +40,7 @@ def nbNode(treeFile, logger):
 		data = tree.read()
 		nodes = str(data.count("(")+data.count(")"))
 		logger.info("There are {:s} nodes in the provided tree.".format(nodes))
-
+		tree.close()
 	return nodes
 
 def LRT(ll1, ll2, df):
@@ -78,22 +78,56 @@ def leanTree(tree):
 	pattern2 = re.compile(r"\)\d+\.\d+")
 	#pattern3 = re.compile("\|.+\.\d")
 	with open(tree, "r") as tf:
-		tf = re.sub(pattern, "", tf.read())
-		tf = re.sub(pattern2, ")", tf)
-		tf = re.sub("\||\.", "", tf)
-		return(tf)
+		tfs = re.sub(pattern, "", tf.read())
+		tfs = re.sub(pattern2, ")", tfs)
+		tfs = re.sub("\||\.", "", tfs)
+		tf.close()
+		return(tfs)
 	
 def pspFileCreation(path, option):
-	if not os.path.exists(path):
-		if option == "bppml":
-			with open(path, "w") as bppml:
-				bppml.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nnonhomogeneous = general\nnonhomogeneous.number_of_models = 1\nnonhomogeneous.root_freq=F3X4(initFreqs=observed)\nmodel1 = $(MODEL)\nmodel1.nodes_id=0:$(NODES)\nlikelihood.recursion = simple\nlikelihood.recursion_simple.compression = recursive\noptimization = FullD(derivatives=Newton)\noptimization.ignore_parameters = $(IGNORE)\noptimization.max_number_f_eval = 10000\noptimization.tolerance = 0.00001\noutput.tree.file = $(OUTTREE)\noutput.tree.format = Newick\noutput.estimates = $(OUTPARAMS)\noptimization.backup.file = $(BACKUP)")
-		if option == "mixedlikelihood":
-			with open(path, "w") as mixed:
-				mixed.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nparams = $(PARAMS)\noutput.likelihoods.file = $(OUTINFO)")
-		if option == "opb":
-			with open(path, "w") as opbFile:
-				opbFile.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nnonhomogeneous = one_per_branch\nnonhomogeneous.root_freq=F3X4(initFreqs=observed)\nmodel = YNGP_M0(frequencies=F3X4(initFreqs=observed))\nnonhomogeneous_one_per_branch.shared_parameters = YN98.kappa, YN98.*theta*\nlikelihood.recursion = simple\nlikelihood.recursion_simple.compression = recursive\noptimization = FullD(derivatives=Newton)\noptimization.ignore_parameters = $(IGNORE)\noptimization.max_number_f_eval = 10000\noptimization.tolerance = 0.00001\noutput.tree.file = $(OUTTREE)\noutput.tree.format = Newick\noutput.estimates = $(OUTPARAMS)\noptimization.backup.file = $(BACKUP)")
-		if option == "gnh":
-			with open(path, "w") as gnhFile:
-				gnhFile.write("alphabet = Codon(letter=DNA)\ninput.sequence.file=$(INPUTFILE)\ninput.sequence.format=$(FORMAT)\ninput.sequence.sites_to_use = all\ninput.sequence.max_gap_allowed = 50%\ninput.sequence.max_unresolved_allowed = 100%\ninput.tree.file = $(TREEFILE)\ninput.tree.format = Newick\nnonhomogeneous = general\nnonhomogeneous.number_of_models = 2\nnonhomogeneous.root_freq=F3X4(initFreqs=observed)\nmodel1 = YNGP_M1(frequencies=F3X4(initFreqs=observed))\nmodel1.nodes_id=$(NODE)\nmodel2 = YNGP_M2(frequencies=F3X4(initFreqs=observed),kappa=YNGP_M1.kappa_1,omega=YNGP_M1.omega_1)\nmodel2.nodes_id=$(NODE)\nlikelihood.recursion = simple\nlikelihood.recursion_simple.compression = recursive\noptimization = FullD(derivatives=Newton)\noptimization.ignore_parameters = BrLen,YNGP_M0*,*kappa*,*theta*,Ancient\noptimization.max_number_f_eval = 10000\noptimization.tolerance = 0.00001\noutput.tree.file = $(OUTTREE)\noutput.tree.format = Newick\noutput.estimates = $(OUTPARAMS)\noptimization.backup.file = $(BACKUP)")
+  if not os.path.exists(path):
+    dparams={}
+    dparams["alphabet"] = "Codon(letter=DNA)"
+    dparams["input.sequence.file"] = "$(INPUTFILE)"
+    dparams["input.sequence.format"]= "$(FORMAT)"
+    dparams["input.sequence.sites_to_use"] = "all"
+    dparams["input.sequence.max_gap_allowed"] = "50%"
+    dparams["input.sequence.max_unresolved_allowed"] = "100%"
+    dparams["input.tree.file"] = "$(TREEFILE)"
+    dparams["input.tree.format"] = "Newick"
+    if option == "mixedlikelihood":
+      dparams["params"] = "$(PARAMS)"
+      dparams["output.likelihoods.file"] = "$(OUTINFO)"
+    else:
+      dparams["nonhomogeneous.root_freq"] = "F3X4(initFreqs=observed)"
+      dparams["likelihood.recursion"] = "simple"
+      dparams["likelihood.recursion_simple.compression"] = "simple"
+      dparams["optimization"] = "FullD(derivatives=Newton)"
+      dparams["optimization.ignore_parameters"] = "$(IGNORE)"
+      dparams["optimization.max_number_f_eval"] = "10000"
+      dparams["optimization.tolerance"] = "0.00001"
+      dparams["output.tree.file"] = "$(OUTTREE)"
+      dparams["output.tree.format"] = "Newick"
+      dparams["output.estimates"] = "$(OUTPARAMS)"
+      dparams["optimization.backup.file"] = "$(BACKUP)"
+      if option == "bppml":
+        dparams["nonhomogeneous"] = "general"
+        dparams["nonhomogeneous.number_of_models"] = "1"
+        dparams["model1"] = "$(MODEL)"
+        dparams["model1.nodes_id"] = "0:$(NODES)"
+      elif option == "opb":
+        dparams["nonhomogeneous"] = "one_per_branch"
+        dparams["model"] = "YNGP_M0(frequencies=F3X4(initFreqs=observed))"
+        dparams["nonhomogeneous_one_per_branch.shared_parameters"] = "YN98.kappa, YN98.*theta*"
+      elif option == "gnh":
+        dparams["nonhomogeneous"] = "general"
+        dparams["nonhomogeneous.number_of_models"] = "2"
+        dparams["model1"] = "YNGP_M1(frequencies=F3X4(initFreqs=observed))"
+        dparams["model1.nodes_id"] = "$(NODES1)"
+        dparams["model2"] = "YNGP_M2(frequencies=F3X4(initFreqs=observed),kappa=YNGP_M1.kappa_1,omega=YNGP_M1.omega_1)"
+        dparams["model2.nodes_id"] = "$(NODES2)"
+        dparams["optimization.ignore_parameters"] = "BrLen,YNGP_M0*,*kappa*,*theta*,Ancient"
+
+    with open(path, "w") as bppFile:
+      bppFile.write("\n".join([par + " = " + val for par,val in dparams.items()]))
+      bppFile.close()

@@ -105,7 +105,7 @@ def parseBlast(blastRes):
 	
 	with open(blastRes, "r") as blast:
 		listBlastRes = blast.readlines()
-		
+		blast.close()		
 		listAcc = []
 		
 		for hit in listBlastRes:

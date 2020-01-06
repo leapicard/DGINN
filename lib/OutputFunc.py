@@ -3,6 +3,7 @@ import os, logging, json
 def treerecsInfo(path, duplication):
 	with open(path, "r") as recontree:
 		nbDup = recontree.readline().split(",")[1].split("=")[1]
+		recontree.close()
 	head = "#======Treerecs=====#\n"
 	data = "Duplication: {:d}\nNb (>8): {:d}\n".format(nbDup, len(duplication))
 
@@ -16,7 +17,7 @@ def gardInfo(lGard):
 		lBP = []
 		with open(kh, "r") as f:
 			lLine = f.readlines()
-		
+			f.close()		
 		index = 0
 		while lLine[index].startswith("Breakpoint") != True:
 			index += 1
@@ -42,7 +43,7 @@ def bustedInfo(dico):
 		path = aln+".BUSTED.json"
 		with open(path, "w") as busted:
 			busted = busted.readlines()
-
+			busted.close()
 		i=0
 		while "p-value" not in busted[i]:
 			i+=1
@@ -57,7 +58,7 @@ def memeInfo(dico):
 		path = aln+".MEME.json"
 		with open(path, "r") as busted:
 			busted = json.load(busted)
-
+			busted.close()
 		print(busted["MLE"])
 
 

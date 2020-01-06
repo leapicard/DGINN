@@ -23,7 +23,7 @@ def makeAccnsFile(lBlastRes, queryName, outDir):
 		
 	with open(outBlastn, "w") as out:
 		out.write(geneAllAccns)
-	
+		out.close()	
 	logger.info("Wrote all accessions to {:s}".format(outBlastn))
 	
 	return(outBlastn)

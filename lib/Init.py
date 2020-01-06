@@ -104,6 +104,7 @@ def paramDef(params, inf, queryName):
 					print(temp[0]+" is not a valid parameter.\n")
 				else:
 					dParams[temp[0]] = temp[1].strip()
+		content.close()
 	
 	#If infile(s) given through command line, takes priority
 	if inf != "":
@@ -194,13 +195,13 @@ def paramDef(params, inf, queryName):
 					
 			elif opt == "models":
 				ltemp = []
-				for M in dParams[opt].split(","):
-					if M.strip(" ") == "":
-						next
-					elif M.strip(" ") not in ["M0", "M1", "M2", "M7", "M8", "M8a"]:
-						print(M+" isn't a valid model.")
-					else:
-						ltemp.append(M)
+				for M in map(str.strip,dParams[opt].split(",")):
+				  if M == "":
+				    next
+				  elif M not in ["M0", "M1", "M2", "M7", "M8", "M8a"]:
+				    print(M + " isn't a valid model.")
+				  else:
+				    ltemp.append(M)
 				dParams[opt] = ",".join(ltemp)
 
 	elif dParams["step"] == "positiveSelection":
@@ -246,8 +247,8 @@ def paramDef(params, inf, queryName):
 					"gnh":False}
 	
 	for i in defaultParam:
-		if i in dParams.keys() and dParams[i] != "":
-			defaultParam[i] = dParams[i]
+	  if i in dParams.keys() and dParams[i] != "":
+	    defaultParam[i] = dParams[i]
 	
 	return defaultParam
 

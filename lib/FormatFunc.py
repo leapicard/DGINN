@@ -36,7 +36,7 @@ def isAccns(targetFile):
 	boolFile = True
 	with open(targetFile, "r") as target:
 		bad = any(">" in line for line in target.readlines())
-		
+		target.close()		
 		if bad:
 			boolFile = False
 	
@@ -83,7 +83,7 @@ def isBlastRes(targetFile):
 	with open(targetFile, "r") as target:
 		if target.readline().startswith("# BLAST"):
 			boolFile = True
-	
+		target.close()	
 	return(boolFile)
 	
 def isFasta(targetFile):
