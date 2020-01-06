@@ -64,20 +64,24 @@ def resDupl(lFiles):
 		if "remaining" in f.split("/")[-1] and ":" not in f.split("/")[-1]:
 			lDupl.append(f.split(".")[0]+".best.fas")
 	lRes = []
+	dName2DuplNb = {}
 	
 	for aln in lDupl:
 		dupl = SeqIO.parse(open(aln),'fasta')
 		ids = [ortho.id.split("_")[1] for ortho in dupl]
 		
-		if "_D" in aln.split("/")[-1]:
+		if "_part" in aln.split("/")[-1]:
+			duplNb = "part"+aln.split("part")[1][0:1]
+		elif "_D" in aln.split("/")[-1]:
 			duplNb = aln.split("_")[-2].split(".")[0]
 		elif "remaining" in aln.split("/")[-1]:
 			duplNb = "remaining"
-			
+		
+		dName2DuplNb[aln] = duplNb	
 		mainName = max(set(ids), key=ids.count)
 		lRes.append("{:s}: {:d} orthologs (mainly: {:s})\n".format(duplNb, len(ids) ,mainName))
 	
-	return("".join(lRes))
+	return(dName2DuplNb[aln])
 
 def resRecomb(lFiles):
 	lRecomb = [f.split(".")[0].split("/")[-1] for f in lFiles if ":" in f.split("/")[-1]]
@@ -309,7 +313,7 @@ if __name__ == "__main__":
 	outDir = args.outDir
 	if outDir == "":
 		outDir = inDir
-	debug = args.debug
+	#debug = args.debug
 	
 	lDirs = [line.rstrip() for line in open(inFile)]
 	dSub2Cut = OrderedDict({sub:"/".join(sub.split("/")[0:-1])[0:-21]+".best.fas" for sub in lDirs if os.path.exists("/".join(sub.split("/")[0:-1])[0:-21]+".best.fas")})
@@ -357,6 +361,8 @@ if __name__ == "__main__":
 		for elt in splitName:
 			if "gp" in elt:
 				shortName += "_"+elt.replace("D", "").replace("gp", "-")
+			if "part" in elt:
+				shortName += "_"+elt
 			if "mincov" in elt:
 				shortName += "_all"
 			if "remaining" in elt:
