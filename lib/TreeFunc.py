@@ -105,9 +105,9 @@ def supData(filePath, corFile, dirName):
 	"""
 
 	with open(corFile, "r") as corSG:
-		corSG = corSG.readlines()
-		lGene = [ i.split("\t")[0] for i in corSG ]
-		corFile.close()
+		lcorSG = corSG.readlines()
+		lGene = [ i.split("\t")[0] for i in lcorSG ]
+		corSG.close()
 	newDico = {}
 	for accn in SeqIO.parse(open(filePath, "r"), "fasta"):
 		if accn.id in lGene:
@@ -328,7 +328,7 @@ def treeTreatment(data, dAlnTree, nbSp):
 	return dAlnTree
 
 	#except Exception:
-	#	logger.info("Treerecs uncountered an unexpected error, skipping.")
+	#	logger.info("Treerecs encountered an unexpected error, skipping.")
 	#	return dicoAT
 
 

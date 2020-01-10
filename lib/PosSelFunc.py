@@ -38,21 +38,21 @@ def pspAnalysis(data, parms, aln, tree):
 		"""try:		
 			GeneAnalysis.hyphyBusted(aln, cladoFile, outDir, data.baseName, logger)
 		except Exception:
-			logger.info("BUSTED uncountered an unexpected error, skipping.")"""
+			logger.info("BUSTED encountered an unexpected error, skipping.")"""
 	
 	if "paml" in dCtrls and dCtrls["paml"] not in ["False", False] and len(lModels) > 1:
 		SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
 		"""try:
 			SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
 		except Exception:
-			logger.info("PAML (codeml) Site uncountered an unexpected error, skipping.")"""
+			logger.info("PAML (codeml) Site encountered an unexpected error, skipping.")"""
 			
 			
 	if "bppml" and "bppmixedlikelihood" in dCtrls and len(lModels) > 1:
 	  try:
 	    SiteAnalysis.bppSite(dCtrls["bppml"], dCtrls["bppmixedlikelihood"], aln, data.alnFormat, tree, lModels, outDir, data.baseName, logger)
 	  except Exception:
-	    logger.error("Bio++ Site uncountered an unexpected error, skipping.")
+	    logger.error("Bio++ Site encountered an unexpected error, skipping.")
 	elif "bppml" or "bppmixedlikelihood" not in dCtrls:
 	  logger.error("Part of parameters for Bio++ site analysis are completed but not all.")
 	  logger.error("Analysis ignored (if unexpected, check paths to Bio++/bpp parameter files).")
@@ -64,7 +64,7 @@ def pspAnalysis(data, parms, aln, tree):
 		try:
 			params = BranchAnalysis.bppBranch(dCtrls["OPB"], outDir, data.baseName, aln, data.alnFormat, tree, logger)	
 		except Exception:
-			logger.error("Bio++ Branch Analysis uncountered an unexpected error, skipping.")
+			logger.error("Bio++ Branch Analysis encountered an unexpected error, skipping.")
 		try:
 			lPSNodes = BranchAnalysis.parseNodes(params, logger)	
 		except Exception:
@@ -74,13 +74,13 @@ def pspAnalysis(data, parms, aln, tree):
 		try:
 			BranchAnalysis.bppBranchSite(dCtrls["GNH"], lPSNodes, outDir, data.baseName, aln, data.alnFormat, tree, logger)
 		except Exception:
-			logger.error("Bio++ Pseudo Branch-Site Analysis uncountered an unexpected error, skipping.")
+			logger.error("Bio++ Pseudo Branch-Site Analysis encountered an unexpected error, skipping.")
 	
 	if "MEME" in dCtrls:
 		try:
 			BranchAnalysis.memeBranchSite(aln, cladoFile, outDir, data.baseName, logger)
 		except Exception:
-			logger.error("MEME uncountered an unexpected error, skipping.")
+			logger.error("MEME encountered an unexpected error, skipping.")
 					
 	logger.info("End analysis")
 	return(outDir)

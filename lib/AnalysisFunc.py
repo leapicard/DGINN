@@ -85,7 +85,7 @@ def getORFs(catFile, queryName, geneDir):
 
 	with open(outORF, "w") as outO:
 	  outO.write(FastaResFunc.dict2fasta(dId2Longest))
-	  out0.close()
+	  outO.close()
 	  
 	logger.info("Extracted longest ORFs: {:s}".format(outORF))
 
@@ -204,10 +204,10 @@ def runPhyML(aln, geneDir):
 	logger = logging.getLogger("main.tree")
 	
 	with open(aln, "rU") as aln:
-          aln = aln.read().replace("!", "N")
+          laln = aln.read().replace("!", "N")
           aln.close()
           with open(tmp, "w") as temp:
-            temp.write(aln)
+            temp.write(laln)
             temp.close()
             
 	input_handle = open(tmp, "rU")
@@ -531,7 +531,7 @@ def gardRecomb(data, pvalue, dAT, hostFile):
 	return(dAT)
 	
 	"""except Exception:
-		logger.info("GARD uncountered an unexpected error, skipping.")
+		logger.info("GARD encountered an unexpected error, skipping.")
 		return dAT"""
 
 #######=================================================================================================================
