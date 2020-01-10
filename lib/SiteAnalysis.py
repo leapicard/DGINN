@@ -3,7 +3,7 @@ import PSPFunc
 from ete3 import EvolTree
 
 def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, baseName, logger):	
-	outDir=os.getcwd()+"/"
+	# outDir=os.getcwd()+"/"  # used to debug
 	logger.info(os.getcwd())
 	### SITE ANALYSIS: BIO++
 	logger.info("Bio++ Site Analysis")
@@ -63,7 +63,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
               if model=="M0":
                 lignore.append("YN98.%d_Full.theta*")
               else:
-                lignore.append("YNGP_%s.%d_Full.theta*"%model)
+                lignore.append("YNGP_%s.%d_Full.theta*"%(model,i))
 	  ignore=",".join(lignore)
 	  # Use previous backup file (in order M0->M1->M2->M7->M8) to accelerate optimization
           # dictionary of equivalences of specific parameter names between models

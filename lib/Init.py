@@ -93,13 +93,15 @@ def paramDef(params, inf, queryName):
 			   "opb", 
 			   "gnh"]
 			   
-	with open(params, "r") as content:
+	with open(params, mode="r", encoding="utf-8") as content:
 		dParams = {}
 		for line in content:
 			if line.startswith("#"):
 				pass
 			else:
-				temp = line.strip("\n").split(":")
+				temp = list(map(str.strip,line.split(":")))
+				if temp[0]=="":
+                                  continue
 				if temp[0] not in lParams:
 					print(temp[0]+" is not a valid parameter.\n")
 				else:

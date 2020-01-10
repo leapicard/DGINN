@@ -27,7 +27,7 @@ percID:
 entryQuery:
 
 # Step at which to enter the pipeline (default: blast)
-step:step:positiveSelection
+step:positiveSelection
 
 # Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName:

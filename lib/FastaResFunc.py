@@ -110,9 +110,9 @@ def catFile(queryFile, dId2Seq, firstFasta):
 	logger = logging.getLogger("main")
 	
 	with open(queryFile, "r") as query:
-		query = query.readlines()
+		lquery = query.readlines()
 		query.close()
-		dId2Seq[query[0].strip().replace(">", "")] = query[1]
+		dId2Seq[lquery[0].strip().replace(">", "")] = lquery[1]
 	
 		with open(firstFasta, "w") as fasta:
 			fasta.write(dict2fasta(dId2Seq))
