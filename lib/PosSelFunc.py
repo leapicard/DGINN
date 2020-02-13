@@ -49,10 +49,10 @@ def pspAnalysis(data, parms, aln, tree):
 			
 			
 	if "bppml" and "bppmixedlikelihood" in dCtrls and len(lModels) > 1:
-	  try:
-	    SiteAnalysis.bppSite(dCtrls["bppml"], dCtrls["bppmixedlikelihood"], aln, data.alnFormat, tree, lModels, outDir, data.baseName, logger)
-	  except Exception:
-	    logger.error("Bio++ Site encountered an unexpected error, skipping.")
+	  #try:
+	  SiteAnalysis.bppSite(dCtrls["bppml"], dCtrls["bppmixedlikelihood"], aln, data.alnFormat, tree, lModels, outDir, data.baseName, logger)
+	  #except Exception:
+	    #logger.error("Bio++ Site encountered an unexpected error, skipping.")
 	elif "bppml" or "bppmixedlikelihood" not in dCtrls:
 	  logger.error("Part of parameters for Bio++ site analysis are completed but not all.")
 	  logger.error("Analysis ignored (if unexpected, check paths to Bio++/bpp parameter files).")

@@ -96,7 +96,7 @@ def pspFileCreation(path, option):
     dparams["input.tree.file"] = "$(TREEFILE)"
     dparams["input.tree.format"] = "Newick"
     if option == "mixedlikelihood":
-      dparams["params"] = "$(PARAMS)"
+      #dparams["params"] = "$(PARAMS)"
       dparams["output.likelihoods.file"] = "$(OUTINFO)"
     else:
       dparams["nonhomogeneous.root_freq"] = "F3X4(initFreqs=observed)"

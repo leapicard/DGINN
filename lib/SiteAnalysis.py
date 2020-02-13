@@ -64,13 +64,19 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
                 lignore.append("YN98.%d_Full.theta*")
               else:
                 lignore.append("YNGP_%s.%d_Full.theta*"%(model,i))
-	  ignore=",".join(lignore)
+	  ignore = ",".join(lignore)
+	  
 	  # Use previous backup file (in order M0->M1->M2->M7->M8) to accelerate optimization
           # dictionary of equivalences of specific parameter names between models
 	  dequiv={}
           ## omega from M0->M1->M2->M7
-	  dequiv["omega"]={"M1":{"YNGP_M1.omega":"omega"},"M2":{"YNGP_M2.omega0":"omega"},"M0":{"YN98.omega":"omega"},"M7":{"YNGP_M7.p":"[omega/(1-omega),1][omega==1]","YNGP_M7.q":"1"},"M8":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]","YNGP_M8.q":"1"}}
+	  dequiv["omega"] = {"M1":{"YNGP_M1.omega":"omega"},
+						 "M2":{"YNGP_M2.omega0":"omega"},
+						 "M0":{"YN98.omega":"omega"},
+						 "M7":{"YNGP_M7.p":"[omega/(1-omega),1][omega==1]","YNGP_M7.q":"1"},
+						 "M8":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]","YNGP_M8.q":"1"}}
 	  dnewpar={}
+	  
 	  if not os.path.exists(dModelLog[model]):
 	    for prevmodel in ["M7","M2","M1","M0"]:
 	      if not prevmodel in lModels:
@@ -117,7 +123,16 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
                 
 	  # create dictionary with all elements of the two argument lists to build commands
 	  modelDesc=dModelSyntax[model][0]+"("+",".join(dModelSyntax[model][1:])+")"
-	  dBppCmd = {"INPUTFILE":alnFile, "FORMAT":alnFormat, "TREEFILE":treeFile, "MODEL":modelDesc, "NODES":nodes, "IGNORE":ignore, "OUTTREE":dModelTrees[model], "OUTPARAMS":dModelParams[model], "BACKUP":dModelLog[model], "param":bppFile}
+	  dBppCmd = {"INPUTFILE":alnFile, 
+				 "FORMAT":alnFormat, 
+				 "TREEFILE":treeFile, 
+				 "MODEL":modelDesc, 
+				 "NODES":nodes, 
+				 "IGNORE":ignore, 
+				 "OUTTREE":dModelTrees[model], 
+				 "OUTPARAMS":dModelParams[model], 
+				 "BACKUP":dModelLog[model], 
+				 "param":bppFile}
 
 	  # running bppml
 	  logger.info("Running {:s} optimization".format(model))
@@ -185,7 +200,12 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		# dictionary(model:results file name)
 		dModelResults = {model:outDir+baseName+"_results"+model+".log" for model in lModels}
 
-		dMixCmd = {"INPUTFILE":alnFile, "FORMAT":alnFormat, "TREEFILE":treeFile, "PARAMS":dModelParams[model], "OUTINFO":dModelResults[model], "param":bppMixed}
+		dMixCmd = {"INPUTFILE":alnFile, 
+				   "FORMAT":alnFormat, 
+				   "TREEFILE":treeFile, 
+				   "params":dModelParams[model], 
+				   "OUTINFO":dModelResults[model], 
+				   "param":bppMixed}
 		
 		logger.info("Running mixed likelihoods with model {:s}".format(model))
 		argsMx = "\""+"\" \"".join([k+"="+v for k, v in dMixCmd.items()])+"\""
