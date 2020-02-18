@@ -314,9 +314,9 @@ def initLogger(args, debug, version):
 									args["queryName"])
 
 	if args["step"] == "duplication" and args["duplication"] == False:
-		args["duplication"] == True
+		args["duplication"] = True
 	elif args["step"] == "recombination" and args["recombination"] == False:
-		args["recombination"] == True
+		args["recombination"] = True
 
 	logger.info("Reading input file {:s}".format(mainData.queryFile))
 	logger.info("Output directory: {:s}".format(mainData.o))
