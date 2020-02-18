@@ -1,3 +1,4 @@
+import sys
 import logging, os
 import ete3
 import FastaResFunc, AnalysisFunc, ExtractFunc
@@ -8,6 +9,39 @@ from collections import defaultdict
 File which countain all functions about treerecs and tree treatement.
 """
 
+#######################################
+#### Class used for resolving polytomies (from Stackoverflow)
+
+# A very simple representation for Nodes. Leaves are anything which is not a Node.
+class Node(object):
+  def __init__(self, left, right):
+    self.left = left
+    self.right = right
+
+  def __repr__(self):
+    return '(%s, %s)' % (self.left, self.right)
+
+# Given a tree and a label, yields every possible augmentation of the tree by
+# adding a new node with the label as a child "above" some existing Node or Leaf.
+def add_leaf(tree, label):
+  yield Node(label, tree)
+  if isinstance(tree, Node):
+    for left in add_leaf(tree.left, label):
+      yield Node(left, tree.right)
+    for right in add_leaf(tree.right, label):
+      yield Node(tree.left, right)
+
+# Given a list of labels, yield each rooted, unordered full binary tree with
+# the specified labels.
+def enum_unordered(labels):
+  if len(labels) == 1:
+    yield labels[0]
+  else:
+    for tree in enum_unordered(labels[1:]):
+      for new_tree in add_leaf(tree, labels[0]):
+        yield new_tree
+
+        
 #######Treerecs=========================================================================================================
 #=========================================================================================================================
 def getLeaves(path):
@@ -55,15 +89,16 @@ def assocFile(sptree, path, dirName):
 	@param1 sptree: Species tree
 	@param2 path: Path of a fasta file
 	@param3 dirName: Name for a new directory
-	"""
-		
-	lTreeData = getLeaves(sptree)
+	"""        
 
 	lGeneId = []
-	for accn in SeqIO.parse(open(path, "r"), "fasta"):
+	ff=open(path, "r")
+	for accn in SeqIO.parse(ff, "fasta"):
 		lGeneId.append(accn.id)
-
+	ff.close()
 	lGeneId.sort()
+	        
+	lTreeData = getLeaves(sptree)
 	lTreeData.sort()
 	dSp2Gen = {}
 	index = 0
@@ -88,8 +123,8 @@ def assocFile(sptree, path, dirName):
 	out = dirName+path.split("/")[-1].split(".")[0]+"_Species2Genes.txt"
 
 	with open(out, "w") as cor:
-		for i in dSp2Gen:
-			cor.write(i+"\t"+dSp2Gen[i]+"\n")
+		for k,v in dSp2Gen.items():
+			cor.write(k+"\t"+v+"\n")
 		cor.close()
                         
 	return out
@@ -133,11 +168,10 @@ def filterTree(tree, spTree, cor):
 	t2 = ete3.Tree(spTree)
 	g1 = t1.get_leaf_names()
 	g2 = t2.get_leaf_names()
-
 	lCor = []
-	with open(cor, "r") as lCor:
-		lCor = lCor.readlines()
-		lCor.close()
+	with open(cor, "r") as fCor:
+		lCor = fCor.readlines()
+		fCor.close()
 	dCor = {}
 	dCorInv = {}
 	for i in lCor:
@@ -156,10 +190,10 @@ def filterTree(tree, spTree, cor):
 		print(len(g1)/2)
 		exit()"""
 
-	t1.prune(set(g1Genes))
+	t1.prune(g1Genes)
 	out = tree.replace(".tree", "_filtered.tree")
-	t1.write(out)
-	
+	t1.write(outfile=out)
+        
 	return out
 
 #=========================================================================================================================
@@ -265,24 +299,132 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
                                                                                                                       nbSp))
 
 	return lOut
-	
-	
-def runTreerecs(tree, sptree, o):
-	"""
-	Procedure which launch treerecs.
 
-	@param1 tree: Path to the tree file
-	@param2 sptree: Path to the species tree
-	@param3 o: Output directory
-	"""
-	recTree = o+tree.split("/")[-1].replace(".txt","_recs.nhx")
-	val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX:svg".format(tree, 
-									     sptree, 
-									     o)
+### 
+# Post order traversal of sptree to find polytomies
+
+def resolve_polytomy(node, gtree, o):
+  ch=node.get_children()
+  lch=len(ch)
+  # best newtree
+  bnt = False
+
+  lspt=[]
+  lcost=[]
+
+  for desctree in enum_unordered(range(lch)):
+    nt=ete3.Tree(str(desctree)+";")
+    for p in nt.get_leaves():
+      if int(p.name)==lch:
+        continue
+      try:
+        p.add_sister(ch[int(p.name)])
+      except ete3.coretype.tree.TreeError:
+        True
+        
+      p.detach()
+
+    lspt.append(nt)
+    spf="eval_poly_sp_%d.tree"%(len(lspt))
+    nt.write(outfile=spf)
+    gf="eval_poly_gene_%d.tree"%(len(lspt))
+    gtree.write(outfile=gf)
+
+    val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX".format(gf, 
+								     spf, 
+								     ".")
+    AnalysisFunc.cmd(val, False)
+
+    fnt=open("eval_poly_gene_%d_recs.nhx"%(len(lspt)),"r")
+    lc=fnt.readline()
+    fnt.close()
+    pc=lc.find("total cost")
+    pe=lc.find("=",pc)
+    lcost.append(int(lc[pe+1:lc.find(",",pc)]))
+    
+  # now keep the most parcimonious
+
+  m=min(lcost)
+  im=[i for i in range(len(lcost)) if lcost[i]==m]
+    
+  return(lspt[im[0]]) #get first reconciliation if equality...
+
 	
-	AnalysisFunc.cmd(val, False)
+def runTreerecs(pathGtree, pathSptree, cor, o):
+  """
+  Procedure which launch treerecs.
+
+  @param1 pathGtree: Path to the gene tree file
+  @param2 pathSptree: Path to the species tree
+  @param3 o: Output directory
+  """
+
+  ## look for polytomies, and change species tree in a most
+  ## parcimonious way
+
+  gTree = ete3.Tree(pathGtree)
+  sptree = ete3.Tree(pathSptree)
+
+  g1 = gTree.get_leaf_names()
+  g2 = sptree.get_leaf_names()
+
+  lCor = []
+  with open(cor, "r") as fCor:
+    lCor = fCor.readlines()
+    fCor.close()
+
+  dCor = {}
+  for i in lCor:
+    temp = i.split("\t")
+    dCor[temp[0]] = temp[1].strip("\n")
+
+  sp1Genes = set([dCor[z] for z in g1 if z in dCor.keys() and dCor[z] in g2])
+
+  sptree.prune(sp1Genes)
+
+  poly=False
+  for node in sptree.traverse("postorder"):
+    lch=len(node.get_children())
+    if lch>2:
+      if not poly:
+        logger=logging.getLogger("main.duplication")
+        logger.warning("Species Tree with polytomies: solved at most parcimonious.")
+        poly=True
+      gt2=gTree.copy()
+    
+      leavnode=[l.name for l in node.get_leaves()]
+      leag=[l.name for l in gt2.get_leaves() if l.name[:6] in leavnode]
+      if len(leag)!=0:
+        gt2.prune(leag)
+
+      nb=resolve_polytomy(node, gt2, o)
+
+      node.add_sister(nb)
+
+      node.detach()
+
+  
+  ### then final reconciliation
+  if not poly: # no polytomy solved
+    pathSptree2=pathSptree
+  else:
+    lp=pathSptree.split(".")
+    
+    pathSptree2=".".join(lp[:-1]+["bif"]+[lp[-1]])
+    sptree.write(outfile=pathSptree2)
+
+  suff=pathGtree.split("/")[-1]
+  recTree = o+suff[:suff.rfind(".")]+"_recs.nhx"
+  val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX:svg".format(pathGtree, 
+								       pathSptree2, 
+								       o)
 	
-	return recTree
+  AnalysisFunc.cmd(val, False)
+	
+  return recTree
+
+
+    
 
 
 def treeTreatment(data, dAlnTree, nbSp):
@@ -303,10 +445,10 @@ def treeTreatment(data, dAlnTree, nbSp):
 
 		logger.info("Running Treerecs")
 		recTree = runTreerecs(filtTree, 
-				      data.sptree, 
+				      data.sptree,
+                                      data.cor,
 				      data.o)
 		#setattr(data, "recTree", recTree)
-
 		lFastaFile += treeParsing(data.ORFs, 
 					  recTree, 
 					  nbSp, 
