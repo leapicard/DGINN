@@ -149,6 +149,8 @@ def fastaCreation(data, remote, apiKey, step, treerecs):
 	setattr(data, "seqFile", firstFasta)
 	
 	if treerecs:
+          data.sptree, treerecs=TreeFunc.treeCheck(data.sptree, firstFasta, treerecs)
+	if treerecs:
 		outCat, corSG = LoadFileFunc.filterData(data.sptree, firstFasta, data.o)
 		setattr(data, "seqFile", outCat)
 		setattr(data, "cor", corSG)

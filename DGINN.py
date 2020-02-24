@@ -53,8 +53,6 @@ if __name__ == "__main__":
 			       version)
         
 	funcNeeded = Init.initPipeline(parameters["step"], lSteps)
-	Data.sptree, parameters["duplication"] = TreeFunc.treeCheck(Data.sptree, 
-								    parameters["duplication"])
 	dAlTree = {}
 	Data.setGenAttr(parameters["step"])
 	
@@ -90,7 +88,7 @@ if __name__ == "__main__":
 				
 			elif lSteps[i] == "fasta":
 			  if parameters["step"] == "fasta":
-			    Data = LoadFileFunc.getSeqEntry(Data, parameters["duplication"])
+			    Data = LoadFileFunc.getSeqEntry(Data)
 
 			  FastaResFunc.fastaCreation(Data, 
 						     parameters["remote"], 
@@ -100,7 +98,7 @@ if __name__ == "__main__":
 
 			elif lSteps[i] == "orf":
 			  if parameters["step"] == "orf":
-			    Data = LoadFileFunc.orfEntry(Data, parameters["duplication"])
+			    Data = LoadFileFunc.orfEntry(Data)
 
 			    if lSteps[i] == firstStep:
 			      LoadFileFunc.spTreeCheck(Data, 
@@ -111,7 +109,7 @@ if __name__ == "__main__":
 				
 			elif lSteps[i] == "alignment":
 			  if parameters["step"] == "alignment":
-			    Data = LoadFileFunc.prankEntry(Data, parameters["duplication"])
+			    Data = LoadFileFunc.prankEntry(Data)
 
 			    if lSteps[i] == firstStep:
 			      LoadFileFunc.spTreeCheck(Data, 
