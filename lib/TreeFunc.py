@@ -137,7 +137,7 @@ def filterTree(tree, spTree, cor):
 	lCor = []
 	with open(cor, "r") as lCor:
 		lCor = lCor.readlines()
-		lCor.close()
+		#lCor.close()
 	dCor = {}
 	dCorInv = {}
 	for i in lCor:
@@ -246,25 +246,26 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 			
 			# if duplication groups have been extracted
 			# pool remaining sequences (if span enough different species - per user's specification) into new file
-			if len(lOut) > 0:
-				leftovers = filter(None, testTree.get_leaf_names())
-				dRemain = {left: dID2Seq[left] for left in leftovers}
-				
-				if len(dRemain.keys()) > int(nbSp) - 1:
-					outFile = o+ORF.split("/")[-1].split(".")[0]+"_duplication_remainingsequences.fasta"
-					
-					with open(outFile, "w") as fasta:
-						fasta.write(FastaResFunc.dict2fasta(dRemain))
-						fasta.close()
-					lOut.append(outFile)
-				else:
-					logger.info("Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(list(dRemain.keys())))
+		if len(lOut) > 0:
+			leftovers = filter(None, testTree.get_leaf_names())
+			dRemain = {left: dID2Seq[left] for left in leftovers}
+			
+			if len(dRemain.keys()) > int(nbSp) - 1:
+				outFile = o+ORF.split("/")[-1].split(".")[0]+"_duplication_remainingsequences.fasta"
+				nDuplSign += 1
+
+				with open(outFile, "w") as fasta:
+					fasta.write(FastaResFunc.dict2fasta(dRemain))
+					fasta.close()
+				lOut.append(outFile)
+			else:
+				logger.info("Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(list(dRemain.keys())))
 				
 	logger.info("{:d} duplications detected by Treerecs, extracting {:d} groups of at least {} orthologs.".format(len(dupl), 
-														      nDuplSign,
+														      														  nDuplSign,
                                                                                                                       nbSp))
 
-	return lOut
+	return(lOut)
 	
 	
 def runTreerecs(tree, sptree, o):

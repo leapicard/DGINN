@@ -1,5 +1,5 @@
 # Path or list of paths (absolute or relative) to the files needed to start the pipeline
-infile:ex_aln.fasta
+infile:ex_CCDS.fasta
 
 # NCBI database on which the blast is to be performed (ex: nr)
 # Future implementations will include the possibility to perform the search on local databases
@@ -27,7 +27,7 @@ percID:
 entryQuery:Primates[Organism]
 
 # Step at which to enter the pipeline (default: blast)
-step:tree
+step:
 
 # Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName:
