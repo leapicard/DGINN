@@ -150,8 +150,8 @@ if __name__ == "__main__":
 						       firstStep, 
 						       parameters["duplication"])
 			      dAlTree[Data.aln]=dTree
-			      dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
-			                                            dAlTree)
+			  dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
+			                                        dAlTree)
 
 			  dAlTree = TreeFunc.treeTreatment(Data, 
 							       			   dAlTree, 
