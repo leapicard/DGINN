@@ -143,6 +143,7 @@ if __name__ == "__main__":
 			elif lSteps[i] == "duplication" and parameters["duplication"]:
 			  if parameters["step"] == "duplication":
 			    Data, dAlTree = LoadFileFunc.duplPSEntry(Data)
+
 			    if lSteps[i] == firstStep:
 			      dTree=dAlTree.pop(Data.aln)
 			      LoadFileFunc.spTreeCheck(Data, 
@@ -152,9 +153,9 @@ if __name__ == "__main__":
 			      dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
 			                                            dAlTree)
 
-			      dAlTree = TreeFunc.treeTreatment(Data, 
-							       dAlTree, 
-							       parameters["nbspecies"])
+			  dAlTree = TreeFunc.treeTreatment(Data, 
+							       			   dAlTree, 
+							       			   parameters["nbspecies"])
 
 			elif lSteps[i] == "recombination" and parameters["recombination"]:
 			  if parameters["step"] == "recombination":
