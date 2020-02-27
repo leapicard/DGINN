@@ -2,11 +2,9 @@
 
 DGINN is a pipeline dedicated to the detection of genetic innovations, starting from a nucleotidic sequence. 
 
-It automatizes all the necessary preliminary steps for evolutionary analyses, including retrieval of homologs, assignment to orthology groups, codon alignment and reconstruction of gene phylogeny.
+It automatizes all the necessary preliminary steps for evolutionary analyses, including retrieval of homologs, assignment to orthology groups, codon alignment and reconstruction of gene phylogeny. Following the obtention of the alignements and corresponding phylogenies, three major genetic innovations are detected: duplication events, recombination events, and signatures of positive selection. DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted on BioRxiv (doi: https://doi.org/10.1101/2020.02.25.964155)
 
-Following the obtention of the alignements and corresponding phylogenies, three major genetic innovations: duplication events, recombination events, and signatures of positive selection.
-
-Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.fr
+Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.fr, laurent.gueguen [at] univ-lyon1.fr or lucie.etienne [at] ens-lyon.fr.
 
 # Overview
 
