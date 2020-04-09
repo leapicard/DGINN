@@ -2,15 +2,23 @@
 
 DGINN is a pipeline dedicated to the detection of genetic innovations, starting from a nucleotidic sequence. 
 
-It automatizes all the necessary preliminary steps for evolutionary analyses, including retrieval of homologs, assignment to orthology groups, codon alignment and reconstruction of gene phylogeny. Following the obtention of the alignements and corresponding phylogenies, three major genetic innovations are detected: duplication events, recombination events, and signatures of positive selection. DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted on BioRxiv (doi: https://doi.org/10.1101/2020.02.25.964155).
+It automatizes all the necessary preliminary steps for evolutionary analyses, including retrieval of homologs, 
+assignment to orthology groups, codon alignment and reconstruction of gene phylogeny. 
+Following the obtention of the alignements and corresponding phylogenies, three major genetic innovations are detected: 
+duplication events, recombination events, and signatures of positive selection. 
+
+DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted on BioRxiv 
+(doi: https://doi.org/10.1101/2020.02.25.964155).
 Results from the validation are available in the [corresponding repository](https://github.com/leapicard/DGINN_validation).
-The version of DGINN used in the paper refers to [commit 5db0253](https://github.com/leapicard/DGINN/commit/5db02532408afcafad50a0b70dcf247ab4800492) and can be fetched through:
+The version of DGINN used in the paper refers to [commit 5db0253](https://github.com/leapicard/DGINN/commit/5db02532408afcafad50a0b70dcf247ab4800492) 
+and can be fetched through:
 ```{sh}
 git init && git remote add origin https://github.com/leapicard/DGINN && git fetch --depth 1 origin 5db02532408afcafad50a0b70dcf247ab4800492 && git checkout FETCH_HEAD
 ```
 Current version of the docker also corresponds to that commit.
 
-Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.fr, laurent.gueguen [at] univ-lyon1.fr or lucie.etienne [at] ens-lyon.fr.
+Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.fr, 
+laurent.gueguen [at] univ-lyon1.fr or lucie.etienne [at] ens-lyon.fr.
 
 # Overview
 
