@@ -218,7 +218,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 					if len(spGp) > int(nbSp) - 1:
 						
 						orthos = gp.get_leaf_names()
-						dOrtho2Seq = {ortho: dID2Seq[ortho] for ortho in orthos if not ortho == ""}
+						dOrtho2Seq = {ortho: dID2Seq[ortho] for ortho in orthos if not ortho == "" and ortho in dID2Seq}
 						
 						#check if orthologues have already been included in another, more recent, duplication event
 						already = False
@@ -248,7 +248,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 			# pool remaining sequences (if span enough different species - per user's specification) into new file
 		if len(lOut) > 0:
 			leftovers = filter(None, testTree.get_leaf_names())
-			dRemain = {left: dID2Seq[left] for left in leftovers}
+			dRemain = {left: dID2Seq[left] for left in leftovers if left in dID2Seq}
 			
 			if len(dRemain.keys()) > int(nbSp) - 1:
 				outFile = o+ORF.split("/")[-1].split(".")[0]+"_duplication_remainingsequences.fasta"

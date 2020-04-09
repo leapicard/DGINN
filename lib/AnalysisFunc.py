@@ -71,7 +71,13 @@ def getORFs(catFile, queryName, geneDir):
 			if queryName in dupl:
 				firstOcc = queryName
 			else:
-				firstOcc = [x for x in dupl if sp in x][0]
+				lOcc = [x for x in dupl if sp in x]
+				
+				if len(lOcc) > 0:
+					firstOcc = lOcc[0]
+				else:
+					firstOcc = str(lOcc)
+					
 			dupl.remove(firstOcc)
 		
 		for i in dupl:
@@ -130,6 +136,25 @@ def runPrank(ORFs, geneName, o):
 	
 	return(outPrank+".best.fas")
 
+def runMafft(ORFs, geneName, o):
+	logger = logging.getLogger("main.alignment")
+	logger.info("Started Mafft nucleotide alignment")
+
+	cmd = "mafft --auto --quiet {}".format(ORFs)
+	
+	lCmd = shlex.split(cmd)
+	outMafft = o+ORFs.split("/")[-1].split(".")[0]+"_mafft.fasta"
+	with open (outMafft, "w") as outM:
+		run = subprocess.run(lCmd, 
+							 shell=False, 
+							 check=True,
+							 stdout=outM, 
+							 stderr=subprocess.PIPE)
+
+	logger.info("Finished Mafft nucleotide alignment: {:s}".format(outMafft))
+
+	return(outMafft)
+
 def covAln(aln, cov, queryName, o):
 	"""
 	Function to discard sequences from alignment according to coverage to query.
@@ -179,6 +204,12 @@ def alnPrank(data):
 	@param1 data: basicdata object
 	"""
 	aln = runPrank(data.ORFs, 
+				   data.geneName, 
+				   data.o)
+	data.aln = aln
+
+def alnMafft(data):
+	aln = runMafft(data.ORFs, 
 				   data.geneName, 
 				   data.o)
 	data.aln = aln
@@ -245,7 +276,7 @@ def phyMLTree(data):
 	dAlnTree[data.aln] = data.tree
 	return(dAlnTree)
 
-def cutLongBranches(aln, dAlnTree, logger):
+def cutLongBranches(aln, dAlnTree, nbSp, logger):
 	"""
 	Check for overly long branches in a tree and separate both tree and corresponding alignment if found.
 	
@@ -261,36 +292,45 @@ def cutLongBranches(aln, dAlnTree, logger):
 	meanDist = mean(dist)
 	longDist = meanDist * 50
 	matches = [leaf for leaf in loadTree.traverse() if leaf.dist>longDist]
+	nbSp = int(nbSp)
 	
 	if len(matches) > 0:
 		logger.info("{} long branches found, separating alignments.".format(len(matches)))
 		
 		seqs = SeqIO.parse(open(aln),'fasta')
 		dID2Seq = {gene.id: gene.seq for gene in seqs}
-		
+				
 		for node in matches:
 			gp = node.get_children()
 			lNewGp = list(chain.from_iterable([x.get_leaf_names() for x in gp]))
 		
 			newAln = aln.split(".")[0]+"_part"+str(matches.index(node)+1)+".fasta"
 			
-			dNewAln = {gene:dID2Seq[gene] for gene in lNewGp}
+			dNewAln = {gene:dID2Seq[gene] for gene in lNewGp if gene in dID2Seq}
 			for k in lNewGp:
 				dID2Seq.pop(k, None)
 			
 			# create new file of sequences
-			with open(newAln, "w") as fasta:
-			  fasta.write(FastaResFunc.dict2fasta(dNewAln))
-			  faste.close()
-                          
-			dAlnTree[newAln] = ""
-		
+			
+			if len(dNewAln) > nbSp - 1:
+				with open(newAln, "w") as fasta:
+					fasta.write(FastaResFunc.dict2fasta(dNewAln))
+					fasta.close()		  
+				dAlnTree[newAln] = ""
+			else:
+				logger.info("Sequences {} will not be considered for downstream analyses as they do not compose a large enough group.".format(dNewAln.keys()))
+			
 		alnLeft = aln.split(".")[0]+"_part"+str(len(matches)+1)+".fasta"
-		with open(alnLeft, "w") as fasta:
-		  fasta.write(FastaResFunc.dict2fasta(dID2Seq))
-		  logger.info("\tNew alignment:%s"%{alnLeft})
-		  fasta.close()
-		dAlnTree[alnLeft] = ""
+
+		if len(dID2Seq) > nbSp - 1:
+			with open(alnLeft, "w") as fasta:
+				fasta.write(FastaResFunc.dict2fasta(dID2Seq))
+				logger.info("\tNew alignment:%s"%{alnLeft})
+				fasta.close()	  
+			dAlnTree[alnLeft] = ""
+		else:
+			logger.info("Sequences in {} will not be considered for downstream analyses as they do not compose a large enough group.".format(dID2Seq.keys()))
+			
 		dAlnTree.pop(aln, None)
 		
 	else:
@@ -298,9 +338,9 @@ def cutLongBranches(aln, dAlnTree, logger):
 	
 	return(dAlnTree)
 
-def checkPhyMLTree(data, dAlnTree, step="duplication"):
+def checkPhyMLTree(data, dAlnTree, nbSp, step="duplication"):
 	logger=logging.getLogger(".".join(["main",step]))
-	dAlnTree = cutLongBranches(data.aln, dAlnTree, logger)
+	dAlnTree = cutLongBranches(data.aln, dAlnTree, nbSp, logger)
 	dAlnTree2 = {}
 	
 	for aln in dAlnTree:

@@ -118,16 +118,14 @@ if __name__ == "__main__":
 						       firstStep, 
 						       parameters["duplication"])	
 
-			  AnalysisFunc.alnPrank(Data)
+			  AnalysisFunc.alnMafft(Data)
 			  fasCov, nbOut = AnalysisFunc.covAln(Data.aln, 
 							      parameters["mincov"], 
 							      Data.queryName, 
 							      Data.o)
-			  if nbOut > 0:
-			    newAln = AnalysisFunc.runPrank(fasCov, 
+			  Data.aln = AnalysisFunc.runPrank(fasCov, 
 							   Data.geneName, 
 							   Data.o)
-			    Data.aln = newAln
 
 			elif lSteps[i] == "tree":
 			  if parameters["step"] == "tree":
@@ -151,7 +149,8 @@ if __name__ == "__main__":
 						       parameters["duplication"])
 			      dAlTree[Data.aln]=dTree
 			  dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
-			                                        dAlTree)
+			                                        dAlTree, 
+			                                        parameters["nbspecies"])
 
 			  dAlTree = TreeFunc.treeTreatment(Data, 
 							       			   dAlTree, 
@@ -193,4 +192,6 @@ if __name__ == "__main__":
 				
 		                logger.info(" Ouput in file %s"%(Data.o+"files_list.txt"))
 			    logger.info("Finished positive selection analyses.")
-			    
+	
+	logger = logging.getLogger("main")	    
+	logger.info("Finished DGINN analyses, exiting.")
