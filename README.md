@@ -13,7 +13,10 @@ Results from the validation are available in the [corresponding repository](http
 The version of DGINN used in the paper refers to [commit 5db0253](https://github.com/leapicard/DGINN/commit/5db02532408afcafad50a0b70dcf247ab4800492) 
 and can be fetched through:
 ```{sh}
-git init && git remote add origin https://github.com/leapicard/DGINN && git fetch --depth 1 origin 5db02532408afcafad50a0b70dcf247ab4800492 && git checkout FETCH_HEAD
+git init
+git remote add origin https://github.com/leapicard/DGINN
+git fetch --depth 1 origin 5db02532408afcafad50a0b70dcf247ab4800492
+git checkout FETCH_HEAD
 ```
 Current version of the docker also corresponds to that commit.
 
