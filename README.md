@@ -55,6 +55,8 @@ All other arguments are passed exactly as if DGINN were run through the command 
 ## 1/ Command line
 
 ```
+DGINN, a pipeline for the Detection of Genetic Innovations.
+
 optional arguments:
   -h, --help            show this help message and exit
   -dd, --debug          Enter verbose/debug mode
@@ -66,12 +68,15 @@ Mandatory parameters:
 
 Optional parameters:
   -i <filename>, --infile <filename>
-                        Path or list of paths (absolute or relative) to the file(s) needed to start
-                        the pipeline (if indicated, will take priority over
-                        the parameters file)
+                        Path or list of paths (absolute or relative) to the
+                        file(s) needed to start the pipeline (if indicated,
+                        will take priority over the parameters file)
   -q <string>, --query <string>
                         Full identifier of the query in the format
                         SpeciesName_GeneName_GeneID (if indicated, will take
+                        priority over the parameters file)
+  -o <path>, --outdir <path>
+                        Path to the output directory (if indicated, will take
                         priority over the parameters file)
   -host <filename>, --hostfile <filename>
                         Path to cluster hostfile if needed for mpi process

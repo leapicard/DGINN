@@ -42,6 +42,8 @@ def parameterCommandLine(version, __file__):
 					  help = 'Path or list of paths (absolute or relative) to the file(s) needed to start the pipeline (if indicated, will take priority over the parameters file)')
 	xargs.add_argument('-q', '--query', metavar="<string>", required=False, dest = 'queryName', default="", 
 					  help = 'Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)')
+	xargs.add_argument('-o', '--outdir', metavar="<path>", required=False, dest = 'outdir', default="", 
+					  help = 'Path to the output directory (if indicated, will take priority over the parameters file)')
 	xargs.add_argument('-host', '--hostfile', metavar="<filename>", required=False, dest = 'hostfile', default="", 
 					  help = 'Path to cluster hostfile if needed for mpi process')
 	#xargs.add_argument('-th', '--threads', metavar="<integer>", required=False, dest = 'threads', default=2, 
@@ -119,6 +121,12 @@ def paramDef(params, inf, queryName):
 		dParams["queryName"] = queryName
 	else:
 		dParams["queryName"] = dParams["queryName"]
+		
+	#Idem outdir
+	if queryName != "":
+		dParams["outdir"] = queryName
+	else:
+		dParams["outdir"] = dParams["outdir"]
 	
 	#If list of file given, split and check what each file is
 	if len(dParams["infile"]) > 1:
