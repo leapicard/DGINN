@@ -18,7 +18,7 @@ git remote add origin https://github.com/leapicard/DGINN
 git fetch --depth 1 origin 5db02532408afcafad50a0b70dcf247ab4800492
 git checkout FETCH_HEAD
 ```
-Current version of the docker also corresponds to that commit.
+The docker is available for both the paper version and the current version of DGINN.
 
 Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.fr, 
 laurent.gueguen [at] univ-lyon1.fr or lucie.etienne [at] ens-lyon.fr.
@@ -36,12 +36,18 @@ laurent.gueguen [at] univ-lyon1.fr or lucie.etienne [at] ens-lyon.fr.
 
 ## 2/ Docker
 
-A docker image is available to provide a way to use DGINN without requiring installation of any software except for [Docker](https://docs.docker.com/install/).
+A [docker image](https://hub.docker.com/repository/docker/leapicard/dginn) is available to provide a way to use DGINN without requiring installation of any software except for [Docker](https://docs.docker.com/install/).
 
 Get the docker:
 ```{sh}
 docker pull leapicard/dginn
 ```
+
+To download a specific version of the docker:
+```{sh}
+docker pull leapicard/dginn:paper
+```
+
 Use the docker:
 ```{sh}
 docker run --rm -u $(id -u $USER):$(id -u $USER) -e HOME=. -v $PWD:$PWD -w $PWD leapicard/dginn -p <filename>
