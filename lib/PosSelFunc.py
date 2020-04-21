@@ -18,6 +18,7 @@ def pspAnalysis(data, parms, aln, tree):
 										parms["opb"], 
 										parms["gnh"])
 	timeStamp = strftime("%Y%m%d%H%M", localtime())
+	
 	outDir = data.o+"positive_selection_results_"+timeStamp+"/"
 	if not os.path.exists(outDir):
 		os.makedirs(outDir)

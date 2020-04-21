@@ -47,7 +47,8 @@ if __name__ == "__main__":
 	
 	parameters = Init.paramDef(parameters.params, 
 				   parameters.infile, 
-				   parameters.queryName)
+				   parameters.queryName,
+				   parameters.outdir)
 	Data = Init.initLogger(parameters, 
 			       debug, 
 			       version)
@@ -175,23 +176,22 @@ if __name__ == "__main__":
 			    Data, dAlTree = LoadFileFunc.pspEntry(Data, 
 								  parameters)
 			
-			    listArgsPosSel =  []
-			    for aln in dAlTree:
-			      listArgs = [Data, 
+			  listArgsPosSel =  []
+			  for aln in dAlTree:
+			    listArgs = [Data, 
 					  parameters, 
 					  aln, 
 					  dAlTree[aln]]
-			      listArgsPosSel.append(listArgs)
+			    listArgsPosSel.append(listArgs)
 					
-			      with open(Data.o+"files_list.txt", "w") as fAT:
-		                fAT.write(aln+"\t"+dAlTree[aln])
-		                PosSelFunc.pspAnalysis(Data, 
-						       parameters, 
-						       aln, 
-						       dAlTree[aln])
-				
-		                logger.info(" Ouput in file %s"%(Data.o+"files_list.txt"))
-			    logger.info("Finished positive selection analyses.")
+			    with open(Data.o+"files_list.txt", "w") as fAT:
+			      fAT.write(aln+"\t"+dAlTree[aln])
+			      PosSelFunc.pspAnalysis(Data, 
+							   parameters, 
+							   aln, 
+							   dAlTree[aln])
+			      logger.info(" Ouput in file %s"%(Data.o+"files_list.txt"))
+			  logger.info("Finished positive selection analyses.")
 	
 	logger = logging.getLogger("main")	    
 	logger.info("Finished DGINN analyses, exiting.")

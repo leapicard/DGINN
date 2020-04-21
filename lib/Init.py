@@ -52,7 +52,7 @@ def parameterCommandLine(version, __file__):
 	return parser
 
 
-def paramDef(params, inf, queryName):
+def paramDef(params, inf, queryName, outdir):
 	"""
 	Check the parameters in the file.
 
@@ -103,7 +103,7 @@ def paramDef(params, inf, queryName):
 			else:
 				temp = list(map(str.strip,line.split(":")))
 				if temp[0]=="":
-                                  continue
+					continue
 				if temp[0] not in lParams:
 					print(temp[0]+" is not a valid parameter.\n")
 				else:
@@ -123,8 +123,8 @@ def paramDef(params, inf, queryName):
 		dParams["queryName"] = dParams["queryName"]
 		
 	#Idem outdir
-	if queryName != "":
-		dParams["outdir"] = queryName
+	if outdir != "":
+		dParams["outdir"] = outdir
 	else:
 		dParams["outdir"] = dParams["outdir"]
 	
@@ -353,10 +353,10 @@ def initPipeline(step, lStep):
 
 	else:
 		while step.lower() != lStep[i].lower():
-				toDo.append(False)
-				i+=1
+			toDo.append(False)
+			i+=1
 
 		while len(toDo) != len(lStep):
-				toDo.append(True)
+			toDo.append(True)
 
 		return toDo

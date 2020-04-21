@@ -229,7 +229,7 @@ def runPhyML(aln, geneDir):
 	origin = os.getcwd()
 	os.chdir(geneDir)
 	outPhy = aln.split("/")[-1].split(".")[0]+".phylip"
-	aln = aln.split("/")[-1]
+	#aln = aln.split("/")[-1]
 	tmp = aln.split("/")[-1].split(".")[0]+".tmp"
 	
 	logger = logging.getLogger("main.tree")
