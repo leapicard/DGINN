@@ -1,6 +1,6 @@
 from scipy import stats
 from collections import OrderedDict
-import sys, re, os, logging
+import sys, re, os, logging, ete3
 
 def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 	# Check analyses to be run and where the parameters file are
@@ -28,10 +28,14 @@ def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 def supBoot(outDir, baseName, treeFile, logger):
 	# Suppress bootstrap numbers from treeFile (necessary for HYPHY)
 	cladoFile = outDir+baseName+"_clado.tree"
+	t = ete3.Tree(treeFile)
+	t.write(format=9, outfile=cladoFile)
+	"""
 	with open(cladoFile, "w") as clado:
 		clado.write(leanTree(treeFile))
 		clado.close()	
 	logger.debug(leanTree(treeFile))
+	"""
 	return cladoFile
 
 def nbNode(treeFile, logger):
