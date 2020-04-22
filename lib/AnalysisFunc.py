@@ -15,14 +15,19 @@ def cmd(commandLine, choice):
 	@param1 commandLine: String corresponding to a bash command line
 	@param2 choice: Boolean determining whether the command is executed within the shell 
 	"""
-	
+
 	lCmd = shlex.split(commandLine)
-	run = subprocess.run(lCmd, 
-						 shell=choice, 
-						 check=True,
-						 stdout=subprocess.PIPE, 
-						 stderr=subprocess.PIPE)
-	#print(subprocess.PIPE)
+
+	try:
+			run = subprocess.run(lCmd, 
+					shell=choice, 
+					check=True,
+					stdout=subprocess.PIPE, 
+					stderr=subprocess.PIPE)
+	except subprocess.CalledProcessError as exc:
+			print(lCmd[0], " failed", exc.returncode, "\n")
+			print(exc.stdout.decode().strip())
+			print(exc.stderr.decode().strip())
 
 ######ORF===================================================================================================================
 
