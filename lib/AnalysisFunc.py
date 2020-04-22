@@ -239,9 +239,9 @@ def runPhyML(aln, geneDir):
 	
 	logger = logging.getLogger("main.tree")
 	
-	with open(aln, "rU") as aln:
-          laln = aln.read().replace("!", "N")
-          aln.close()
+	with open(aln, "rU") as aln2:
+          laln = aln2.read().replace("!", "N")
+          aln2.close()
           with open(tmp, "w") as temp:
             temp.write(laln)
             temp.close()

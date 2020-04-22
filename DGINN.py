@@ -190,7 +190,7 @@ if __name__ == "__main__":
 							   parameters, 
 							   aln, 
 							   dAlTree[aln])
-			      logger.info(" Ouput in file %s"%(Data.o+"files_list.txt"))
+			      logger.info("Ouput in file %s"%(Data.o+"files_list.txt"))
 			  logger.info("Finished positive selection analyses.")
 	
 	logger = logging.getLogger("main")	    
