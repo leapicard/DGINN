@@ -30,12 +30,6 @@ def supBoot(outDir, baseName, treeFile, logger):
 	cladoFile = outDir+baseName+"_clado.tree"
 	t = ete3.Tree(treeFile)
 	t.write(format=9, outfile=cladoFile)
-	"""
-	with open(cladoFile, "w") as clado:
-		clado.write(leanTree(treeFile))
-		clado.close()	
-	logger.debug(leanTree(treeFile))
-	"""
 	return cladoFile
 
 def nbNode(treeFile, logger):
@@ -72,21 +66,6 @@ def NHXTree(tree):
 	sout="".join(lc)+";"
 	
 	return sout
-	
-def leanTree(tree):
-	"""
-	Take a newick tree and returns the cladogram
-	"""
-	
-	pattern = re.compile(r":\d+\.\d+|\n")
-	pattern2 = re.compile(r"\)\d+\.\d+")
-	#pattern3 = re.compile("\|.+\.\d")
-	with open(tree, "r") as tf:
-		tfs = re.sub(pattern, "", tf.read())
-		tfs = re.sub(pattern2, ")", tfs)
-		tfs = re.sub("\||\.", "", tfs)
-		tf.close()
-		return(tfs)
 	
 def pspFileCreation(path, option):
   if not os.path.exists(path):

@@ -168,10 +168,6 @@ if __name__ == "__main__":
 							    hostfile)
 
 			elif lSteps[i] == "positiveSelection" and parameters["positiveSelection"]:
-
-			  logger = logging.getLogger("main.positiveSelection")
-			  logger.info("Starting positive selection analyses.")
-				
 			  if parameters["step"] == "positiveSelection":
 			    Data, dAlTree = LoadFileFunc.pspEntry(Data, 
 								  parameters)
@@ -190,8 +186,6 @@ if __name__ == "__main__":
 							   parameters, 
 							   aln, 
 							   dAlTree[aln])
-			      logger.info("Ouput in file %s"%(Data.o+"files_list.txt"))
-			  logger.info("Finished positive selection analyses.")
 	
 	logger = logging.getLogger("main")	    
 	logger.info("Finished DGINN analyses, exiting.")

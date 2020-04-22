@@ -199,7 +199,6 @@ def paramDef(params, inf, queryName, outdir):
 					dParams[opt] = dParams[opt].strip("\n")
 				elif dParams[opt]:
 					path = "/".join(dParams["infile"].split("/")[:-1])+"/"+opt+"_params.bpp"
-					print("{:s} parameter file: {:s}".format(opt, path))
 					PSPFunc.pspFileCreation(path, opt)
 					dParams[opt] = path
 					

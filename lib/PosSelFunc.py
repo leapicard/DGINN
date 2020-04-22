@@ -26,7 +26,7 @@ def pspAnalysis(data, parms, aln, tree):
 	cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
 					
 	### Terminal output for user
-	logger.info("Location of entry files: {:s}".format(outDir))
+	logger.info("Output directory: {:s}".format(outDir))
 	logger.info("Alignement: {:s}".format(aln))
 	logger.info("Alignement is in {:s} format.".format(data.alnFormat))
 	logger.info("Tree: {:s}".format(tree))
@@ -34,6 +34,7 @@ def pspAnalysis(data, parms, aln, tree):
 	nodes = PSPFunc.nbNode(tree, logger)
 					
 	### Run the different analysis as determined by control file
+	logger.info("Starting positive selection analyses.")
 	logger.info("POSITIVE SELECTION ANALYSIS: ")
 	logger.info("Analysis to be run:")
 
@@ -119,5 +120,5 @@ def pspAnalysis(data, parms, aln, tree):
 		except Exception:
 			logger.info("PAML (codeml) Site encountered an unexpected error, skipping.")"""
 
-	logger.info("End analysis")
+	logger.info("Finished positive selection analyses.")
 	return(outDir)
