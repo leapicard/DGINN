@@ -46,7 +46,7 @@ def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, 
 											  sequence, 
 											  entrez_query = query, 
 											  url_base = url, 
-											  hitlist_size=100000, 
+											  hitlist_size=1000, 
 											  perc_ident = percId, 
 											  threshold = evalue)
 				blasted = True

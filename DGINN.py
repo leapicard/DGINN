@@ -137,7 +137,8 @@ if __name__ == "__main__":
 						       firstStep, 
 						       parameters["duplication"])	
 
-			  dAlTree = AnalysisFunc.phyMLTree(Data)
+			  dAlTree = AnalysisFunc.phyMLTree(Data, 
+											   parameters["phymlOpt"])
 
 			elif lSteps[i] == "duplication" and parameters["duplication"]:
 			  if parameters["step"] == "duplication":
@@ -151,7 +152,8 @@ if __name__ == "__main__":
 			      dAlTree[Data.aln]=dTree
 			  dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
 			                                        dAlTree, 
-			                                        parameters["nbspecies"])
+			                                        parameters["nbspecies"],
+			                                        parameters["LBopt"])
 
 			  dAlTree = TreeFunc.treeTreatment(Data, 
 							       			   dAlTree, 

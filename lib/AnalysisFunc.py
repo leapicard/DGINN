@@ -5,6 +5,7 @@ from Bio import SeqIO, AlignIO
 from collections import defaultdict, OrderedDict
 from itertools import chain
 from statistics import median, mean
+import pandas as pd
 
 ######Functions=============================================================================================================
 
@@ -222,7 +223,7 @@ def alnMafft(data):
 #######=================================================================================================================
 ######PhyML=============================================================================================================
 
-def runPhyML(aln, geneDir):
+def runPhyML(aln, phymlOpt, geneDir):
 	"""
 	Function converting fasta file to phylip and running PhyML.
 
@@ -255,16 +256,26 @@ def runPhyML(aln, geneDir):
 	output_handle.close()
 	input_handle.close()
 	os.remove(tmp)
-
+	print("phylip ok")
 	# PhyML
-	cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
-	logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
+	if phymlOpt != "":
+		try:
+			opt=phymlOpt.split("ALN ")[1]
+			logger.debug("phyml -i {:s} {}".format(outPhy, opt))
+			cmd("phyml -i {:s} {}".format(outPhy, opt), False)
+		except:
+			logger.info("PhyML couldn't run with the provided info {}, running with default options.".format(phymlOpt))
+			cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
+	else:
+		logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
+		cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
+		
 	os.chdir(origin)
 	
 	return(geneDir+outPhy)
 
 
-def phyMLTree(data):
+def phyMLTree(data, phymlOpt):
 	"""
 	Function creating tree attribute in each gene object of the list.
 
@@ -274,14 +285,14 @@ def phyMLTree(data):
 	logger=logging.getLogger("main.tree")
 	dAlnTree = {}
 	logger.info("Running PhyML to produce gene phylogenetic tree")
-	TreesFile = runPhyML(data.aln, data.o)
+	TreesFile = runPhyML(data.aln, phymlOpt, data.o)
 	data.tree = TreesFile+"_phyml_tree.txt"
 	logger.info("Reconstructed tree using PhyML: {:s}".format(data.tree))
 
 	dAlnTree[data.aln] = data.tree
 	return(dAlnTree)
 
-def cutLongBranches(aln, dAlnTree, nbSp, logger):
+def cutLongBranches(aln, dAlnTree, nbSp, LBOpt, logger):
 	"""
 	Check for overly long branches in a tree and separate both tree and corresponding alignment if found.
 	
@@ -293,12 +304,32 @@ def cutLongBranches(aln, dAlnTree, nbSp, logger):
 	logger.info("Looking for long branches.")
 	loadTree = ete3.Tree(dAlnTree[aln])
 	dist = [leaf.dist for leaf in loadTree.traverse()]
-	medianDist = median(dist)
-	meanDist = mean(dist)
-	longDist = meanDist * 50
-	matches = [leaf for leaf in loadTree.traverse() if leaf.dist>longDist]
-	nbSp = int(nbSp)
+	#longDist = 500
 	
+	if "cutoff" in LBOpt:
+		if "(" in LBOpt:
+			factor = float(LBOpt.split("(")[1].replace(")", ""))
+		else:
+			factor = 50
+		medianDist = median(dist)
+		meanDist = mean(dist)
+		longDist = meanDist * factor
+	elif "IQR" in LBOpt:
+		if "(" in LBOpt:
+			factor = float(LBOpt.split("(")[1].replace(")", ""))
+		else:
+			factor = 50
+		df = pd.DataFrame(dist)
+		Q1 = df.quantile(0.25)
+		Q3 = df.quantile(0.75)
+		IQR = Q3 - Q1
+		lDist = Q3 + (factor * IQR)
+		longDist = lDist[0]
+	
+	logger.info("Long branches will be evaluated through the {} method (factor {})".format(LBOpt, factor))
+	nbSp = int(nbSp)	
+	matches = [leaf for leaf in loadTree.traverse() if leaf.dist>longDist]
+
 	if len(matches) > 0:
 		logger.info("{} long branches found, separating alignments.".format(len(matches)))
 		
@@ -340,12 +371,12 @@ def cutLongBranches(aln, dAlnTree, nbSp, logger):
 		
 	else:
 		logger.info("No long branches found.")
-	
+	exit()
 	return(dAlnTree)
 
-def checkPhyMLTree(data, dAlnTree, nbSp, step="duplication"):
+def checkPhyMLTree(data, dAlnTree, nbSp, LBopt, step="duplication"):
 	logger=logging.getLogger(".".join(["main",step]))
-	dAlnTree = cutLongBranches(data.aln, dAlnTree, nbSp, logger)
+	dAlnTree = cutLongBranches(data.aln, dAlnTree, nbSp, LBopt, logger)
 	dAlnTree2 = {}
 	
 	for aln in dAlnTree:

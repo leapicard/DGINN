@@ -75,13 +75,16 @@ def paramDef(params, inf, queryName, outdir):
 			   "evalue", 
 			   "mincov", 
 			   "percID", 
+			   "maxLen",
 			   "step", 
 			   "remote", 
 			   "entryQuery", 
 			   "sptree", 
-			   "APIKey", 
+			   "APIKey",
+			   "phymlOpt",
 			   "recombination", 
 			   "duplication", 
+			   "LBopt",
 			   "nbspecies", 
 			   "positiveSelection", 
 			   "basename", 
@@ -187,7 +190,7 @@ def paramDef(params, inf, queryName, outdir):
 				print("The pipeline requires a phylogenetic tree. Please provide one.")
 				sys.exit()
 			elif "alnfile" not in dParams or dParams["alnfile"] == "":
-				print("The pipeline requires a nucleotide or, preferably, codon alignment. Please provide one.")
+				print("The pipeline requires a codon alignment. Please provide one.")
 				sys.exit()
 				
 		for opt in ["meme", "busted", "models", "paml", "bppml", "mixedlikelihood", "opb", "gnh"]:
@@ -231,11 +234,14 @@ def paramDef(params, inf, queryName, outdir):
 					"logfile":"", 
 					"evalue":1e-3, 
 					"mincov":50, 
-					"percID":70, 
+					"percID":70,
+					"maxLen":"cutoff",
 					"entryQuery":"", 
-					"APIKey":"", 
+					"APIKey":"",
+					"phymlOpt":"",
 					"sptree":"", 
-					"duplication":False, 
+					"duplication":False,
+					"LBopt":"cutoff",
 					"nbspecies":8, 
 					"recombination":False, 
 					"remote":False, 

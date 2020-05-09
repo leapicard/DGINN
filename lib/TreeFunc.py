@@ -17,7 +17,7 @@ def getLeaves(path):
 	@param path: path of a tree file
 	@return lTreeData: list of species
 	"""
-	treprinte = ete3.Tree(path)
+	tree = ete3.Tree(path)
 	lGene = tree.get_leaf_names()
 
 	return lGene
@@ -303,7 +303,7 @@ def treeTreatment(data, dAlnTree, nbSp):
 				      data.o)
 		#setattr(data, "recTree", recTree)
 
-		lFastaFile += treeParsing(data.ORFs, 
+		lFastaFile += treeParsing(aln, 
 					  recTree, 
 					  nbSp, 
 					  data.o, 
