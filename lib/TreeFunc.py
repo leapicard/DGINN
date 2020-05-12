@@ -271,7 +271,7 @@ def runTreerecs(tree, sptree, o):
 	@param2 sptree: Path to the species tree
 	@param3 o: Output directory
 	"""
-	recTree = o+tree.split("/")[-1].replace(".txt","_recs.nhx")
+	recTree = o+tree.split("/")[-1]+"_recs.nhx"
 	val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX:svg".format(tree, 
 									     sptree, 
 									     o)
