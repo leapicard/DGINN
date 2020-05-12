@@ -232,7 +232,7 @@ def ResPamlExtract(models, dModelLlh, dModelFile):
 	
 	if model1 and model2 in dModelLlh and all(isinstance(value, float) for value in dModelLlh.values()):
 		LR, p = LRT(dModelLlh[model1], dModelLlh[model2], 2)
-		
+
 		if p < 0.05:
 			with open(dModelFile[model2], "r") as modFile:
 				content = modFile.read()
@@ -265,28 +265,30 @@ def ResPaml(posDir):
 				if model in pDir:
 					dModelFile[model] = pDir+"/out"
 					
-					with open(pDir+"/out", "r") as modelFile:
-						for line in modelFile.readlines():
-							if "lnL" in line:
-								dModelLlh[model] = float(line.split(":")[3].split("+")[0])
+					with open(pDir+"/rst1", "r") as modelFile:
+						line = modelFile.read().strip()
+						try:
+							dModelLlh[model] = float(line.split("\t")[-1])
+						except ValueError:
+							dModelLlh[model] = "na"
 								
 		for model in lModels:
 			if model not in dModelLlh.keys():
 				dModelLlh[model] = "na"
-	
+
 		try:
 			m1m2 = ResPamlExtract("M1 M2", dModelLlh, dModelFile)
 		except:
-			m1m2 = "na"
+			m1m2 = "PamlM1M2\tna\n"
 		try:
 			m7m8 = ResPamlExtract("M7 M8", dModelLlh, dModelFile)
 		except:
-			m7m8 = "na"
+			m7m8 = "PamlM7M8\tna\n"
 			
 		return(m1m2, m7m8, dModelLlh)
 	
 	else:
-		return("PAML\tna\n")
+		return("PamlM1M2\tna\n", "PamlM7M8\tna\n", "na")
 
 ################### MAIN CODE ###################
 if __name__ == "__main__":
@@ -374,11 +376,17 @@ if __name__ == "__main__":
 		for x in [bust, bpp1v2, bpp7v8, paml1v2, paml7v8, meme]:
 			res.write(base+x)
 		
-		bppLlhRes = [str(value) for value in bppLlh.values()]
-		pamlLlhRes = [str(value) for value in pamlLlh.values()]
-		llh.write(baseName+"\tBPP\t"+"\t".join(bppLlhRes)+"\n")
-		llh.write(baseName+"\tPAML\t"+"\t".join(pamlLlhRes)+"\n")
-	
+		if type(bppLlh) is dict:
+			bppLlhRes = [str(value) for value in bppLlh.values()]
+			llh.write(baseName+"\tBPP\t"+"\t".join(bppLlhRes)+"\n")
+		else:
+			llh.write(baseName+"\tBPP\tna\n")
+		if type(bppLlh) is dict:
+			pamlLlhRes = [str(value) for value in pamlLlh.values()]
+			llh.write(baseName+"\tPAML\t"+"\t".join(pamlLlhRes)+"\n")
+		else:
+			llh.write(baseName+"\tPAML\tna\n")
+		
 	
 	res.close()
 	llh.close()	
