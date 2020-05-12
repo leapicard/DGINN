@@ -86,7 +86,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	return(dId2Seq)
 
 
-def sizeCheck(dId2Seq):
+def sizeCheck(dId2Seq, maxLen):
 	logger = logging.getLogger("main.accessions")
 	
 	dId2Len = {Id:len(seq) for Id, seq in dId2Seq.items()}
@@ -129,7 +129,7 @@ def catFile(queryFile, dId2Seq, firstFasta):
 	return(firstFasta)
 	
 
-def fastaCreation(data, remote, apiKey, step, treerecs):
+def fastaCreation(data, remote, apiKey, maxLen, step, treerecs):
 	"""
 	Function handling the creation of fasta files in the pipeline.
 
@@ -146,7 +146,7 @@ def fastaCreation(data, remote, apiKey, step, treerecs):
 	  logger.info("Local retrieval of information not yet implemented, exiting DGINN.")
 	  sys.exit()
 	
-	dId2Seq = sizeCheck(dId2Seq)
+	dId2Seq = sizeCheck(dId2Seq, maxLen)
 	
 	firstFasta = data.o+data.accnFile.replace("_accns.txt", "_sequences.fasta").split("/")[-1]
 	if step is "blast":

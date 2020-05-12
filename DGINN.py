@@ -95,7 +95,8 @@ if __name__ == "__main__":
 
 			  FastaResFunc.fastaCreation(Data, 
 						     parameters["remote"], 
-						     parameters["APIKey"], 
+						     parameters["APIKey"],
+						     parameters["maxLen"],
 						     parameters["step"], 
 						     parameters["duplication"])
 

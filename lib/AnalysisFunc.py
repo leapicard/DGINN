@@ -256,7 +256,7 @@ def runPhyML(aln, phymlOpt, geneDir):
 	output_handle.close()
 	input_handle.close()
 	os.remove(tmp)
-	print("phylip ok")
+	
 	# PhyML
 	if phymlOpt != "":
 		try:
@@ -371,7 +371,7 @@ def cutLongBranches(aln, dAlnTree, nbSp, LBOpt, logger):
 		
 	else:
 		logger.info("No long branches found.")
-	exit()
+		
 	return(dAlnTree)
 
 def checkPhyMLTree(data, dAlnTree, nbSp, LBopt, step="duplication"):
