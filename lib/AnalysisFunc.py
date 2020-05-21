@@ -383,7 +383,7 @@ def checkPhyMLTree(data, dAlnTree, nbSp, LBopt, step="duplication"):
 		if dAlnTree[aln] == "":
 			logger.info("Reconstructing alignments and phylogenies following long branch parsing.")
 			aln = runPrank(aln, data.geneName, data.o)
-			tree = runPhyML(aln, data.o)
+			tree = runPhyML(aln, LBopt, data.o)
 			dAlnTree2[aln] = tree+"_phyml_tree.txt"
 			
 	#dAlnTree.update(dAlnTree2)

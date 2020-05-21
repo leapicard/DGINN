@@ -76,6 +76,7 @@ ENV PATH /opt/paml/src/:$PATH
 
 RUN apt-get clean && apt-get update && apt-get install -y mafft
 
+RUN echo "yoyo"
 RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.py
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
