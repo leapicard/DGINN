@@ -271,17 +271,18 @@ def runTreerecs(tree, sptree, o):
 	@param2 sptree: Path to the species tree
 	@param3 o: Output directory
 	"""
-	recTree = o+tree.split("/")[-1]+"_recs.nhx"
+	recTree = o+tree.split("/")[-1].replace(".txt", "")+"_recs.nhx"
+	o = o[0:-1]
 	val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX:svg".format(tree, 
 									     sptree, 
 									     o)
-	
+	print(val)
 	AnalysisFunc.cmd(val, False)
 	
 	return recTree
 
 
-def treeTreatment(data, dAlnTree, nbSp):
+def treeTreatment(data, dAlnTree, nbSp, phymlOpt):
 	"""
 	Procedure which execute all functions for the tree step.
 
@@ -316,7 +317,7 @@ def treeTreatment(data, dAlnTree, nbSp):
 			aln = AnalysisFunc.runPrank(orthoGp, 
 						    data.geneName, 
 						    data.o)
-			tree = AnalysisFunc.runPhyML(aln, data.o)
+			tree = AnalysisFunc.runPhyML(aln, phymlOpt, data.o)
 			dAlnTree2[aln] = tree+"_phyml_tree.txt"
 
 	dAlnTree.update(dAlnTree2)

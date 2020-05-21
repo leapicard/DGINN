@@ -158,7 +158,8 @@ if __name__ == "__main__":
 
 			  dAlTree = TreeFunc.treeTreatment(Data, 
 							       			   dAlTree, 
-							       			   parameters["nbspecies"])
+							       			   parameters["nbspecies"],
+							       			   parameters["phymlOpt"])
 
 			elif lSteps[i] == "recombination" and parameters["recombination"]:
 			  if parameters["step"] == "recombination":
