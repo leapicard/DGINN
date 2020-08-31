@@ -297,7 +297,7 @@ Mandatory input infos for running:
 
 ## 2/ Results extraction
 
-Another script called parseResults.py can also be found in the etc folder. It compiles all the results from DGINN found in the directories listed in the file passed as argument and outputs a summary of them.
+Another script called parseResults.py can also be found in the etc folder. It compiles all the results from DGINN found in the directories listed in the file passed as argument and outputs a summary of them. The output from this script can be used to generate figures similar to those exposed in the DGINN paper through the [Shiny app](https://rna-seq.shinyapps.io/DGINN_Pipeline_Visualization/)
 
 ```
 python3 etc/parseResults.py -h
