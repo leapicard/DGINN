@@ -25,7 +25,7 @@ laurent.gueguen [at] univ-lyon1.fr or lucie.etienne [at] ens-lyon.fr.
 
 # Overview
 
-![alt text](https://github.com/leapicard/DGINN/blob/master/etc/pipeline_diagram.png)
+![alt text](https://github.com/leapicard/DGINN/blob/master/etc/pipeline_diagram.pdf)
 
 # Installation
 
@@ -277,7 +277,7 @@ Results from the validation are available in the [corresponding repository](http
 
 In the etc folder, a script entitled CCDSquery.py is included. 
 This script allows the user to download the CCDS sequences of human genes, by providing the properly formatted file obtained through HGNC.
-This file should at least contain a column titled "" and another titled "", as exemplified in examples/ex_CCDStable.txt.
+This file should at least contain a column titled "Approved symbol" and another titled "CCDS accession".
 
 ```
 python3 DGINN/etc/CCDSQuery.py -h
@@ -297,26 +297,44 @@ Mandatory input infos for running:
 
 ## 2/ Results extraction
 
-Another script called parseResults.py can also be found in the etc folder. It compiles all the results from DGINN found in the directories listed in the file passed as argument and outputs a summary of them. The output from this script can be used to generate figures similar to those exposed in the DGINN paper through the [Shiny app](https://rna-seq.shinyapps.io/DGINN_Pipeline_Visualization/)
+Another script called parseResults.py can also be found in the etc folder. 
+
+The input file is composed of two tab-separated columns: the first one indicates the full path to the directories containing the positive selection results (the directory containing the subdirectories busted, bpp_site, paml_site, etc.), the second one the full path to the alignments on which those analyses were performed.
+
+Ex: /PATH/TO/GENENAME_sequences_filtered_longestORFs_mafft_mincov_prank_results_TIMESTAMP1/positive_selection_results_TIMESTAMP2 /PATH/TO/GENENAME_sequences_filtered_longestORFs_mafft_mincov_prank.best.fas
+
+The script will output 3 different files: 
+1. a summary of results
+2. the percentages of coverage at each position of the alignment (NB: it is advised not to modify this file in any capacity to ensure proper visualization of the results)
+3. the likelihoods calculated by Bio++ (Bpp) and PAML codeml.
+
+The different output files obtained with this script can be used to generate figures similar to those exposed in the DGINN paper through the [Shiny app](https://leapicard.shinyapps.io/DGINN-visualization/)
 
 ```
 python3 etc/parseResults.py -h
-usage: etc/parseResults.py [-h] [-v] -in <filename> [-o <path/to/directory>]
+usage: etc/parseResults.py [-h] [-v] -in <filename>
+                                      [-o <path/to/directory>]
+                                      [-pr <value>]
 
 This program outputs a summary of the results obtained through running DGINN
 on a list of genes of interest.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -v, --version         display etc/parseResults.py version number and exit
+  -v, --version         display /home/lea/Documents/DGINN/etc/parseResults.py
+                        version number and exit
 
 Mandatory input infos for running:
   -in <filename>, --inFile <filename>
                         List of all the directories containing the results
-                        from DGINN analyses on different genes.
+                        from DGINN analyses on different genes, and their
+                        corresponding alignments.
 
 Optional input infos (default values):
   -o <path/to/directory>, --outdir <path/to/directory>
+                        folder for analysis results (path - by default output
+                        file will be saved in the incoming directory)
+  -pr <value>, --postrate <value>
                         folder for analysis results (path - by default output
                         file will be saved in the incoming directory)
 
