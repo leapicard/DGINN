@@ -304,11 +304,11 @@ The input file is composed of two tab-separated columns: the first one indicates
 Ex: /PATH/TO/GENENAME_sequences_filtered_longestORFs_mafft_mincov_prank_results_TIMESTAMP1/positive_selection_results_TIMESTAMP2 /PATH/TO/GENENAME_sequences_filtered_longestORFs_mafft_mincov_prank.best.fas
 
 The script will output 3 different files: 
-1. a summary of results
-2. the percentages of coverage at each position of the alignment (NB: it is advised not to modify this file in any capacity to ensure proper visualization of the results)
-3. the likelihoods calculated by Bio++ (Bpp) and PAML codeml.
+1. a summary of results (one gene per line)
+2. the percentages of coverage at each position of each alignment (NB: it is advised not to modify this file in any capacity to ensure proper visualization of the results)
+3. the likelihoods calculated by Bio++ (Bpp) and PAML codeml for each gene.
 
-The different output files obtained with this script can be used to generate figures similar to those exposed in the DGINN paper through the [Shiny app](https://leapicard.shinyapps.io/DGINN-visualization/)
+The different output files obtained with this script can be used to generate figures similar to those exposed in the DGINN paper through the [Shiny app](https://leapicard.shinyapps.io/DGINN-visualization/), which documentation can be found on the [corresponding repository](https://github.com/leapicard/DGINN-visualization).
 
 ```
 python3 etc/parseResults.py -h
