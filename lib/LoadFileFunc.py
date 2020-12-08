@@ -90,7 +90,7 @@ def accnEntry(Data):
 	
 	return Data
 
-def getSeqEntry(Data, treeOption):
+def getSeqEntry(Data):
 	"""
 	Function handling start of the pipeline at the Fasta step.
 
@@ -113,12 +113,11 @@ def getSeqEntry(Data, treeOption):
 	return Data
 
 
-def orfEntry(Data, treeOption):
+def orfEntry(Data):
 	"""
 	Function handling start of the pipeline at the orf step.
 
 	@param1 Data: basicData object
-	@param2 treeOption: Boolean
 	@return data: basicData object
 	"""
 	
@@ -135,12 +134,11 @@ def orfEntry(Data, treeOption):
 	
 	return Data
 
-def prankEntry(Data, treeOption):
+def prankEntry(Data):
 	"""
 	Function handling start of the pipeline at the Prank step.
 
 	@param1 Data: basicData object
-	@param2 treeOption: Boolean
 	@return data: basicData object
 	"""
 	if FormatFunc.isFasta(Data.queryFile):
@@ -188,35 +186,28 @@ def phymlRecEntry(Data, step = "tree"):
 	return Data
 
 def spTreeCheck(Data, firstStep, treeOption):
-	if treeOption:
-		checkPath(Data.sptree, "species's tree")
-		
-		if not hasattr(Data, 'cor'):
-			if firstStep == "orf":
-				Data.seqFile, corSG = filterData(Data.sptree, 
+  if not hasattr(Data, 'cor') and treeOption:
+    if firstStep == "orf":
+      aln=Data.seqFile
+    elif firstStep == "alignment":
+      aln=Data.ORFs
+    elif firstStep == "tree" or firstStep=="duplication":
+      aln=Data.aln
 
-								 Data.seqFile, 
+    if not os.path.exists(Data.sptree):
+      Data.sptree, treeOption = TreeFunc.treeCheck(Data.sptree, aln, treeOption)
 
-				                                 Data.o)
-			elif firstStep == "alignment":
-				Data.ORFs, corSG = filterData(Data.sptree, 
+    if Data.sptree!="":
+      aln2, corSG = filterData(Data.sptree, aln, Data.o)
 
-							      Data.ORFs, 
+      if firstStep == "orf":
+        Data.seqFile=aln2
+      elif firstStep == "alignment":
+        Data.ORFs=aln2
+      elif firstStep == "tree" or firstStep=="duplication":
+        Data.aln=aln2
 
-				                              Data.o)
-			elif firstStep == "tree":
-				Data.aln, corSG = filterData(Data.sptree, 
-
-				                             Data.aln, 
-
-				                             Data.o)
-			elif firstStep == "duplication":
-				Data.aln, corSG = filterData(Data.sptree, 
-
-				                             Data.aln, 
-
-				                             Data.o)
-			setattr(Data, "cor", corSG)
+      setattr(Data, "cor", corSG)
 
 
 def duplPSEntry(Data, step = "duplication"):

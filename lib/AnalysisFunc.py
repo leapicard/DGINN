@@ -1,4 +1,5 @@
 #coding: utf8
+import sys
 import FastaResFunc, ExtractFunc
 import logging, subprocess, shlex, os, ete3
 from Bio import SeqIO, AlignIO
@@ -9,26 +10,26 @@ import pandas as pd
 
 ######Functions=============================================================================================================
 
-def cmd(commandLine, choice):
+def cmd(commandLine, choice, verbose = False):
 	"""
 	Function executing a command line in a bash terminal.
 
 	@param1 commandLine: String corresponding to a bash command line
 	@param2 choice: Boolean determining whether the command is executed within the shell 
 	"""
+	if verbose:
+          stdout=None
+	else:
+          stdout=subprocess.PIPE
 
 	lCmd = shlex.split(commandLine)
-
 	try:
-			run = subprocess.run(lCmd, 
-					shell=choice, 
-					check=True,
-					stdout=subprocess.PIPE, 
-					stderr=subprocess.PIPE)
-	except subprocess.CalledProcessError as exc:
-			print(lCmd[0], " failed", exc.returncode, "\n")
-			print(exc.stdout.decode().strip())
-			print(exc.stderr.decode().strip())
+	  run = subprocess.call(lCmd, 
+			        shell=choice,
+                          stdout=stdout,
+			        stderr=subprocess.PIPE)
+	except subprocess.CalledProcessError as err:
+	  sys.stderr.write(str(err))
 
 ######ORF===================================================================================================================
 
