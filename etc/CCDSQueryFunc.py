@@ -39,7 +39,7 @@ def getCCDS(genesFile, species, spName):
 	@return2 dId2Seq: Dictionary associating gene identifiers (keys) to their fasta sequences (values)
 	"""
 	
-	dId2Seq = {} # key = seqID (format speSpe|gene|CCDS012345) value = fasta sequence
+	dId2Seq = {} # key = seqID (format speSpe_gene_CCDS012345) value = fasta sequence
 
 	server = "http://rest.ensembl.org"
 	species = species.lower().replace(" ", "_")
@@ -58,7 +58,7 @@ def getCCDS(genesFile, species, spName):
 		while add <= 3:
 			ext = "/sequence/id/{:s}.{:d}?content-type=text/x-fasta;species={:s};object_type=transcript;db_type=otherfeatures;type=cds".format(geneCCDS, add, species)	#db_type=otherfeatures;type=cds
 			link = server+ext
-			print(link)
+			#print(link)
 			r = requests.get(link, headers={"Content-Type" : "text/x-fasta"})
 			text = "".join(r.text.split("\n")[1:])
 
@@ -68,7 +68,7 @@ def getCCDS(genesFile, species, spName):
 				add = 10
 
 		if add == 10:
-			#print(geneName)
+			print("CCDS downloaded for {:s}".format(geneName))
 			seqID = seqID.split(".")[0]
 			dId2Seq[seqID] = text
 			#print(geneName)
@@ -77,7 +77,7 @@ def getCCDS(genesFile, species, spName):
 			print("Couldn't download sequence for {:s}".format(geneName))
 	
 	for key, value in dId2Seq.items():
-		out = ".".join(genesFile.split(".")[:-1])+"_"+key.split("_")[1]+"_CCDS.fasta"
+		out = "/".join(genesFile.split("/")[:-1])+"/"+key.split("_")[1]+"_CCDS.fasta"
 		with open(out, "w") as fasta:
 			if key != "" or value != "":
 				fasta.write(">"+key+"\n"+value)

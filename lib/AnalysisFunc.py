@@ -6,6 +6,7 @@ from Bio import SeqIO, AlignIO
 from collections import defaultdict, OrderedDict
 from itertools import chain
 from statistics import median, mean
+import pandas as pd
 
 ######Functions=============================================================================================================
 
@@ -16,7 +17,6 @@ def cmd(commandLine, choice, verbose = False):
 	@param1 commandLine: String corresponding to a bash command line
 	@param2 choice: Boolean determining whether the command is executed within the shell 
 	"""
-
 	if verbose:
           stdout=None
 	else:
@@ -26,11 +26,10 @@ def cmd(commandLine, choice, verbose = False):
 	try:
 	  run = subprocess.call(lCmd, 
 			        shell=choice,
-                                stdout=stdout,
+                          stdout=stdout,
 			        stderr=subprocess.PIPE)
 	except subprocess.CalledProcessError as err:
 	  sys.stderr.write(str(err))
-                           
 
 ######ORF===================================================================================================================
 
@@ -79,7 +78,13 @@ def getORFs(catFile, queryName, geneDir):
 			if queryName in dupl:
 				firstOcc = queryName
 			else:
-				firstOcc = [x for x in dupl if sp in x][0]
+				lOcc = [x for x in dupl if sp in x]
+				
+				if len(lOcc) > 0:
+					firstOcc = lOcc[0]
+				else:
+					firstOcc = str(lOcc)
+					
 			dupl.remove(firstOcc)
 		
 		for i in dupl:
@@ -138,6 +143,25 @@ def runPrank(ORFs, geneName, o):
 	
 	return(outPrank+".best.fas")
 
+def runMafft(ORFs, geneName, o):
+	logger = logging.getLogger("main.alignment")
+	logger.info("Started Mafft nucleotide alignment")
+
+	cmd = "mafft --auto --quiet {}".format(ORFs)
+	
+	lCmd = shlex.split(cmd)
+	outMafft = o+ORFs.split("/")[-1].split(".")[0]+"_mafft.fasta"
+	with open (outMafft, "w") as outM:
+		run = subprocess.run(lCmd, 
+							 shell=False, 
+							 check=True,
+							 stdout=outM, 
+							 stderr=subprocess.PIPE)
+
+	logger.info("Finished Mafft nucleotide alignment: {:s}".format(outMafft))
+
+	return(outMafft)
+
 def covAln(aln, cov, queryName, o):
 	"""
 	Function to discard sequences from alignment according to coverage to query.
@@ -191,10 +215,16 @@ def alnPrank(data):
 				   data.o)
 	data.aln = aln
 
+def alnMafft(data):
+	aln = runMafft(data.ORFs, 
+				   data.geneName, 
+				   data.o)
+	data.aln = aln
+
 #######=================================================================================================================
 ######PhyML=============================================================================================================
 
-def runPhyML(aln, geneDir):
+def runPhyML(aln, phymlOpt, geneDir):
 	"""
 	Function converting fasta file to phylip and running PhyML.
 
@@ -206,14 +236,14 @@ def runPhyML(aln, geneDir):
 	origin = os.getcwd()
 	os.chdir(geneDir)
 	outPhy = aln.split("/")[-1].split(".")[0]+".phylip"
-	aln = aln.split("/")[-1]
+	#aln = aln.split("/")[-1]
 	tmp = aln.split("/")[-1].split(".")[0]+".tmp"
 	
 	logger = logging.getLogger("main.tree")
 	
-	with open(aln, "rU") as aln:
-          laln = aln.read().replace("!", "N")
-          aln.close()
+	with open(aln, "rU") as aln2:
+          laln = aln2.read().replace("!", "N")
+          aln2.close()
           with open(tmp, "w") as temp:
             temp.write(laln)
             temp.close()
@@ -227,16 +257,26 @@ def runPhyML(aln, geneDir):
 	output_handle.close()
 	input_handle.close()
 	os.remove(tmp)
-
+	
 	# PhyML
-	cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
-	logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
+	if phymlOpt != "":
+		try:
+			opt=phymlOpt.split("ALN ")[1]
+			logger.debug("phyml -i {:s} {}".format(outPhy, opt))
+			cmd("phyml -i {:s} {}".format(outPhy, opt), False)
+		except:
+			logger.info("PhyML couldn't run with the provided info {}, running with default options.".format(phymlOpt))
+			cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
+	else:
+		logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
+		cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
+		
 	os.chdir(origin)
 	
 	return(geneDir+outPhy)
 
 
-def phyMLTree(data):
+def phyMLTree(data, phymlOpt):
 	"""
 	Function creating tree attribute in each gene object of the list.
 
@@ -246,14 +286,14 @@ def phyMLTree(data):
 	logger=logging.getLogger("main.tree")
 	dAlnTree = {}
 	logger.info("Running PhyML to produce gene phylogenetic tree")
-	TreesFile = runPhyML(data.aln, data.o)
+	TreesFile = runPhyML(data.aln, phymlOpt, data.o)
 	data.tree = TreesFile+"_phyml_tree.txt"
 	logger.info("Reconstructed tree using PhyML: {:s}".format(data.tree))
 
 	dAlnTree[data.aln] = data.tree
 	return(dAlnTree)
 
-def cutLongBranches(aln, dAlnTree, logger):
+def cutLongBranches(aln, dAlnTree, nbSp, LBOpt, logger):
 	"""
 	Check for overly long branches in a tree and separate both tree and corresponding alignment if found.
 	
@@ -265,57 +305,86 @@ def cutLongBranches(aln, dAlnTree, logger):
 	logger.info("Looking for long branches.")
 	loadTree = ete3.Tree(dAlnTree[aln])
 	dist = [leaf.dist for leaf in loadTree.traverse()]
-	medianDist = median(dist)
-	meanDist = mean(dist)
-	longDist = meanDist * 50
-	matches = [leaf for leaf in loadTree.traverse() if leaf.dist>longDist]
+	#longDist = 500
 	
+	if "cutoff" in LBOpt:
+		if "(" in LBOpt:
+			factor = float(LBOpt.split("(")[1].replace(")", ""))
+		else:
+			factor = 50
+		medianDist = median(dist)
+		meanDist = mean(dist)
+		longDist = meanDist * factor
+	elif "IQR" in LBOpt:
+		if "(" in LBOpt:
+			factor = float(LBOpt.split("(")[1].replace(")", ""))
+		else:
+			factor = 50
+		df = pd.DataFrame(dist)
+		Q1 = df.quantile(0.25)
+		Q3 = df.quantile(0.75)
+		IQR = Q3 - Q1
+		lDist = Q3 + (factor * IQR)
+		longDist = lDist[0]
+	
+	logger.info("Long branches will be evaluated through the {} method (factor {})".format(LBOpt, factor))
+	nbSp = int(nbSp)	
+	matches = [leaf for leaf in loadTree.traverse() if leaf.dist>longDist]
+
 	if len(matches) > 0:
 		logger.info("{} long branches found, separating alignments.".format(len(matches)))
 		
 		seqs = SeqIO.parse(open(aln),'fasta')
 		dID2Seq = {gene.id: gene.seq for gene in seqs}
-		
+				
 		for node in matches:
 			gp = node.get_children()
 			lNewGp = list(chain.from_iterable([x.get_leaf_names() for x in gp]))
 		
 			newAln = aln.split(".")[0]+"_part"+str(matches.index(node)+1)+".fasta"
 			
-			dNewAln = {gene:dID2Seq[gene] for gene in lNewGp}
+			dNewAln = {gene:dID2Seq[gene] for gene in lNewGp if gene in dID2Seq}
 			for k in lNewGp:
 				dID2Seq.pop(k, None)
 			
 			# create new file of sequences
-			with open(newAln, "w") as fasta:
-			  fasta.write(FastaResFunc.dict2fasta(dNewAln))
-			  faste.close()
-                          
-			dAlnTree[newAln] = ""
-		
+			
+			if len(dNewAln) > nbSp - 1:
+				with open(newAln, "w") as fasta:
+					fasta.write(FastaResFunc.dict2fasta(dNewAln))
+					fasta.close()		  
+				dAlnTree[newAln] = ""
+			else:
+				logger.info("Sequences {} will not be considered for downstream analyses as they do not compose a large enough group.".format(dNewAln.keys()))
+			
 		alnLeft = aln.split(".")[0]+"_part"+str(len(matches)+1)+".fasta"
-		with open(alnLeft, "w") as fasta:
-		  fasta.write(FastaResFunc.dict2fasta(dID2Seq))
-		  logger.info("\tNew alignment:%s"%{alnLeft})
-		  fasta.close()
-		dAlnTree[alnLeft] = ""
+
+		if len(dID2Seq) > nbSp - 1:
+			with open(alnLeft, "w") as fasta:
+				fasta.write(FastaResFunc.dict2fasta(dID2Seq))
+				logger.info("\tNew alignment:%s"%{alnLeft})
+				fasta.close()	  
+			dAlnTree[alnLeft] = ""
+		else:
+			logger.info("Sequences in {} will not be considered for downstream analyses as they do not compose a large enough group.".format(dID2Seq.keys()))
+			
 		dAlnTree.pop(aln, None)
 		
 	else:
 		logger.info("No long branches found.")
-	
+		
 	return(dAlnTree)
 
-def checkPhyMLTree(data, dAlnTree, step="duplication"):
+def checkPhyMLTree(data, dAlnTree, nbSp, LBopt, step="duplication"):
 	logger=logging.getLogger(".".join(["main",step]))
-	dAlnTree = cutLongBranches(data.aln, dAlnTree, logger)
+	dAlnTree = cutLongBranches(data.aln, dAlnTree, nbSp, LBopt, logger)
 	dAlnTree2 = {}
 	
 	for aln in dAlnTree:
 		if dAlnTree[aln] == "":
 			logger.info("Reconstructing alignments and phylogenies following long branch parsing.")
 			aln = runPrank(aln, data.geneName, data.o)
-			tree = runPhyML(aln, data.o)
+			tree = runPhyML(aln, LBopt, data.o)
 			dAlnTree2[aln] = tree+"_phyml_tree.txt"
 			
 	#dAlnTree.update(dAlnTree2)

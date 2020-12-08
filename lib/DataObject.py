@@ -49,7 +49,7 @@ class basicData:
 				os.makedirs(self.o)
 			except FileExistsError:
 				pass
-			if self.o.endswith("/"):
+			if not self.o.endswith("/"):
 				self.o = self.o+"/"
 		else:
 			wrongDir = self.o

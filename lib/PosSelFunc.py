@@ -9,8 +9,16 @@ def pspAnalysis(data, parms, aln, tree):
 	@param1 data: basicData object
 	"""
 	logger=logging.getLogger("main.positiveSelection")
-	dCtrls, lModels = PSPFunc.getParams(parms["models"], parms["paml"], parms["bppml"], parms["mixedlikelihood"], parms["busted"], parms["meme"], parms["opb"], parms["gnh"])
+	dCtrls, lModels = PSPFunc.getParams(parms["models"], 
+										parms["paml"], 
+										parms["bppml"], 
+										parms["mixedlikelihood"], 
+										parms["busted"], 
+										parms["meme"], 
+										parms["opb"], 
+										parms["gnh"])
 	timeStamp = strftime("%Y%m%d%H%M", localtime())
+	
 	outDir = data.o+"positive_selection_results_"+timeStamp+"/"
 	if not os.path.exists(outDir):
 		os.makedirs(outDir)
@@ -18,7 +26,7 @@ def pspAnalysis(data, parms, aln, tree):
 	cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
 					
 	### Terminal output for user
-	logger.info("Location of entry files: {:s}".format(outDir))
+	logger.info("Output directory: {:s}".format(outDir))
 	logger.info("Alignement: {:s}".format(aln))
 	logger.info("Alignement is in {:s} format.".format(data.alnFormat))
 	logger.info("Tree: {:s}".format(tree))
@@ -26,10 +34,17 @@ def pspAnalysis(data, parms, aln, tree):
 	nodes = PSPFunc.nbNode(tree, logger)
 					
 	### Run the different analysis as determined by control file
+	logger.info("Starting positive selection analyses.")
 	logger.info("POSITIVE SELECTION ANALYSIS: ")
 	logger.info("Analysis to be run:")
 
-	dAnalysis = {"paml": "Site (codeml)", "BUSTED":"Whole-Gene", "bppml":"Site (Optimization)", "bppmixedlikelihood":"Site (Results)", "OPB":"Branch", "GNH":"Branch-site on positively selected branches", "MEME":"Branch-site"}
+	dAnalysis = {"paml": "Site (codeml)", 
+				 "BUSTED":"Whole-Gene", 
+				 "bppml":"Site (Bio++ - Optimization)", 
+				 "bppmixedlikelihood":"Site (Bio++ - Results)", 
+				 "OPB":"Branch", 
+				 "GNH":"Branch-site on positively selected branches", 
+				 "MEME":"Branch-site"}
 	for key in dCtrls.keys():
 		logger.info(dAnalysis[key])
 	
@@ -38,21 +53,31 @@ def pspAnalysis(data, parms, aln, tree):
 		"""try:		
 			GeneAnalysis.hyphyBusted(aln, cladoFile, outDir, data.baseName, logger)
 		except Exception:
-			logger.info("BUSTED encountered an unexpected error, skipping.")"""
-	
-	if "paml" in dCtrls and dCtrls["paml"] not in ["False", False] and len(lModels) > 1:
-		SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
-		"""try:
-			SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
+			logger.info("BUSTED encountered an unexpected error, skipping.")"""		
+
+	if "MEME" in dCtrls:
+		try:
+			BranchAnalysis.memeBranchSite(aln, 
+										  cladoFile, 
+										  outDir, 
+										  data.baseName, 
+										  logger)
 		except Exception:
-			logger.info("PAML (codeml) Site encountered an unexpected error, skipping.")"""
-			
+			logger.error("MEME encountered an unexpected error, skipping.")
 			
 	if "bppml" and "bppmixedlikelihood" in dCtrls and len(lModels) > 1:
-	  try:
-	    SiteAnalysis.bppSite(dCtrls["bppml"], dCtrls["bppmixedlikelihood"], aln, data.alnFormat, tree, lModels, outDir, data.baseName, logger)
-	  except Exception:
-	    logger.error("Bio++ Site encountered an unexpected error, skipping.")
+	  #try:
+	  SiteAnalysis.bppSite(dCtrls["bppml"], 
+						   dCtrls["bppmixedlikelihood"], 
+						   aln, 
+						   data.alnFormat, 
+						   tree, 
+						   lModels, 
+						   outDir, 
+						   data.baseName, 
+						   logger)
+	  #except Exception:
+	    #logger.error("Bio++ Site encountered an unexpected error, skipping.")
 	elif "bppml" or "bppmixedlikelihood" not in dCtrls:
 	  logger.error("Part of parameters for Bio++ site analysis are completed but not all.")
 	  logger.error("Analysis ignored (if unexpected, check paths to Bio++/bpp parameter files).")
@@ -62,7 +87,13 @@ def pspAnalysis(data, parms, aln, tree):
 	lPSNodes = []
 	if "OPB" in dCtrls:
 		try:
-			params = BranchAnalysis.bppBranch(dCtrls["OPB"], outDir, data.baseName, aln, data.alnFormat, tree, logger)	
+			params = BranchAnalysis.bppBranch(dCtrls["OPB"], 
+											  outDir, 
+											  data.baseName, 
+											  aln, 
+											  data.alnFormat, 
+											  tree, 
+											  logger)	
 		except Exception:
 			logger.error("Bio++ Branch Analysis encountered an unexpected error, skipping.")
 		try:
@@ -76,11 +107,18 @@ def pspAnalysis(data, parms, aln, tree):
 		except Exception:
 			logger.error("Bio++ Pseudo Branch-Site Analysis encountered an unexpected error, skipping.")
 	
-	if "MEME" in dCtrls:
-		try:
-			BranchAnalysis.memeBranchSite(aln, cladoFile, outDir, data.baseName, logger)
+	if "paml" in dCtrls and dCtrls["paml"] not in ["False", False] and len(lModels) > 1:
+		SiteAnalysis.pamlSite(aln, 
+							  tree, 
+							  lModels, 
+							  dCtrls["paml"], 
+							  outDir, 
+							  data.baseName, 
+							  logger)
+		"""try:
+			SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
 		except Exception:
-			logger.error("MEME encountered an unexpected error, skipping.")
-					
-	logger.info("End analysis")
+			logger.info("PAML (codeml) Site encountered an unexpected error, skipping.")"""
+
+	logger.info("Finished positive selection analyses.")
 	return(outDir)

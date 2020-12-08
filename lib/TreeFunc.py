@@ -221,9 +221,11 @@ def filterTree(tree, spTree, cor):
 	g1 = t1.get_leaf_names()
 	g2 = t2.get_leaf_names()
 	lCor = []
+
 	with open(cor, "r") as fCor:
 		lCor = fCor.readlines()
 		fCor.close()
+
 	dCor = {}
 	dCorInv = {}
 	for i in lCor:
@@ -304,7 +306,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 					if len(spGp) > int(nbSp) - 1:
 						
 						orthos = gp.get_leaf_names()
-						dOrtho2Seq = {ortho: dID2Seq[ortho] for ortho in orthos if not ortho == ""}
+						dOrtho2Seq = {ortho: dID2Seq[ortho] for ortho in orthos if not ortho == "" and ortho in dID2Seq}
 						
 						#check if orthologues have already been included in another, more recent, duplication event
 						already = False
@@ -332,24 +334,24 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 			
 			# if duplication groups have been extracted
 			# pool remaining sequences (if span enough different species - per user's specification) into new file
-			if len(lOut) > 0:
-				leftovers = filter(None, testTree.get_leaf_names())
-				dRemain = {left: dID2Seq[left] for left in leftovers}
-				
-				if len(dRemain.keys()) > int(nbSp) - 1:
-					outFile = o+ORF.split("/")[-1].split(".")[0]+"_duplication_remainingsequences.fasta"
-					
-					with open(outFile, "w") as fasta:
-						fasta.write(FastaResFunc.dict2fasta(dRemain))
-						fasta.close()
-					lOut.append(outFile)
-				else:
-					logger.info("Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(list(dRemain.keys())))
+		if len(lOut) > 0:
+			leftovers = filter(None, testTree.get_leaf_names())
+			dRemain = {left: dID2Seq[left] for left in leftovers if left in dID2Seq}
+			
+			if len(dRemain.keys()) > int(nbSp) - 1:
+				outFile = o+ORF.split("/")[-1].split(".")[0]+"_duplication_remainingsequences.fasta"
+				nDuplSign += 1
+
+				with open(outFile, "w") as fasta:
+					fasta.write(FastaResFunc.dict2fasta(dRemain))
+					fasta.close()
+				lOut.append(outFile)
+			else:
+				logger.info("Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(list(dRemain.keys())))
 				
 	logger.info("{:d} duplications detected by Treerecs, extracting {:d} groups of at least {} orthologs.".format(len(dupl), 
-														      nDuplSign,
+														      														  nDuplSign,
                                                                                                                       nbSp))
-
 	return lOut
 
 ### 
@@ -485,7 +487,7 @@ def runTreerecs(pathGtree, pathSptree, cor, o):
     
 
 
-def treeTreatment(data, dAlnTree, nbSp):
+def treeTreatment(data, dAlnTree, nbSp, phymlOpt):
 	"""
 	Procedure which execute all functions for the tree step.
 
@@ -507,6 +509,7 @@ def treeTreatment(data, dAlnTree, nbSp):
                                       data.cor,
 				      data.o)
 		#setattr(data, "recTree", recTree)
+    
 		if recTree:
 		  lFastaFile += treeParsing(data.ORFs, 
 					    recTree, 
@@ -521,7 +524,7 @@ def treeTreatment(data, dAlnTree, nbSp):
 			aln = AnalysisFunc.runPrank(orthoGp, 
 						    data.geneName, 
 						    data.o)
-			tree = AnalysisFunc.runPhyML(aln, data.o)
+			tree = AnalysisFunc.runPhyML(aln, phymlOpt, data.o)
 			dAlnTree2[aln] = tree+"_phyml_tree.txt"
 
 	dAlnTree.update(dAlnTree2)

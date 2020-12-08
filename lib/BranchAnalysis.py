@@ -131,6 +131,6 @@ def memeBranchSite(aln, cladoFile, outDir, baseName, logger):
 		fileM2 = fileM.replace(".fasta.", ".").replace(outDir, outBSA)
 		os.rename(fileM, fileM2)
 		if os.path.exists(fileM2):
-			print("Output: "+fileM2)
+			logger.info("Output: "+fileM2)
 	outMeme.close()
 	errMeme.close()

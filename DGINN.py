@@ -47,7 +47,8 @@ if __name__ == "__main__":
 	
 	parameters = Init.paramDef(parameters.params, 
 				   parameters.infile, 
-				   parameters.queryName)
+				   parameters.queryName,
+				   parameters.outdir)
 	Data = Init.initLogger(parameters, 
 			       debug, 
 			       version)
@@ -92,7 +93,8 @@ if __name__ == "__main__":
 
 			  FastaResFunc.fastaCreation(Data, 
 						     parameters["remote"], 
-						     parameters["APIKey"], 
+						     parameters["APIKey"],
+						     parameters["maxLen"],
 						     parameters["step"], 
 						     parameters["duplication"])
 
@@ -116,16 +118,14 @@ if __name__ == "__main__":
 						       firstStep, 
 						       parameters["duplication"])	
 
-			  AnalysisFunc.alnPrank(Data)
+			  AnalysisFunc.alnMafft(Data)
 			  fasCov, nbOut = AnalysisFunc.covAln(Data.aln, 
 							      parameters["mincov"], 
 							      Data.queryName, 
 							      Data.o)
-			  if nbOut > 0:
-			    newAln = AnalysisFunc.runPrank(fasCov, 
+			  Data.aln = AnalysisFunc.runPrank(fasCov, 
 							   Data.geneName, 
 							   Data.o)
-			    Data.aln = newAln
 
 			elif lSteps[i] == "tree":
 			  if parameters["step"] == "tree":
@@ -136,23 +136,28 @@ if __name__ == "__main__":
 						       firstStep, 
 						       parameters["duplication"])	
 
-			  dAlTree = AnalysisFunc.phyMLTree(Data)
+			  dAlTree = AnalysisFunc.phyMLTree(Data, 
+											   parameters["phymlOpt"])
 
 			elif lSteps[i] == "duplication" and parameters["duplication"]:
 			  if parameters["step"] == "duplication":
 			    Data, dAlTree = LoadFileFunc.duplPSEntry(Data)
+
 			    if lSteps[i] == firstStep:
 			      dTree=dAlTree.pop(Data.aln)
 			      LoadFileFunc.spTreeCheck(Data, 
 						       firstStep, 
 						       parameters["duplication"])
 			      dAlTree[Data.aln]=dTree
-			      dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
-			                                            dAlTree)
+			  dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
+			                                        dAlTree, 
+			                                        parameters["nbspecies"],
+			                                        parameters["LBopt"])
 
-			      dAlTree = TreeFunc.treeTreatment(Data, 
-							       dAlTree, 
-							       parameters["nbspecies"])
+			  dAlTree = TreeFunc.treeTreatment(Data, 
+							       			   dAlTree, 
+							       			   parameters["nbspecies"],
+							       			   parameters["phymlOpt"])
 
 			elif lSteps[i] == "recombination" and parameters["recombination"]:
 			  if parameters["step"] == "recombination":
@@ -165,29 +170,24 @@ if __name__ == "__main__":
 							    hostfile)
 
 			elif lSteps[i] == "positiveSelection" and parameters["positiveSelection"]:
-
-			  logger = logging.getLogger("main.positiveSelection")
-			  logger.info("Starting positive selection analyses.")
-				
 			  if parameters["step"] == "positiveSelection":
 			    Data, dAlTree = LoadFileFunc.pspEntry(Data, 
 								  parameters)
 			
-			    listArgsPosSel =  []
-			    for aln in dAlTree:
-			      listArgs = [Data, 
+			  listArgsPosSel =  []
+			  for aln in dAlTree:
+			    listArgs = [Data, 
 					  parameters, 
 					  aln, 
 					  dAlTree[aln]]
-			      listArgsPosSel.append(listArgs)
+			    listArgsPosSel.append(listArgs)
 					
-			      with open(Data.o+"files_list.txt", "w") as fAT:
-		                fAT.write(aln+"\t"+dAlTree[aln])
-		                PosSelFunc.pspAnalysis(Data, 
-						       parameters, 
-						       aln, 
-						       dAlTree[aln])
-				
-		                logger.info(" Ouput in file %s"%(Data.o+"files_list.txt"))
-			    logger.info("Finished positive selection analyses.")
-			    
+			    with open(Data.o+"files_list.txt", "w") as fAT:
+			      fAT.write(aln+"\t"+dAlTree[aln])
+			      PosSelFunc.pspAnalysis(Data, 
+							   parameters, 
+							   aln, 
+							   dAlTree[aln])
+	
+	logger = logging.getLogger("main")	    
+	logger.info("Finished DGINN analyses, exiting.")

@@ -42,6 +42,8 @@ def parameterCommandLine(version, __file__):
 					  help = 'Path or list of paths (absolute or relative) to the file(s) needed to start the pipeline (if indicated, will take priority over the parameters file)')
 	xargs.add_argument('-q', '--query', metavar="<string>", required=False, dest = 'queryName', default="", 
 					  help = 'Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)')
+	xargs.add_argument('-o', '--outdir', metavar="<path>", required=False, dest = 'outdir', default="", 
+					  help = 'Path to the output directory (if indicated, will take priority over the parameters file)')
 	xargs.add_argument('-host', '--hostfile', metavar="<filename>", required=False, dest = 'hostfile', default="", 
 					  help = 'Path to cluster hostfile if needed for mpi process')
 	#xargs.add_argument('-th', '--threads', metavar="<integer>", required=False, dest = 'threads', default=2, 
@@ -50,7 +52,7 @@ def parameterCommandLine(version, __file__):
 	return parser
 
 
-def paramDef(params, inf, queryName):
+def paramDef(params, inf, queryName, outdir):
 	"""
 	Check the parameters in the file.
 
@@ -73,13 +75,16 @@ def paramDef(params, inf, queryName):
 			   "evalue", 
 			   "mincov", 
 			   "percID", 
+			   "maxLen",
 			   "step", 
 			   "remote", 
 			   "entryQuery", 
 			   "sptree", 
-			   "APIKey", 
+			   "APIKey",
+			   "phymlOpt",
 			   "recombination", 
 			   "duplication", 
+			   "LBopt",
 			   "nbspecies", 
 			   "positiveSelection", 
 			   "basename", 
@@ -101,7 +106,7 @@ def paramDef(params, inf, queryName):
 			else:
 				temp = list(map(str.strip,line.split(":")))
 				if temp[0]=="":
-                                  continue
+					continue
 				if temp[0] not in lParams:
 					print(temp[0]+" is not a valid parameter.\n")
 				else:
@@ -119,6 +124,12 @@ def paramDef(params, inf, queryName):
 		dParams["queryName"] = queryName
 	else:
 		dParams["queryName"] = dParams["queryName"]
+		
+	#Idem outdir
+	if outdir != "":
+		dParams["outdir"] = outdir
+	else:
+		dParams["outdir"] = dParams["outdir"]
 	
 	#If list of file given, split and check what each file is
 	if len(dParams["infile"]) > 1:
@@ -179,7 +190,7 @@ def paramDef(params, inf, queryName):
 				print("The pipeline requires a phylogenetic tree. Please provide one.")
 				sys.exit()
 			elif "alnfile" not in dParams or dParams["alnfile"] == "":
-				print("The pipeline requires a nucleotide or, preferably, codon alignment. Please provide one.")
+				print("The pipeline requires a codon alignment. Please provide one.")
 				sys.exit()
 				
 		for opt in ["meme", "busted", "models", "paml", "bppml", "mixedlikelihood", "opb", "gnh"]:
@@ -191,7 +202,6 @@ def paramDef(params, inf, queryName):
 					dParams[opt] = dParams[opt].strip("\n")
 				elif dParams[opt]:
 					path = "/".join(dParams["infile"].split("/")[:-1])+"/"+opt+"_params.bpp"
-					print("{:s} parameter file: {:s}".format(opt, path))
 					PSPFunc.pspFileCreation(path, opt)
 					dParams[opt] = path
 					
@@ -224,11 +234,14 @@ def paramDef(params, inf, queryName):
 					"logfile":"", 
 					"evalue":1e-3, 
 					"mincov":50, 
-					"percID":70, 
+					"percID":70,
+					"maxLen":"cutoff",
 					"entryQuery":"", 
-					"APIKey":"", 
+					"APIKey":"",
+					"phymlOpt":"",
 					"sptree":"", 
-					"duplication":False, 
+					"duplication":False,
+					"LBopt":"cutoff",
 					"nbspecies":8, 
 					"recombination":False, 
 					"remote":False, 
@@ -345,10 +358,10 @@ def initPipeline(step, lStep):
 
 	else:
 		while step.lower() != lStep[i].lower():
-				toDo.append(False)
-				i+=1
+			toDo.append(False)
+			i+=1
 
 		while len(toDo) != len(lStep):
-				toDo.append(True)
+			toDo.append(True)
 
 		return toDo

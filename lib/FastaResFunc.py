@@ -51,9 +51,16 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	
 	for record in records:
 		acc = record['GBSeq_primary-accession']
-		tax = record['GBSeq_organism'].split(" ")
+		tax = record['GBSeq_organism']
+		if " x " in tax:
+			tax = tax.split(" x ")[0].split(" ")
+		elif " X " in tax:
+			tax = tax.split(" X ")[0].split(" ")
+		else:
+			tax = tax.split(" ")
+			
 		tax = tax[0][:3].lower()+"".join([ i[:3].title() for i in tax[1:]])
-		
+
 		features = [record['GBSeq_feature-table'][i]['GBFeature_quals'] for i, d in enumerate(record['GBSeq_feature-table']) if 'GBFeature_quals' in d]
 		
 		for feat in features:
@@ -61,8 +68,10 @@ def remoteDl(lBlastRes, queryName, apiKey):
 				if ('GBQualifier_name', 'gene') in d.items():
 					name = d['GBQualifier_value']
 					break
+				else:
+					name = ""
 					
-		if "." in name or "-" in name:
+		if "." in name or "-" in name or name == "":
 			name = "pot"+queryName.split("_")[1]
 		if tax == "synCon" or 'GBSeq_sequence' not in record.keys():
 			continue
@@ -77,7 +86,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	return(dId2Seq)
 
 
-def sizeCheck(dId2Seq):
+def sizeCheck(dId2Seq, maxLen):
 	logger = logging.getLogger("main.accessions")
 	
 	dId2Len = {Id:len(seq) for Id, seq in dId2Seq.items()}
@@ -120,7 +129,7 @@ def catFile(queryFile, dId2Seq, firstFasta):
 	return(firstFasta)
 	
 
-def fastaCreation(data, remote, apiKey, step, treerecs):
+def fastaCreation(data, remote, apiKey, maxLen, step, treerecs):
 	"""
 	Function handling the creation of fasta files in the pipeline.
 
@@ -137,7 +146,7 @@ def fastaCreation(data, remote, apiKey, step, treerecs):
 	  logger.info("Local retrieval of information not yet implemented, exiting DGINN.")
 	  sys.exit()
 	
-	dId2Seq = sizeCheck(dId2Seq)
+	dId2Seq = sizeCheck(dId2Seq, maxLen)
 	
 	firstFasta = data.o+data.accnFile.replace("_accns.txt", "_sequences.fasta").split("/")[-1]
 	if step is "blast":

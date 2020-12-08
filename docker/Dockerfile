@@ -41,7 +41,7 @@ RUN mkdir bpp && cd bpp && mkdir sources && cd sources && for d in bpp-core bpp-
 	cd ..; \
 	done
 
-RUN cd bpp && git clone http://biopp.univ-montp2.fr/git/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ -DINFO=FALSE && make && make install
+RUN cd bpp && git clone https://github.com/BioPP/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ -DINFO=FALSE && make && make install
 ENV PATH /opt/bpp/bppsuite/bppSuite/:$PATH
 ENV CPATH /opt/bpp/include:$CPATH
 ENV LIBRARY_PATH /opt/bpp/lib:$LIBRARY_PATH
@@ -50,13 +50,13 @@ ENV LD_LIBRARY_PATH /opt/bpp:/opt/bpp/include:/opt/bpp/lib:$LD_LIBRARY_PATH
 ## Install python3, necessary packages and DGINN
 RUN apt-get install -y python3-pip
 
-RUN pip3 install --target /usr/local/lib/python3.6/dist-packages numpy \
+RUN pip3 install --upgrade --target /usr/local/lib/python3.6/dist-packages numpy \
 	scipy \
 	pandas \
 	requests \
 	biopython \
 	setuptools \
-	pyqt5 \
+	pyqt5==5.14 \
 	six \
 	lxml
 
@@ -73,12 +73,14 @@ ENV PATH /opt/hyphy:$PATH
 WORKDIR /opt
 RUN git clone https://github.com/binlu1981/paml && cd paml && cd src && make
 ENV PATH /opt/paml/src/:$PATH
+
+RUN apt-get clean && apt-get update && apt-get install -y mafft
+
+RUN echo "yolo"
 RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.py
-#RUN cd /opt/DGINN/lib/ && sed 's/mpirun -np 2/mpirun -np 2 --allow-run-as-root/g' AnalysisFunc.py > AnalysisFunc2.py && rm AnalysisFunc.py && mv AnalysisFunc2.py AnalysisFunc.py
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
 
 #WORKDIR ~/
-RUN ls /opt/bpp
 ENTRYPOINT ["DGINN.py"]
 CMD ["-h"]

@@ -1,6 +1,6 @@
 from scipy import stats
 from collections import OrderedDict
-import sys, re, os, logging
+import sys, re, os, logging, ete3
 
 def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 	# Check analyses to be run and where the parameters file are
@@ -28,10 +28,8 @@ def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 def supBoot(outDir, baseName, treeFile, logger):
 	# Suppress bootstrap numbers from treeFile (necessary for HYPHY)
 	cladoFile = outDir+baseName+"_clado.tree"
-	with open(cladoFile, "w") as clado:
-		clado.write(leanTree(treeFile))
-		clado.close()	
-	logger.debug(leanTree(treeFile))
+	t = ete3.Tree(treeFile)
+	t.write(format=9, outfile=cladoFile)
 	return cladoFile
 
 def nbNode(treeFile, logger):
@@ -69,21 +67,6 @@ def NHXTree(tree):
 	
 	return sout
 	
-def leanTree(tree):
-	"""
-	Take a newick tree and returns the cladogram
-	"""
-	
-	pattern = re.compile(r":\d+\.\d+|\n")
-	pattern2 = re.compile(r"\)\d+\.\d+")
-	#pattern3 = re.compile("\|.+\.\d")
-	with open(tree, "r") as tf:
-		tfs = re.sub(pattern, "", tf.read())
-		tfs = re.sub(pattern2, ")", tfs)
-		tfs = re.sub("\||\.", "", tfs)
-		tf.close()
-		return(tfs)
-	
 def pspFileCreation(path, option):
   if not os.path.exists(path):
     dparams={}
@@ -96,7 +79,7 @@ def pspFileCreation(path, option):
     dparams["input.tree.file"] = "$(TREEFILE)"
     dparams["input.tree.format"] = "Newick"
     if option == "mixedlikelihood":
-      dparams["params"] = "$(PARAMS)"
+      #dparams["params"] = "$(PARAMS)"
       dparams["output.likelihoods.file"] = "$(OUTINFO)"
     else:
       dparams["nonhomogeneous.root_freq"] = "F3X4(initFreqs=observed)"

@@ -59,7 +59,6 @@ def memeInfo(dico):
 		with open(path, "r") as busted:
 			busted = json.load(busted)
 			busted.close()
-		print(busted["MLE"])
 
 
 

@@ -11,5 +11,5 @@ if __name__ == "__main__":
 
 	parameters = parser.parse_args()
 	parameters.species = "human"
-	parameters.spName = "HomSap"
+	parameters.spName = "homSap"
 	CQF.getCCDS(parameters.inFile, parameters.species, parameters.spName)
