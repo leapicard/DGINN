@@ -1,5 +1,5 @@
 import os
-import LoadFileFunc
+import LoadFileFunc, TreeFunc
 import logging, sys
 from Bio import Entrez
 from statistics import median
