@@ -40,7 +40,6 @@ def ResBusted(baseName, posDir):
 	WG = posDir+"/busted/"+baseName+"_busted.out"
 	posSel = ""
 	d = OrderedDict()
-	print(WG)
 	if os.path.exists(WG):
 		with open(WG, "r") as wg:
 			try:
@@ -98,12 +97,10 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 	model1, model2 = models.split(" ")[0], models.split(" ")[1]
 	method = "Bpp{:s}{:s}".format(model1, model2)
 	d = OrderedDict({method:"na", method+"_p-value":"na", method+"_NbSites":"0", method+"_PSS":"na"})
-	print(dLogLlh)
 	if isinstance(dLogLlh[model1], float) and isinstance(dLogLlh[model2], float):
 		try:
 			if model1 and model2 in dLogLlh:
 				LR, p = LRT(dLogLlh[model1], dLogLlh[model2], 2)
-				print(dSAres[model2])
 				if p < 0.05 and os.path.exists(dSAres[model2]):
 					df = pandas.read_csv(dSAres[model2], sep='\t')
 					w = float(df.columns[-2].split("=")[-1])*0.8
