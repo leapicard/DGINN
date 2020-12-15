@@ -101,7 +101,6 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 		try:
 			if model1 and model2 in dLogLlh:
 				LR, p = LRT(dLogLlh[model1], dLogLlh[model2], 2)
-				print(dSAres[model2])
 				if p < 0.05 and os.path.exists(dSAres[model2]):
 					df = pandas.read_csv(dSAres[model2], sep='\t')
 					w = float(df.columns[-2].split("=")[-1])*0.8
