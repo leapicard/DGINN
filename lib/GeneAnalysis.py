@@ -28,10 +28,7 @@ def hyphyBusted(alnFile, cladoFile, outDir, baseName, logger):
 	outBusted = open(outWG+baseName+"_busted.out", "w")
 	errBusted = open(outWG+baseName+"_busted.err", "w")
 	
-	cmd = "HYPHYMP {:s}".format(bustedFile.replace(":", "\:"))
-	"""cmd = "hyphy BUSTED --alignment {:s} --tree {:s} --output {:s}".format(alnFile,
-																		   cladoFile,
-																		   resBusted)"""
+	cmd = "hyphy BUSTED --alignment {:s} --tree {:s} --output {:s}".format(alnFile, cladoFile, resBusted)
 	logger.debug(cmd)
 	
 	runBusted = subprocess.Popen(cmd, shell=True, stdout=outBusted, stderr=errBusted).wait()

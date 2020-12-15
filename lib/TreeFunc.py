@@ -474,13 +474,13 @@ def runTreerecs(pathGtree, pathSptree, cor, o):
     sptree.write(outfile=pathSptree2)
 
   suff=pathGtree.split("/")[-1]
-  recTree = o+suff[:suff.rfind(".")]+"_recs.nhx"
+  recTree = o+suff+"_recs.nhx" #o+suff[:suff.rfind(".")]+"_recs.nhx"
   val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX:svg".format(pathGtree, 
 								       pathSptree2, 
 								       o)
 	
   AnalysisFunc.cmd(val, False)
-	
+
   return recTree
 
 

@@ -50,7 +50,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	  # if M0 optimization in models, use tree optimized in M0 for subsequent model optimizations
 	  lignore=[]
 	  if model!="M0" and "M0" in lModels:
-	    treeFile = dModelTrees["M0"]
+	    treeFile = dModelTrees["M0"]+"_1"
 	    lignore.append("BrLen")
 
 	  if model == "M8a":
@@ -139,6 +139,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		
 	  # join each couple of the cmd dictionary so that it reads "k1 = v1" "k2 = v2" etc...
 	  argsMx = "\""+"\" \"".join([k+"="+v for k, v in dBppCmd.items()])+"\""
+	  logger.info("bppml "+argsMx)
 	  logger.debug("bppml "+argsMx)
 	  runMx = subprocess.Popen("bppml "+argsMx, shell=True, stdout=subprocess.PIPE).wait()
 	  logger.debug(subprocess.PIPE)
@@ -189,16 +190,15 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	for model in lModels:
 		# use tree optimized in M0 for each model
 		if "M0" in lModels:
-			treeFile = dModelTrees["M0"]
+			treeFile = dModelTrees["M0"]+"_1"
 		else:
-			treeFile = dModelTrees[model]
+			treeFile = dModelTrees[model]+"_1"
 		
 		if model == "M0":
-			logger.info("M0 is not a mixed model, skipping.")
 			continue
 			
 		# dictionary(model:results file name)
-		dModelResults = {model:outDir+baseName+"_results"+model+".log" for model in lModels}
+		dModelResults = {model:outSite+baseName+"_results"+model+".log" for model in lModels}
 
 		dMixCmd = {"INPUTFILE":alnFile, 
 				   "FORMAT":alnFormat, 
@@ -210,6 +210,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		logger.info("Running mixed likelihoods with model {:s}".format(model))
 		argsMx = "\""+"\" \"".join([k+"="+v for k, v in dMixCmd.items()])+"\""
 		logger.debug("bppmixedlikelihoods "+argsMx)
+		logger.info("bppmixedlikelihoods "+argsMx)
 		runMx = subprocess.Popen("bppmixedlikelihoods "+argsMx, shell=True, stdout=subprocess.PIPE).wait()
 		logger.debug(subprocess.PIPE)
 			
