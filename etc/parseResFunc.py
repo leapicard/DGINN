@@ -40,31 +40,31 @@ def ResBusted(baseName, posDir):
 	WG = posDir+"/busted/"+baseName+"_busted.out"
 	posSel = ""
 	d = OrderedDict()
-
+	print(WG)
 	if os.path.exists(WG):
 		with open(WG, "r") as wg:
 			try:
 				p = wg.read().split("**")[-2].replace(" ", "").split("=")[1]
-				
+
 				if float(p) < 0.05:
 					posSel = "Y"
 				else:
 					posSel = "N"
 				d["BUSTED"] = posSel
-				d["BUSTED p-value"] = str(p)
+				d["BUSTED_p-value"] = str(p)
 			except:
 				d = {}
 
 	if len(d) == 0:
 		d["BUSTED"] = "na"
-		d["BUSTED p-value"] = "na"
+		d["BUSTED_p-value"] = "na"
 
 	return(d)
 
 def ResMeme(baseName, posDir):
 	BS = posDir+"/meme/"+baseName+"_meme.out"
 	MemePss = posDir+"/"+baseName+"_meme_pss.fasta"
-	d = OrderedDict({"MEME NbSites":"0", "MEME PSS":"na"})
+	d = OrderedDict({"MEME_NbSites":"0", "MEME_PSS":"na"})
 
 	if os.path.exists(BS):
 		try:
@@ -81,36 +81,36 @@ def ResMeme(baseName, posDir):
 				lRes = [int(line.split("|")[1].replace(" ", "")) for line in BSlines if line.startswith("|") and line.split("|")[1].replace(" ", "").isdigit()]
 
 			if len(lRes) > 0:
-				d["MEME NbSites"] = str(len(lRes))
-				d["MEME PSS"] = "{}".format(lRes).replace("[", "").replace("]", "")
+				d["MEME_NbSites"] = str(len(lRes))
+				d["MEME_PSS"] = "{}".format(lRes).replace("[", "").replace("]", "")
 
 		except:
 			next
 
 	"""
 	if len(d) == 0:
-		d["MEME PSS"] = "na"
-		d["MEME NbSites"] = 0
+		d["MEME_PSS"] = "na"
+		d["MEME_NbSites"] = 0
 	"""
 	return(d)
 
 def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 	model1, model2 = models.split(" ")[0], models.split(" ")[1]
 	method = "Bpp{:s}{:s}".format(model1, model2)
-	d = OrderedDict({method:"na", method+" p-value":"na", method+" NbSites":"0", method+" PSS":"na"})
-
+	d = OrderedDict({method:"na", method+"_p-value":"na", method+"_NbSites":"0", method+"_PSS":"na"})
+	print(dLogLlh)
 	if isinstance(dLogLlh[model1], float) and isinstance(dLogLlh[model2], float):
 		try:
 			if model1 and model2 in dLogLlh:
 				LR, p = LRT(dLogLlh[model1], dLogLlh[model2], 2)
-				
+				print(dSAres[model2])
 				if p < 0.05 and os.path.exists(dSAres[model2]):
 					df = pandas.read_csv(dSAres[model2], sep='\t')
 					w = float(df.columns[-2].split("=")[-1])*0.8
 
 					lRes1 = df[df.iloc[:,-1]>w].iloc[:,0].tolist()
 					lRes2 = df[df.iloc[:,-2]>pr].iloc[:,0].tolist()
-					lRes = list(set(lRes1).intersection(lRes2))
+					lRes = list(map(lambda x:x+1,set(lRes1).intersection(lRes2)))
 					lRes.sort()
 					lResFinal = str("{}".format(lRes).replace("[", "").replace("]", ""))
 
@@ -124,9 +124,9 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 
 				
 				d[method] = posSel
-				d[method+" p-value"] = str(p)
-				d[method+" NbSites"] = nbPSS
-				d[method+" PSS"] = lResFinal
+				d[method+"_p-value"] = str(p)
+				d[method+"_NbSites"] = nbPSS
+				d[method+"_PSS"] = lResFinal
 					
 		except:
 			next
@@ -135,13 +135,12 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 def ResBpp(baseName, posDir, pr):
 	dSA = {}
 	dSAres = {}
-	dLogLlh = OrderedDict()
+	dLogLlh = {}
 	lModels = ["M1","M2","M7","M8"]
 
 	for model in lModels:
 		dSA[model] = posDir+"/bpp_site/"+baseName+"_"+model+".params"
-		dSAres[model] = posDir+"/"+baseName+"_results"+model+".log"
-
+		dSAres[model] = posDir+"/bpp_site/"+baseName+"_results"+model+".log"
 		if os.path.exists(dSA[model]):
 			with open(dSA[model], "r") as params:
 				dLogLlh[model] = float(params.readline().strip().split("= ")[-1])
@@ -157,7 +156,7 @@ def ResBpp(baseName, posDir, pr):
 def ResPamlExtract(models, dModelLlh, dModelFile, pr):
 	model1, model2 = models.split(" ")[0], models.split(" ")[1]
 	method = "codeml{:s}{:s}".format(model1, model2)
-	d = OrderedDict({method:"na", method+" p-value":"na", method+" NbSites":"0", method+" PSS":"na"})
+	d = OrderedDict({method:"na", method+"_p-value":"na", method+"_NbSites":"0", method+"_PSS":"na"})
 
 	if isinstance(dModelLlh[model1], float) and isinstance(dModelLlh[model2], float):
 		LR, p = LRT(dModelLlh[model1], dModelLlh[model2], 2)
@@ -179,9 +178,9 @@ def ResPamlExtract(models, dModelLlh, dModelFile, pr):
 			nbPSS = "0"
 
 		d[method] = posSel
-		d[method+" p-value"] = str(p)
-		d[method+" NbSites"] = nbPSS
-		d[method+" PSS"] = lResFinal
+		d[method+"_p-value"] = str(p)
+		d[method+"_NbSites"] = nbPSS
+		d[method+"_PSS"] = lResFinal
 	
 	return(d)
 
