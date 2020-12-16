@@ -48,17 +48,18 @@ if __name__ == "__main__":
 	#debug = args.debug
 	
 	lDirs = [line.rstrip() for line in open(inFile)]
+	lDirs = [line for line in lDirs if line!='']
 	dSub2Cut = OrderedDict({sub.split("\t")[0]:sub.split("\t")[1] for sub in lDirs})
 	#dSub2Cut = OrderedDict({sub:"/".join(sub.split("/")[0:-1])[0:-21]+".best.fas" for sub in lDirs if os.path.exists("/".join(sub.split("/")[0:-1])[0:-21]+".best.fas")})
 
 	timeStamp = strftime("%Y%m%d%H%M", localtime())
-	resFile = inDir+"/DGINN_{}summary.tab".format(timeStamp)
+	resFile = inDir+"/DGINN_{}_summary.tab".format(timeStamp)
 	res = open(resFile, "w")
 	head = ""
 	allRes = []
-	cov = inDir+"/DGINN_{}coverage.tab".format(timeStamp)
+	cov = inDir+"/DGINN_{}_coverage.tab".format(timeStamp)
 	dAlnCov = {}
-	llhFile = inDir+"/DGINN_{}likelihoods.tab".format(timeStamp)
+	llhFile = inDir+"/DGINN_{}_likelihoods.tab".format(timeStamp)
 	llh = open(llhFile, "w")
 	llh.write("File\tMethod\tM1\tM2\tM7\tM8\n")
 	
@@ -68,35 +69,38 @@ if __name__ == "__main__":
 
 	#if os.path.exists(posDir):
 		baseName = aln.split("/")[-1].split(".")[0]
-		M0fileBpp = posDir+"/bpp_site/"+baseName+"_M0.params"
+		M0fileBpp = posDir+"/bpp_site/"+baseName+"_optimization_M0.def"
 		M0filePaml = posDir+"/paml_site/M0/rst1"
 		dGene = OrderedDict()
-
 		try:
 			with open(M0fileBpp, "r") as M0:
-				wM0Bpp = str(M0.read().split("omega=")[1].split(")")[0])
+                          l=M0.readline()
+                          while l:
+                            if l.find("omega")!=-1:
+                              wM0Bpp = l.split("=")[1].strip()
+                              break
+                            l=M0.readline()
 		except:
 			wM0Bpp = "na"
 
 		try:
 			with open(M0filePaml, "r") as M0:
-				wM0Paml = str(M0.read().split("\t")[-4])
+			  wM0Paml = str(M0.read().split("\t")[-4])
 
 		except:
 			wM0Paml = "na"
 
 		baseName2 = baseName.split("_")[0]
-		bust = PRS.ResBusted(baseName2, posDir)
+		bust = PRS.ResBusted(baseName, posDir)
 		dGene.update(bust)
-		meme = PRS.ResMeme(baseName2, posDir)
+		meme = PRS.ResMeme(baseName, posDir)
 		dGene.update(meme)
-		bpp1v2, bpp7v8, bppLlh = PRS.ResBpp(baseName2, posDir, pr)
+		bpp1v2, bpp7v8, bppLlh = PRS.ResBpp(baseName, posDir, pr)
 		dGene.update(bpp1v2)
 		dGene.update(bpp7v8)
 		paml1v2, paml7v8, pamlLlh = PRS.ResPaml(posDir, pr)
 		dGene.update(paml1v2)
 		dGene.update(paml7v8)
-
 		f = SeqIO.parse(open(aln),'fasta')
 		ids = [fasta.id.split("_")[1].upper() for fasta in f]
 		f = SeqIO.parse(open(aln),'fasta')
@@ -131,15 +135,13 @@ if __name__ == "__main__":
 		
 		lBase = ["File", "Name", "Gene", "GeneSize", "NbSpecies", "omegaM0Bpp", "omegaM0codeml"]
 		head = "\t".join(lBase + list(dGene.keys()))
-		lBaseRes = [baseName, shortName, mainName, str(alnLen), str(nbSp), wM0Bpp, wM0Paml]
+		lBaseRes = [baseName, shortName, mainName, str(int(alnLen)), str(nbSp), wM0Bpp, wM0Paml]
 		resLine = "\t".join(lBaseRes + list(dGene.values()))
 		allRes.append(resLine)
 
-		if type(bppLlh) is dict:
-			bppLlhRes = [str(value) for value in bppLlh.values()]
-			llh.write(baseName+"\tBPP\t"+"\t".join(bppLlhRes)+"\n")
-		else:
-			llh.write(baseName+"\tBPP\tna\n")
+		bppLlhRes = [str(bppLlh[k]) for k in ["M1","M2","M7","M8"]]
+		llh.write(baseName+"\tBPP\t"+"\t".join(bppLlhRes)+"\n")
+
 		if type(bppLlh) is dict:
 			pamlLlhRes = [str(value) for value in pamlLlh.values()]
 			llh.write(baseName+"\tPAML\t"+"\t".join(pamlLlhRes)+"\n")

@@ -1,7 +1,13 @@
-FROM ubuntu:latest
+FROM ubuntu:latest as base
 MAINTAINER Lea Picard lea.picard@gmail.com
 
-RUN apt-get clean && apt-get update && apt-get install -y build-essential \
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt-get clean && apt-get update && apt-get install -y apt-utils
+
+RUN TZ="Europe/Paris" apt-get -y install tzdata
+
+RUN apt-get -y install build-essential \
 	git \
 	emboss \
 	doxygen \
@@ -10,29 +16,75 @@ RUN apt-get clean && apt-get update && apt-get install -y build-essential \
 	openssl \
 	libssl-dev \
 	openmpi-bin \
-	libopenmpi-dev
+	libopenmpi-dev \
+        libeigen3-dev
+        
+## Install most recent version of cMake
+## RUN git clone https://github.com/Kitware/CMake && cd CMake && ./bootstrap && make && make install
 
-## Install all the necessary python dependencies to run DGINN
+RUN apt-get -y install build-essential cmake
 
+
+
+
+
+#################
+## Install PRANK
+FROM base as prank
 WORKDIR /opt
 
-## Install most recent version of cMake
-RUN git clone https://github.com/Kitware/CMake && cd CMake && ./bootstrap && make && make install
-
-## Install PRANK
 RUN git clone https://github.com/ariloytynoja/prank-msa.git && cd prank-msa/src && make
-ENV PATH /opt/prank-msa/src:$PATH
 
+
+#################
 ## Install PhyML
-RUN git clone https://github.com/stephaneguindon/phyml && cd phyml && sh ./autogen.sh && ./configure --enable-phyml && make
-ENV PATH /opt/phyml/src:$PATH
+FROM base as phyml
+WORKDIR /opt
 
+RUN git clone  https://github.com/stephaneguindon/phyml && cd phyml && sh ./autogen.sh && ./configure --enable-phyml && make
+
+
+#################
 ## Install Treerecs
-RUN git clone https://gitlab.inria.fr/Phylophile/Treerecs && cd Treerecs && cmake -DCMAKE_BUILD_TYPE=MinSizeRel . && make && make install
-ENV PATH /opt/Treerecs:$PATH
+FROM base as treerecs
+WORKDIR /opt
 
+RUN git  clone https://gitlab.inria.fr/Phylophile/Treerecs && cd Treerecs && cmake -DCMAKE_BUILD_TYPE=MinSizeRel . && make && make install
+
+
+#################
 ## Install BIO++
-RUN mkdir bpp && cd bpp && mkdir sources && cd sources && for d in bpp-core bpp-seq bpp-phyl bpp-popgen; \
+FROM base as biopp
+WORKDIR /opt
+
+RUN mkdir bpp && cd bpp && mkdir sources && cd sources && for d in bpp-core; \
+	do git clone -b newlik https://github.com/BioPP/$d; \
+	cd $d; \
+	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
+	make -j 4; \
+	make install; \
+	cd ..; \
+	done
+
+RUN  cd bpp && cd sources && for d in bpp-seq; \
+	do git clone -b newlik https://github.com/BioPP/$d; \
+	cd $d; \
+	cmake  -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
+	make -j 4; \
+	make install; \
+	cd ..; \
+	done
+
+RUN cd bpp && cd sources && for  d in bpp-phyl; \
+	do git clone -b newlik https://github.com/BioPP/$d; \
+	cd $d; \
+	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
+	make -j 4; \
+	make install; \
+	cd ..; \
+	done
+
+RUN cd bpp && cd sources && for d in bpp-popgen; \
 	do git clone https://github.com/BioPP/$d; \
 	cd $d; \
 	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
@@ -41,45 +93,92 @@ RUN mkdir bpp && cd bpp && mkdir sources && cd sources && for d in bpp-core bpp-
 	cd ..; \
 	done
 
-RUN cd bpp && git clone https://github.com/BioPP/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ -DINFO=FALSE && make && make install
-ENV PATH /opt/bpp/bppsuite/bppSuite/:$PATH
-ENV CPATH /opt/bpp/include:$CPATH
-ENV LIBRARY_PATH /opt/bpp/lib:$LIBRARY_PATH
-ENV LD_LIBRARY_PATH /opt/bpp:/opt/bpp/include:/opt/bpp/lib:$LD_LIBRARY_PATH
+RUN cd bpp && git clone -b newlik  https://github.com/BioPP/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ && make -j 4 && make install
+
+
+#################
+## Install HYPHY
+FROM base as hyphy
+WORKDIR /opt
+
+RUN git clone https://github.com/veg/hyphy.git && cd hyphy && cmake . && make MPI && make MP && make install
+
+
+#################
+## Install paml
+FROM base as paml
+WORKDIR /opt
+RUN git clone https://github.com/binlu1981/paml && cd paml && cd src && make
+
+
+#################
+## Install mafft
+FROM base as mafft
+#No WORKDIR /opt  because not used for apt-get
+RUN apt-get clean  && apt-get update && apt-get install -y mafft
+
+
+####################
+## Install all
+FROM base
+
+WORKDIR /opt/
 
 ## Install python3, necessary packages and DGINN
 RUN apt-get install -y python3-pip
 
-RUN pip3 install --upgrade --target /usr/local/lib/python3.6/dist-packages numpy \
+RUN pip3 install --upgrade numpy \
 	scipy \
 	pandas \
 	requests \
-	biopython \
 	setuptools \
 	pyqt5==5.14 \
 	six \
 	lxml
 
-RUN pip3 install --target /usr/local/lib/python3.6/dist-packages --upgrade ete3
-ENV PYTHONPATH /usr/local/lib/python3.6/dist-packages:$PYTHONPATH
+RUN pip3 install biopython
 
+RUN pip3 install --upgrade ete3
 
-## Install HYPHY
-#RUN git clone https://github.com/veg/hyphy.git && cd hyphy && cmake . && make MPI && make MP && make install
-WORKDIR /opt/hyphy
-RUN git init && git remote add origin https://github.com/veg/hyphy/ && git fetch --depth 1 origin e1420457b4d0c9de8f206a78614c44525dc7be68 && git checkout FETCH_HEAD && cmake . && make HYPHYMPI && make HYPHYMP && make install
-ENV PATH /opt/hyphy:$PATH
-
-WORKDIR /opt
-RUN git clone https://github.com/binlu1981/paml && cd paml && cd src && make
-ENV PATH /opt/paml/src/:$PATH
-
-RUN apt-get clean && apt-get update && apt-get install -y mafft
-
-RUN echo "yolo"
-RUN git clone https://github.com/leapicard/DGINN && cd DGINN && chmod +x DGINN.py
+RUN git clone https://github.com/lgueguen/DGINN && cd DGINN && chmod +x DGINN.py
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
+
+
+## All softwares
+ENV PATH /opt/bin:$PATH
+
+COPY --from=prank /opt/prank-msa/src/prank /opt/bin/prank
+
+COPY --from=mafft /usr/bin/mafft /opt/mafft/bin/mafft
+COPY --from=mafft /usr/bin/mafft-homologs /opt/mafft/bin/mafft-homologs
+COPY --from=mafft /usr/bin/mafft-profile /opt/mafft/bin/mafft-profil
+COPY --from=mafft /usr/lib/mafft /usr/lib/mafft   
+# 
+ENV PATH /opt/mafft/bin/:/opt/mafft/lib/:$PATH
+#ENV LD_LIBRARY_PATH /opt/local/lib:$LD_LIBRARY_PATH
+# RUN echo $PATH
+#
+
+
+COPY --from=phyml /opt/phyml/src/phyml /opt/bin/phyml
+
+
+COPY --from=treerecs  /opt/Treerecs /opt/treerecs
+ENV PATH /opt/treerecs/bin:$PATH
+
+COPY --from=biopp  /opt/bpp/lib /opt/bpp/lib
+COPY --from=biopp  /opt/bpp/bppsuite/bppSuite /opt/bpp/bppsuite/bppSuite
+
+ENV PATH /opt/bpp/bppsuite/bppSuite/:$PATH
+ENV LD_LIBRARY_PATH /opt/bpp/lib:$LD_LIBRARY_PATH
+
+RUN apt-get install -y hyphy-mpi hyphy-common hyphy-pt
+RUN echo $PATH
+
+COPY --from=paml /opt/paml/src/codeml /usr/local/bin/
+
+RUN apt-get install -y python3-biopython
 
 #WORKDIR ~/
 ENTRYPOINT ["DGINN.py"]

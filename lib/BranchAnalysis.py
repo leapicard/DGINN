@@ -1,5 +1,6 @@
 import os, shlex, logging, subprocess, re
 from AnalysisFunc import cmd
+from subprocess import PIPE
 
 def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 	### BRANCH ANALYSIS: BIO++ ONE PER BRANCH
@@ -103,34 +104,20 @@ def memeBranchSite(aln, cladoFile, outDir, baseName, logger):
 	if not os.path.exists(outBSA):
 		subprocess.Popen("mkdir "+outBSA, shell =  True).wait()
 
-	outMeme = open(outBSA+baseName+"_meme.out", "w")
-	errMeme = open(outBSA+baseName+"_meme.err", "w")
-	memeFile = outBSA+baseName+"_meme.bf"
-	memeFile = memeFile.replace(":", "\:")
-
-	with open(memeFile, "w") as bf:
-		bf.write("inputRedirect = {};\n")
-		bf.write("inputRedirect[\"01\"] = \"Universal\";\n")
-		bf.write("inputRedirect[\"02\"] = \"{:s}\";\n".format(aln.replace(":", "\:")))
-		bf.write("inputRedirect[\"03\"] = \"{:s}\";\n".format(cladoFile.replace(":", "\:")))
-		bf.write("inputRedirect[\"04\"] = \"All\";\n")
-		bf.write("inputRedirect[\"05\"] = \"0.1\";\n")
-		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"SelectionAnalyses\" + DIRECTORY_SEPARATOR + \"MEME.bf\", inputRedirect);")
-		bf.close()
-	logger.info("MEME batch file: {:s}".format(memeFile))
+	dopt = {}        
+	dopt["--output"] = outBSA+baseName+".MEME.json"
+	dopt["--alignment"] = aln
+	dopt["--tree"] = cladoFile
 	
+	lopt = " ".join([k + " " + v for k,v in dopt.items()])
+        
 	# run MEME
-	logger.debug("HYPHYMP "+memeFile)
+	logger.info("hyphy meme "+ lopt)
 
-	runBusted = subprocess.Popen("HYPHYMP "+memeFile, shell=True, stdout=outMeme, stderr=errMeme).wait()
+	fout = open(outBSA+baseName+"_meme.out","w")
+	runMeme = subprocess.Popen("hyphy meme "+ lopt, shell = True, stdout = fout, bufsize=0).wait()
+	fout.close()
+        
+	os.rename(dopt["--output"], outBSA+baseName+".MEME.json")
 	
-	patterns = re.compile(r'\b\.bf\b|\b\.json\b')
-	memeFileList = [ outDir+fn for fn in os.listdir(outDir) if re.search(patterns, fn) ]
-
-	for fileM in memeFileList:
-		fileM2 = fileM.replace(".fasta.", ".").replace(outDir, outBSA)
-		os.rename(fileM, fileM2)
-		if os.path.exists(fileM2):
-			logger.info("Output: "+fileM2)
-	outMeme.close()
-	errMeme.close()
+	

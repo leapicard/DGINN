@@ -407,7 +407,7 @@ def runGARD(aln, o, hostFile, logger):
 	"""
 
 	gardRes = o+aln.split("/")[-1].split(".")[0]+".gard"
-	gardJson = o+aln.split("/")[-1].split(".")[0]+".json"
+	gardJson = o+aln.split("/")[-1]+".GARD.json"
 	outGard = gardRes+"_out"
 	errGard = gardRes+"_err"
 	
@@ -432,10 +432,9 @@ def runGARD(aln, o, hostFile, logger):
 	"""
 
 	if hostFile == "":
-		cmd = "mpirun -np 2 HYPHYMPI {:s}".format(batchFile)
+		cmd = "mpirun -np 4 -merge-stderr-to-stdout -output-filename {:s} HYPHYMPI  {:s} ".format(o + "errgard", batchFile)
 	else:
-		cmd = "mpirun -np 2 -hostfile {:s} HYPHYMPI {:s}".format(hostFile, batchFile)
-
+		cmd = "mpirun -np 4 -hostfile {:s} -merge-stderr-to-stdout -output-filename {:s} HYPHYMPI {:s}".format(hostFile, o + "errgard", batchFile)
 
 	lCmd = shlex.split(cmd)
 	with open(outGard, "w") as o, open(errGard, "w") as e:
@@ -443,7 +442,8 @@ def runGARD(aln, o, hostFile, logger):
 	  o.close()
 	  e.close()
 	logger.debug(cmd)
-	return(gardRes)
+	logger.info(gardJson)
+	return(gardJson)
 
 
 def procGARD(gardRes, aln):
@@ -458,7 +458,7 @@ def procGARD(gardRes, aln):
 	splitsFile = gardRes+"_splits"
 	outGardProc = gardRes+"_outproc"
 	errGardProc = gardRes+"_errproc"
-	#logger = logging.getLogger("main")
+	logger = logging.getLogger("main.recombination")
 	
 	with open(batchFile, "w") as bf:
 		bf.write("inputRedirect = {};\n")
@@ -467,7 +467,10 @@ def procGARD(gardRes, aln):
 		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"GARDProcessor.bf\", inputRedirect);\n".format())
 	#logger.debug("Batch file: {:s}".format(batchFile))
 	
-	cmd = "HYPHYMP {:s}".format(batchFile)
+	cmd = "hyphy {:s}".format(batchFile)
+	logger.info(cmd)
+	logger.info(os.system(cmd))
+	logger.info("====================")
 	lCmd = shlex.split(cmd)
 	with open(outGardProc, "w") as o, open(errGardProc, "w") as e:
 	  runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
@@ -475,90 +478,85 @@ def procGARD(gardRes, aln):
 	  e.close()
 	return(outGardProc)
 
-def parseGard(kh, aln, pvalue, o, logger):
+def parseGard(kh, aln, o, logger):
 	"""
 	Function returning the cut fragments following GARD analysis and identification of significant breakpoints.
 
-	@param1 kh: Path to GARDprocessor output file
+	@param1 kh: Path to GARD.json output file
 	@param2 aln: Path to alignment file
 	@param3 pvalue: Float
 	@param4 o: Path to output directory
 	@return lOutFrag: List of Path (Fragments in fasta files)
 	"""
 	lBP = []
-	with open(kh, "r") as f:
-	  lLine = f.readlines()
-	  finalIndex = len(lLine)
-	  f.close()
+	f = open(kh, "r")
+	lLine = f.readline()
+	while lLine:
+	  if lLine.find("\"breakpoints\"")!=-1:
+	    lLine = f.readline()
+	    lLine=lLine[lLine.find("[")+1:lLine.find("]")]
+	    lBP=list(map(int, lLine.split(",")))
+	    break
+	  lLine = f.readline()
+	f.close()
 	index = 0
-	while lLine[index].startswith("Breakpoint") != True and index < finalIndex:
-		index += 1
 	
 	#If there are breakpoints, add it in lBP
-	if lLine[index+1] != "":
-		index += 1
-		while lLine[index].startswith(" "):
-			line = [float(item.strip()) for item in lLine[index].split("|")]
-			if line[2] < pvalue and line[4] < pvalue:
-				lBP.append(int(line[0]))
-			index += 1
+	if len(lBP) > 0:
+		logger.info("There are {:d} significant breakpoints in alignement {:s} at positions {}".format(len(lBP), aln, lBP))
+	else:
+		logger.info("There are no significant breakpoints in alignement {:s}.".format(aln))
+		return []
+              
+	#If there're breakpoint(s), cut sequence in subsequences according to breakpoints
+	if len(lBP) > 0:
+		dFname2Fseq = {}
+		for fasta in SeqIO.parse(open(aln),'fasta'):
+			dFname2Fseq[fasta.id] = str(fasta.seq)
 		
-		if len(lBP) > 0:
-			logger.info("There are {:d} significant breakpoints in alignement {:s} at positions {}".format(len(lBP), aln, lBP))
-		else:
-			logger.info("There are no significant breakpoints in alignement {:s}.".format(aln))
+		#Creation of a dico where atgc in sequence has been replace by 1 and - by 0
+		lSeqBin = []
+		lNameGene = []
+		for fastaSeq in dFname2Fseq:
+			lSeqBin.append(dFname2Fseq[fastaSeq].lower().replace("a", "1").replace("t", "1").replace("c", "1").replace("g", "1").replace("-", "0"))
+			lNameGene.append(fastaSeq)
+
+		#looking for a multiple of 3 (number of letter) (subsequence ends on or after the breakpoint)
+		nbSeq = len(lNameGene)
+		lenSeq = len(lSeqBin[0])
+		lPos = [0]
+		lBPprec = [0 for i in range(len(lSeqBin))]
+		lFrag = []
+		for bp in lBP:
+			while bp%3 != 0:
+				bp += 1
+			lPos.append(bp)
+			lFrag += [ dFname2Fseq[lNameGene[j]][lPos[-2]:lPos[-1]] for j in range(nbSeq) ]
 		
-		#If there're breakpoint(s), cut sequence in subsequences according to breakpoints
-		if len(lBP) > 0:
-			dFname2Fseq = {}
-			for fasta in SeqIO.parse(open(aln),'fasta'):
-				dFname2Fseq[fasta.id] = str(fasta.seq)
-			
-			#Creation of a dico where atgc in sequence has been replace by 1 and - by 0
-			lSeqBin = []
-			lNameGene = []
-			for fastaSeq in dFname2Fseq:
-				lSeqBin.append(dFname2Fseq[fastaSeq].lower().replace("a", "1").replace("t", "1").replace("c", "1").replace("g", "1").replace("-", "0"))
-				lNameGene.append(fastaSeq)
+		#Adding subsequences that start at the last breakpoint to the end
+		lFrag += [dFname2Fseq[lNameGene[i]][lPos[-1]:] for i in range(nbSeq)]
 
-			#looking for a multiple of 3 (number of letter) (subsequence ends on or after the breakpoint)
-			nbSeq = len(lNameGene)
-			lenSeq = len(lSeqBin[0])
-			lPos = [0]
-			lBPprec = [0 for i in range(len(lSeqBin))]
-			lFrag = []
-			for bp in lBP:
-				while bp%3 != 0:
-					bp += 1
-				lPos.append(bp)
-				lFrag += [ dFname2Fseq[lNameGene[j]][lPos[-2]:lPos[-1]] for j in range(nbSeq) ]
-			
-			#Adding subsequences that start at the last breakpoint to the end
-			lFrag += [dFname2Fseq[lNameGene[i]][lPos[-1]:] for i in range(nbSeq)]
+		lBP = lPos+[lenSeq]
+		lOutFrag = []
+		index = 0
+		for x in range(1,len(lBP)):
+			dFrag = {}
+			if lBP[x-1] == 0:
+				extension = "{:d}to{:d}".format(lBP[x-1], lBP[x])
+			else:
+				extension = "{:d}to{:d}".format(lBP[x-1]-1, lBP[x])
 
-			lBP = lPos+[lenSeq]
-			lOutFrag = []
-			index = 0
-			for x in range(1,len(lBP)):
-				dFrag = {}
-				if lBP[x-1] == 0:
-					extension = "{:d}to{:d}".format(lBP[x-1], lBP[x])
-				else:
-					extension = "{:d}to{:d}".format(lBP[x-1]-1, lBP[x])
+			outFrag = o+aln.split("/")[-1].split(".")[0]+"_frag"+extension+".best.fas"
+			for name in lNameGene:
+				dFrag[name] = lFrag[index]
+				index += 1
+			with open(outFrag, "w") as outF:
+			  outF.write(FastaResFunc.dict2fasta(dFrag))
+			  logger.info("\tNew alignment: %s"%{outFrag})
+			  outF.close()
+			  lOutFrag.append(outFrag)
 
-				outFrag = o+aln.split("/")[-1].split(".")[0]+"_frag"+extension+".best.fas"
-				for name in lNameGene:
-					dFrag[name] = lFrag[index]
-					index += 1
-				with open(outFrag, "w") as outF:
-				  outF.write(FastaResFunc.dict2fasta(dFrag))
-				  logger.info("\tNew alignment: %s"%{outFrag})
-				  outF.close()
-				  lOutFrag.append(outFrag)
-
-			return lOutFrag
-		else:
-			return []
+		return lOutFrag
 	else:
 		return []
 
@@ -577,38 +575,34 @@ def gardRecomb(data, pvalue, dAT, hostFile):
 	nb = 1
 	dFrag = {}
 	for aln in dAT:
-		logger.info("Running GARD on {:s}".format(aln))
-		gardRes = runGARD(aln, 
-						  data.o, 
-						  hostFile, 
-						  data.logger)
+	  logger.info("Running GARD on {:s}".format(aln))
+	  gardRes = runGARD(aln, 
+			    data.o, 
+			    hostFile, 
+			    data.logger)
 			
-		logger.info("Checked for recombination using HYPHY GARD.")
+	  logger.info("Checked for recombination using HYPHY GARD.")
 				
-		procGardRes = procGARD(gardRes, aln)
-		#data.lGard.append(listGardProc)
-		logger.info("Extracted GARD results.")
+          
+	  parsedFragments = parseGard(gardRes,
+                                      aln,
+                                      data.o, 
+				      logger)
 
-		parsedFragments = parseGard(procGardRes, 
-									aln, 
-									float(pvalue), 
-									data.o, 
-									logger)
-
-		logger.info("Parsed GARD results.")
-		if len(parsedFragments) > 0:
-			for frag in parsedFragments:
-				logger.info("Running Phyml on fragment: {:s}".format(frag))
-				fragTree = runPhyML(frag, data.o)+"_phyml_tree.txt"
-				dFrag[frag] = fragTree
-		else:
-			logger.info("No fragments of recombination identified.")
-			
-	dAT.update(dFrag)
-	return(dAT)
+	  logger.info("Parsed GARD results.")
+	  if len(parsedFragments) > 0:
+	    for frag in parsedFragments:
+	      logger.info("Running Phyml on fragment: {:s}".format(frag))
+	      fragTree = runPhyML(frag, "", data.o)
+	      dFrag[frag] = fragTree+"_phyml_tree.txt"
+	  else:
+	    logger.info("No fragments of recombination identified.")
+	      
+	  dAT.update(dFrag)
+	  return(dAT)
 	
 	"""except Exception:
-		logger.info("GARD encountered an unexpected error, skipping.")
-		return dAT"""
+	logger.info("GARD encountered an unexpected error, skipping.")
+	return dAT"""
 
 #######=================================================================================================================

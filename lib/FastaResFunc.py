@@ -1,5 +1,5 @@
 import os
-import LoadFileFunc
+import LoadFileFunc, TreeFunc
 import logging, sys
 from Bio import Entrez
 from statistics import median
@@ -149,7 +149,7 @@ def fastaCreation(data, remote, apiKey, maxLen, step, treerecs):
 	dId2Seq = sizeCheck(dId2Seq, maxLen)
 	
 	firstFasta = data.o+data.accnFile.replace("_accns.txt", "_sequences.fasta").split("/")[-1]
-	if step is "blast":
+	if step == "blast":
 		firstFasta = catFile(data.queryFile, dId2Seq, firstFasta)
 	else:
 		with open(firstFasta, "w") as out:

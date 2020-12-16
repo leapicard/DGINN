@@ -68,48 +68,42 @@ def NHXTree(tree):
 	return sout
 	
 def pspFileCreation(path, option):
-  if not os.path.exists(path):
+  if True:
     dparams={}
     dparams["alphabet"] = "Codon(letter=DNA)"
-    dparams["input.sequence.file"] = "$(INPUTFILE)"
-    dparams["input.sequence.format"]= "$(FORMAT)"
-    dparams["input.sequence.sites_to_use"] = "all"
-    dparams["input.sequence.max_gap_allowed"] = "50%"
-    dparams["input.sequence.max_unresolved_allowed"] = "100%"
-    dparams["input.tree.file"] = "$(TREEFILE)"
-    dparams["input.tree.format"] = "Newick"
+    dparams["input.data1"] = "alignment(file=$(INPUTFILE), format=$(FORMAT), sites_to_use=all, max_gap_allowed=50%, max_unresolved_allowed=100%)"
+    dparams["input.tree1"] = "user(file=$(TREEFILE), format=Newick)"
+    dparams["phylo1"] = "Single(process=1, data=1)"
     if option == "mixedlikelihood":
       #dparams["params"] = "$(PARAMS)"
       dparams["output.likelihoods.file"] = "$(OUTINFO)"
     else:
-      dparams["nonhomogeneous.root_freq"] = "F3X4(initFreqs=observed)"
-      dparams["likelihood.recursion"] = "simple"
-      dparams["likelihood.recursion_simple.compression"] = "simple"
+      dparams["root_freq1"] = "F3X4(initFreqs=observed)"
+      dparams["rate_distribution1"] = "Constant()"
       dparams["optimization"] = "FullD(derivatives=Newton)"
       dparams["optimization.ignore_parameters"] = "$(IGNORE)"
-      dparams["optimization.max_number_f_eval"] = "10000"
+      dparams["optimization.max_number_f_eval"] = "1000"
       dparams["optimization.tolerance"] = "0.00001"
       dparams["output.tree.file"] = "$(OUTTREE)"
       dparams["output.tree.format"] = "Newick"
       dparams["output.estimates"] = "$(OUTPARAMS)"
       dparams["optimization.backup.file"] = "$(BACKUP)"
       if option == "bppml":
-        dparams["nonhomogeneous"] = "general"
-        dparams["nonhomogeneous.number_of_models"] = "1"
         dparams["model1"] = "$(MODEL)"
-        dparams["model1.nodes_id"] = "0:$(NODES)"
+        dparams["process1"] = "Homogeneous(model=1, tree=1, rate=1, root_freq=1)"
+        dparams["scenario1"] = "split(model=1)"
       elif option == "opb":
         dparams["nonhomogeneous"] = "one_per_branch"
         dparams["model"] = "YNGP_M0(frequencies=F3X4(initFreqs=observed))"
+        dparams["process1"] = "OnePerBranch(model=1, tree=1, rate=1, shared_parameters=(YN98.kappa, YN98.123_*))"
         dparams["nonhomogeneous_one_per_branch.shared_parameters"] = "YN98.kappa, YN98.*theta*"
       elif option == "gnh":
         dparams["nonhomogeneous"] = "general"
         dparams["nonhomogeneous.number_of_models"] = "2"
         dparams["model1"] = "YNGP_M1(frequencies=F3X4(initFreqs=observed))"
-        dparams["model1.nodes_id"] = "$(NODES1)"
         dparams["model2"] = "YNGP_M2(frequencies=F3X4(initFreqs=observed),kappa=YNGP_M1.kappa_1,omega=YNGP_M1.omega_1)"
-        dparams["model2.nodes_id"] = "$(NODES2)"
-        dparams["optimization.ignore_parameters"] = "BrLen,YNGP_M0*,*kappa*,*theta*,Ancient"
+        dparams["process1"] = "NonHomogeneous(model1=1, model1.nodes_id=$(NODES1), model2=2, model2.nodes_id$(NODES2), tree=1, rate=1, root=1)"
+        dparams["optimization.ignore_parameters"] = "BrLen,*kappa*,*theta*,Ancient"
 
     with open(path, "w") as bppFile:
       bppFile.write("\n".join([par + " = " + val for par,val in dparams.items()]))
