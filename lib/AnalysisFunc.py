@@ -506,7 +506,7 @@ def parseGard(kh, aln, o, logger):
 		logger.info("There are {:d} significant breakpoints in alignement {:s} at positions {}".format(len(lBP), aln, lBP))
 	else:
 		logger.info("There are no significant breakpoints in alignement {:s}.".format(aln))
-		return
+		return []
               
 	#If there're breakpoint(s), cut sequence in subsequences according to breakpoints
 	if len(lBP) > 0:
