@@ -131,11 +131,12 @@ RUN pip3 install --upgrade numpy \
 	scipy \
 	pandas \
 	requests \
-	biopython \
 	setuptools \
 	pyqt5==5.14 \
 	six \
 	lxml
+
+RUN pip3 install biopython
 
 RUN pip3 install --upgrade ete3
 
@@ -176,6 +177,8 @@ RUN apt-get install -y hyphy-mpi hyphy-common hyphy-pt
 RUN echo $PATH
 
 COPY --from=paml /opt/paml/src/codeml /usr/local/bin/
+
+RUN apt-get install -y python3-biopython
 
 #WORKDIR ~/
 ENTRYPOINT ["DGINN.py"]
