@@ -10,13 +10,13 @@ def pspAnalysis(data, parms, aln, tree):
 	"""
 	logger=logging.getLogger("main.positiveSelection")
 	dCtrls, lModels = PSPFunc.getParams(parms["models"], 
-										parms["paml"], 
-										parms["bppml"], 
-										parms["mixedlikelihood"], 
-										parms["busted"], 
-										parms["meme"], 
-										parms["opb"], 
-										parms["gnh"])
+					    parms["paml"], 
+					    parms["bppml"], 
+					    parms["mixedlikelihood"], 
+					    parms["busted"], 
+					    parms["meme"], 
+					    parms["opb"], 
+					    parms["gnh"])
 	timeStamp = strftime("%Y%m%d%H%M", localtime())
 	
 	outDir = data.o+"positive_selection_results_"+timeStamp+"/"
@@ -65,35 +65,30 @@ def pspAnalysis(data, parms, aln, tree):
 		except Exception:
 			logger.error("MEME encountered an unexpected error, skipping.")
 			
-	if "bppml" and "bppmixedlikelihood" in dCtrls and len(lModels) > 1:
-	  #try:
-	  SiteAnalysis.bppSite(dCtrls["bppml"], 
-						   dCtrls["bppmixedlikelihood"], 
-						   aln, 
-						   data.alnFormat, 
-						   tree, 
-						   lModels, 
-						   outDir, 
-						   data.baseName, 
-						   logger)
-	  #except Exception:
-	    #logger.error("Bio++ Site encountered an unexpected error, skipping.")
-	elif "bppml" or "bppmixedlikelihood" not in dCtrls:
-	  logger.error("Part of parameters for Bio++ site analysis are completed but not all.")
-	  logger.error("Analysis ignored (if unexpected, check paths to Bio++/bpp parameter files).")
-	elif "bppml" and "bppmixedlikelihood" not in dCtrls:
-		next
+	if "bppml" in dCtrls and len(lModels) > 1:
+	  try:
+	    SiteAnalysis.bppSite(dCtrls["bppml"], 
+			         dCtrls["bppmixedlikelihood"], 
+			         aln, 
+			         data.alnFormat, 
+			         tree, 
+			         lModels, 
+			         outDir, 
+			         data.baseName, 
+			         logger)
+	  except Exception:
+	    logger.error("Bio++ Site encountered an unexpected error, skipping.")
 	
 	lPSNodes = []
 	if "OPB" in dCtrls:
 		try:
 			params = BranchAnalysis.bppBranch(dCtrls["OPB"], 
-											  outDir, 
-											  data.baseName, 
-											  aln, 
-											  data.alnFormat, 
-											  tree, 
-											  logger)	
+							  outDir, 
+							  data.baseName, 
+							  aln, 
+							  data.alnFormat, 
+							  tree, 
+							  logger)	
 		except Exception:
 			logger.error("Bio++ Branch Analysis encountered an unexpected error, skipping.")
 		try:

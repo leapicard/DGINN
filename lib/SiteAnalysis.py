@@ -9,7 +9,6 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	logger.info("Bio++ Site Analysis")
 	logger.info("Models to be run: {:s}".format(", ".join(model for model in lModels)))
 	logger.info("Bppml parameter file: {:s}".format(bppFile))
-	logger.info("Bppmixedlikelihood parameter file: {:s}".format(bppMixed))
 	
 	nodes = PSPFunc.nbNode(treeFile, logger)
 	## Bppml
@@ -201,16 +200,15 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		dModelResults = {model:outSite+baseName+"_results"+model+".log" for model in lModels}
 
 		dMixCmd = {"INPUTFILE":alnFile, 
-				   "FORMAT":alnFormat, 
-				   "TREEFILE":treeFile, 
-				   "params":dModelParams[model], 
-				   "OUTINFO":dModelResults[model], 
-				   "param":bppMixed}
+			   "FORMAT":alnFormat, 
+			   "TREEFILE":treeFile, 
+			   "params":dModelParams[model], 
+			   "OUTINFO":dModelResults[model], 
+			   "param":bppMixed}
 		
 		logger.info("Running mixed likelihoods with model {:s}".format(model))
 		argsMx = "\""+"\" \"".join([k+"="+v for k, v in dMixCmd.items()])+"\""
 		logger.debug("bppmixedlikelihoods "+argsMx)
-		logger.info("bppmixedlikelihoods "+argsMx)
 		runMx = subprocess.Popen("bppmixedlikelihoods "+argsMx, shell=True, stdout=subprocess.PIPE).wait()
 		logger.debug(subprocess.PIPE)
 			

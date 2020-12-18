@@ -112,7 +112,8 @@ def paramDef(params, inf, queryName, outdir):
 				else:
 					dParams[temp[0]] = temp[1].strip()
 		content.close()
-	
+		dParams["mixedlikelihood"]=dParams["bppml"]  # bppml => bppmixedlikelihoods
+
 	#If infile(s) given through command line, takes priority
 	if inf != "":
 		dParams["infile"] = list(map(str.strip,inf.split(",")))
@@ -192,7 +193,6 @@ def paramDef(params, inf, queryName, outdir):
 			elif "alnfile" not in dParams or dParams["alnfile"] == "":
 				print("The pipeline requires a codon alignment. Please provide one.")
 				sys.exit()
-				
 		for opt in ["meme", "busted", "models", "paml", "bppml", "mixedlikelihood", "opb", "gnh"]:
 			if opt not in dParams:
 				dParams[opt] = ""

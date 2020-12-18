@@ -137,8 +137,8 @@ if __name__ == "__main__":
 						       parameters["duplication"])	
 
 			  dAlTree = AnalysisFunc.phyMLTree(Data, 
-											   parameters["phymlOpt"])
-
+							   parameters["phymlOpt"])
+                          
 			elif lSteps[i] == "duplication" and parameters["duplication"]:
 			  if parameters["step"] == "duplication":
 			    Data, dAlTree = LoadFileFunc.duplPSEntry(Data)
@@ -149,15 +149,16 @@ if __name__ == "__main__":
 						       firstStep, 
 						       parameters["duplication"])
 			      dAlTree[Data.aln]=dTree
+                              
 			  dAlTree = AnalysisFunc.checkPhyMLTree(Data, 
 			                                        dAlTree, 
 			                                        parameters["nbspecies"],
 			                                        parameters["LBopt"])
 
 			  dAlTree = TreeFunc.treeTreatment(Data, 
-							       			   dAlTree, 
-							       			   parameters["nbspecies"],
-							       			   parameters["phymlOpt"])
+							   dAlTree, 
+							   parameters["nbspecies"],
+							   parameters["phymlOpt"])
 
 			elif lSteps[i] == "recombination" and parameters["recombination"]:
 			  if parameters["step"] == "recombination":
@@ -183,11 +184,12 @@ if __name__ == "__main__":
 			    listArgsPosSel.append(listArgs)
 					
 			    with open(Data.o+"files_list.txt", "w") as fAT:
-			      fAT.write(aln+"\t"+dAlTree[aln])
-			      PosSelFunc.pspAnalysis(Data, 
-							   parameters, 
-							   aln, 
-							   dAlTree[aln])
+			      if dAlTree[aln]:
+			        fAT.write(aln+"\t"+dAlTree[aln])
+			        PosSelFunc.pspAnalysis(Data, 
+						       parameters, 
+						       aln, 
+						       dAlTree[aln])
 	
 	logger = logging.getLogger("main")	    
 	logger.info("Finished DGINN analyses, exiting.")
