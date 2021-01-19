@@ -133,11 +133,11 @@ def ResBpp(baseName, posDir, pr):
 	dSA = {}
 	dSAres = {}
 	dLogLlh = {}
-	lModels = ["M1","M2","M7","M8"]
+	lModels = ["M1","M2","M7","M8", "DFP07_0", "DFP07"]
 
 	for model in lModels:
 		dSA[model] = posDir+"/bpp_site/"+baseName+"_"+model+".params"
-		dSAres[model] = posDir+"/bpp_site/"+baseName+"_results"+model+".log"
+		dSAres[model] = posDir+"/bpp_site/"+baseName+"_results_"+model+".log"
 		if os.path.exists(dSA[model]):
 			with open(dSA[model], "r") as params:
 				dLogLlh[model] = float(params.readline().strip().split("= ")[-1])
@@ -147,8 +147,9 @@ def ResBpp(baseName, posDir, pr):
 
 	m1m2 = ResBppExtract("M1 M2", dLogLlh, dSAres, posDir, baseName, pr)
 	m7m8 = ResBppExtract("M7 M8", dLogLlh, dSAres, posDir, baseName, pr)
+	dfp = ResBppExtract("DFP07_0 DFP07", dLogLlh, dSAres, posDir, baseName, pr)
 	
-	return(m1m2, m7m8, dLogLlh)
+	return(m1m2, m7m8, dfp, dLogLlh)
 
 def ResPamlExtract(models, dModelLlh, dModelFile, pr):
 	model1, model2 = models.split(" ")[0], models.split(" ")[1]

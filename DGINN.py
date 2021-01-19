@@ -176,20 +176,21 @@ if __name__ == "__main__":
 								  parameters)
 			
 			  listArgsPosSel =  []
+			  fAT= open(Data.o+"files_list.txt", "w")
 			  for aln in dAlTree:
 			    listArgs = [Data, 
-					  parameters, 
-					  aln, 
-					  dAlTree[aln]]
+					parameters, 
+					aln, 
+					dAlTree[aln]]
 			    listArgsPosSel.append(listArgs)
 					
-			    with open(Data.o+"files_list.txt", "w") as fAT:
-			      if dAlTree[aln]:
-			        fAT.write(aln+"\t"+dAlTree[aln])
-			        PosSelFunc.pspAnalysis(Data, 
-						       parameters, 
-						       aln, 
-						       dAlTree[aln])
-	
+			    if dAlTree[aln]:
+			      fAT.write(aln+"\t"+dAlTree[aln]+"\n")
+			      PosSelFunc.pspAnalysis(Data, 
+						     parameters, 
+						     aln, 
+						     dAlTree[aln])
+			  fAT.close()
+  	                    
 	logger = logging.getLogger("main")	    
 	logger.info("Finished DGINN analyses, exiting.")

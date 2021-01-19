@@ -112,7 +112,6 @@ def paramDef(params, inf, queryName, outdir):
 				else:
 					dParams[temp[0]] = temp[1].strip()
 		content.close()
-		dParams["mixedlikelihood"]=dParams["bppml"]  # bppml => bppmixedlikelihoods
 
 	#If infile(s) given through command line, takes priority
 	if inf != "":
@@ -161,15 +160,15 @@ def paramDef(params, inf, queryName, outdir):
 		
 	#Check if parameters are correct
 	lSteps = ["blast", 
-			  "accessions", 
-			  "fasta", 
-			  "orf", 
-			  "alignment", 
-			  "tree", 
-			  "duplication", 
-			  "recombination", 
-			  "positiveSelection", 
-			  ""]
+		  "accessions", 
+		  "fasta", 
+		  "orf", 
+		  "alignment", 
+		  "tree", 
+		  "duplication", 
+		  "recombination", 
+		  "positiveSelection", 
+		  ""]
 			  
 	if "step" not in dParams or dParams["step"] not in lSteps:
 		print("Step \""+dParams["step"]+"\" not available, set to blast by default.")
@@ -210,7 +209,7 @@ def paramDef(params, inf, queryName, outdir):
 				for M in map(str.strip,dParams[opt].split(",")):
 				  if M == "":
 				    next
-				  elif M not in ["M0", "M1", "M2", "M7", "M8", "M8a"]:
+				  elif M not in ["M0", "M1", "M2", "M7", "M8", "M8a", "DFP07_0", "DFP07"]:
 				    print(M + " isn't a valid model.")
 				  else:
 				    ltemp.append(M)
@@ -227,39 +226,39 @@ def paramDef(params, inf, queryName, outdir):
 
 	#Creation of a dictionnary with all the parameters
 	defaultParam = {"infile":"", 
-					"queryName":"", 
-					"queryFile":"", 
-					"blastdb":"", 
-					"outdir":"", 
-					"logfile":"", 
-					"evalue":1e-3, 
-					"mincov":50, 
-					"percID":70,
-					"maxLen":"cutoff",
-					"entryQuery":"", 
-					"APIKey":"",
-					"phymlOpt":"",
-					"sptree":"", 
-					"duplication":False,
-					"LBopt":"cutoff",
-					"nbspecies":8, 
-					"recombination":False, 
-					"remote":False, 
-					"step":"blast",
-					"positiveSelection":False, 
-					"alnfile":"", 
-					"treefile":"", 
-					"alnformat":"Fasta", 
-					"basename":"", 
-					"hyphySeuil":0.05, 
-					"busted":False, 
-					"meme":False, 
-					"models":"", 
-					"paml":"", 
-					"bppml":"", 
-					"mixedlikelihood":"", 
-					"opb":False, 
-					"gnh":False}
+			"queryName":"", 
+			"queryFile":"", 
+			"blastdb":"", 
+			"outdir":"", 
+			"logfile":"", 
+			"evalue":1e-3, 
+			"mincov":50, 
+			"percID":70,
+			"maxLen":"cutoff",
+			"entryQuery":"", 
+			"APIKey":"",
+			"phymlOpt":"",
+			"sptree":"", 
+			"duplication":False,
+			"LBopt":"cutoff",
+			"nbspecies":8, 
+			"recombination":False, 
+			"remote":False, 
+			"step":"blast",
+			"positiveSelection":False, 
+			"alnfile":"", 
+			"treefile":"", 
+			"alnformat":"Fasta", 
+			"basename":"", 
+			"hyphySeuil":0.05, 
+			"busted":False, 
+			"meme":False, 
+			"models":"", 
+			"paml":"", 
+			"bppml":"", 
+			"mixedlikelihood":"", 
+			"opb":False, 
+			"gnh":False}
 	
 	for i in defaultParam:
 	  if i in dParams.keys() and dParams[i] != "":

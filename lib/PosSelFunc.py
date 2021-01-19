@@ -39,12 +39,12 @@ def pspAnalysis(data, parms, aln, tree):
 	logger.info("Analysis to be run:")
 
 	dAnalysis = {"paml": "Site (codeml)", 
-				 "BUSTED":"Whole-Gene", 
-				 "bppml":"Site (Bio++ - Optimization)", 
-				 "bppmixedlikelihood":"Site (Bio++ - Results)", 
-				 "OPB":"Branch", 
-				 "GNH":"Branch-site on positively selected branches", 
-				 "MEME":"Branch-site"}
+		     "BUSTED":"Whole-Gene", 
+		     "bppml":"Site (Bio++ - Optimization)", 
+		     "bppmixedlikelihood":"Site (Bio++ - Results)", 
+		     "OPB":"Branch", 
+		     "GNH":"Branch-site on positively selected branches", 
+		     "MEME":"Branch-site"}
 	for key in dCtrls.keys():
 		logger.info(dAnalysis[key])
 	
@@ -58,16 +58,18 @@ def pspAnalysis(data, parms, aln, tree):
 	if "MEME" in dCtrls:
 		try:
 			BranchAnalysis.memeBranchSite(aln, 
-										  cladoFile, 
-										  outDir, 
-										  data.baseName, 
-										  logger)
+						      cladoFile, 
+						      outDir, 
+						      data.baseName, 
+						      logger)
 		except Exception:
 			logger.error("MEME encountered an unexpected error, skipping.")
 			
-	if "bppml" in dCtrls and len(lModels) > 1:
-	  try:
-	    SiteAnalysis.bppSite(dCtrls["bppml"], 
+	if "bppml" in dCtrls:
+#	  try:
+            if not dCtrls["bppmixedlikelihood"]:
+              dCtrls["bppmixedlikelihood"]=dCtrls["bppml"]
+            SiteAnalysis.bppSite(dCtrls["bppml"], 
 			         dCtrls["bppmixedlikelihood"], 
 			         aln, 
 			         data.alnFormat, 
@@ -76,8 +78,8 @@ def pspAnalysis(data, parms, aln, tree):
 			         outDir, 
 			         data.baseName, 
 			         logger)
-	  except Exception:
-	    logger.error("Bio++ Site encountered an unexpected error, skipping.")
+#	  except Exception:
+#	    logger.error("Bio++ Site encountered an unexpected error, skipping.")
 	
 	lPSNodes = []
 	if "OPB" in dCtrls:
@@ -102,14 +104,14 @@ def pspAnalysis(data, parms, aln, tree):
 		except Exception:
 			logger.error("Bio++ Pseudo Branch-Site Analysis encountered an unexpected error, skipping.")
 	
-	if "paml" in dCtrls and dCtrls["paml"] not in ["False", False] and len(lModels) > 1:
+	if "paml" in dCtrls:
 		SiteAnalysis.pamlSite(aln, 
-							  tree, 
-							  lModels, 
-							  dCtrls["paml"], 
-							  outDir, 
-							  data.baseName, 
-							  logger)
+				      tree, 
+				      lModels, 
+				      dCtrls["paml"], 
+				      outDir, 
+				      data.baseName, 
+				      logger)
 		"""try:
 			SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
 		except Exception:

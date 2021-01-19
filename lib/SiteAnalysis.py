@@ -18,7 +18,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		INPUTFILE - alignement file
 		FORMAT - format of the aln file (here, phyx)
 		TREEFILE - tree file for the analyzed aln
-		MODEL - choose which model you want run on the data YNGP_M0 through 8, same models as PAML
+		MODEL - choose which model you want run on the data YNGP_M0 through 8, same models as PAML, and DFP07 models
 		NODES - number of nodes in the tree file
 		IGNORE - parameters to ignore for optimization, for example if one is fixated (ex: omegas in M8a)
 		OUTTREE - name of the optimized output tree
@@ -35,52 +35,48 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	dModelTrees = {model:outFileName+"_"+model+".dnd" for model in lModels}
 	dModelParams = {model:outFileName+"_"+model+".params" for model in lModels}
 	dModelLog = {model:outFileName+"_optimization_"+model for model in lModels}
-	dModelSyntax = {model:["YNGP_"+model,"frequencies=F3X4(initFreqs=observed)"] for model in lModels}		# dictionary model number - [MODEL name, MODEL arguments for bppml]
+	dModelSyntax = {model:["YNGP_"+model,"frequencies=F3X4(initFreqs=observed)"] for model in lModels if model[0]=="M"}		# dictionary model number - [MODEL name, MODEL arguments for bppml]
+	dModelSyntax.update({model:[model[:5],"protmodel=JTT92", "frequencies=F3X4(initFreqs=observed)", "p0=1"] for model in lModels if model[:5]=="DFP07"})
 	dLogLlh = {}		# dictionary(model:logllh)
 
 	for model in lModels:
 	  # take into account the specificities of each model (number of classes n for example)
 	  if model=="M7" or model=="M8":
 	    dModelSyntax[model].append("n=4")
-	  if len(model) > 2:
+	  if model[0]=="M" and len(model) > 2:
 	    dModelSyntax[model][0] = dModelSyntax[model][0][:-1]
 	    dModelSyntax[model].append("omegas=1")
-			
-	  # if M0 optimization in models, use tree optimized in M0 for subsequent model optimizations
-	  lignore=[]
-	  if model!="M0" and "M0" in lModels:
-	    treeFile = dModelTrees["M0"]+"_1"
-	    lignore.append("BrLen")
-
-	  if model == "M8a":
-	    lignore.append("YNGP_M8.omegas*")
-
-          # do not re-optimize root & equilibrium if done before
-	  if lModels.index(model)>0:
-            lignore.append("Ancient")
-            for i in range(1,4):
-              if model=="M0":
-                lignore.append("YN98.%d_Full.theta*")
-              else:
-                lignore.append("YNGP_%s.%d_Full.theta*"%(model,i))
-	  ignore = ",".join(lignore)
-	  
+	    
 	  # Use previous backup file (in order M0->M1->M2->M7->M8) to accelerate optimization
           # dictionary of equivalences of specific parameter names between models
 	  dequiv={}
-          ## omega from M0->M1->M2->M7
+          ## omega from M0->M1->M2->M7 & M0->DFP07
 	  dequiv["omega"] = {"M1":{"YNGP_M1.omega":"omega"},
-						 "M2":{"YNGP_M2.omega0":"omega"},
-						 "M0":{"YN98.omega":"omega"},
-						 "M7":{"YNGP_M7.p":"[omega/(1-omega),1][omega==1]","YNGP_M7.q":"1"},
-						 "M8":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]","YNGP_M8.q":"1"}}
+			     "M2":{"YNGP_M2.omega0":"omega"},
+			     "M0":{"YN98.omega":"omega"},
+			     "M7":{"YNGP_M7.p":"[omega/(1-omega),1][omega==1]","YNGP_M7.q":"1"},
+			     "M8":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]","YNGP_M8.q":"1"},
+                             "DFP07_0":{"DFP07.omega":"omega"},
+                             "DFP07":{"DFP07.omega":"omega"}}
 	  dnewpar={}
 	  
 	  if not os.path.exists(dModelLog[model]):
-	    for prevmodel in ["M7","M2","M1","M0"]:
-	      if not prevmodel in lModels:
-                continue
-	      if os.path.exists(dModelLog[prevmodel]+".def"):
+	    prevmodel = ""
+	    if model[0]=="M":
+	      for prevmodel in ["M7","M2","M1","M0"]:
+	        if not prevmodel in lModels or not os.path.exists(dModelLog[prevmodel]+".def"):
+                  prevmodel=""
+	        else:
+                  break
+	    elif model[:5]=="DFP07":
+	      for prevmodel in ["DFP07_0","M0"]:
+                if not prevmodel in lModels or not os.path.exists(dModelLog[prevmodel]+".def"):
+                  prevmodel=""
+                else:
+                  break
+                
+
+	    if prevmodel!="":
                 logger.info("Optimization for model " + model + " uses optimized parameters from model " + prevmodel)  
                 fprev=open(dModelLog[prevmodel]+".def","r")
                 lprev=list(fprev.readlines())
@@ -89,11 +85,15 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
                 dprevpar={l[:l.find("=")]:l[l.find("=")+1:] for l in lprev}
 
                 # first copy all parameters
-                for st,val in dprevpar.items():
+                for st,val in dprevpar.items(): 
                   if prevmodel=="M0":
-                    nst=st.replace("YN98","YNGP_"+model)
+                    if model[0]=="M":
+                      nst=st.replace("YN98","YNGP_"+model)
+                    else:
+                      nst=st.replace("YN98","DFP07")
                   else:
                     nst=st.replace(prevmodel,model)
+
                   if not nst in dnewpar.keys():
                     dnewpar[nst]=val
                 
@@ -112,26 +112,47 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
                             if not nname in dnewpar.keys():
                               dnewpar[nname]=nval
 
-            #            break
-            # write in backup file
-	    if len(dnewpar)!=0:
-	      fnew=open(dModelLog[model],"w")
-	      for k,v in dnewpar.items():
-                fnew.write(k+"="+v.strip()+"\n")
-	      fnew.close()
+                #            break
+                # write in backup file
+                if len(dnewpar)!=0:
+                  fnew=open(dModelLog[model],"w")
+                  for k,v in dnewpar.items():
+                    fnew.write(k+"="+v.strip()+"\n")
+                  fnew.close()
                 
+	  # if M0 optimization in models, use tree optimized in M0 for subsequent model optimizations
+	  lignore=[]
+	  if model!="M0" and "M0" in lModels:
+	    treeFile = dModelTrees["M0"]+"_1"
+	    lignore.append("BrLen")
+
+	  if model == "M8a":
+	    lignore.append("YNGP_M8.omegas*")
+
+	  if model=="DFP07_0":
+            lignore.append("DFP07.p0_1")
+            
+          # do not re-optimize root & equilibrium if done before
+	  if prevmodel!="":
+            logger.info("Optimization for model " + model + " does not re-optimize root frequencies" )  
+            lignore.append("Ancient")
+
+            logger.info("Optimization for model " + model + " does not re-optimize equilibrium frequencies" )  
+            lignore.append("*_Full.theta*")
+	  ignore = ",".join(lignore)
+	  
 	  # create dictionary with all elements of the two argument lists to build commands
 	  modelDesc=dModelSyntax[model][0]+"("+",".join(dModelSyntax[model][1:])+")"
 	  dBppCmd = {"INPUTFILE":alnFile, 
-				 "FORMAT":alnFormat, 
-				 "TREEFILE":treeFile, 
-				 "MODEL":modelDesc, 
-				 "NODES":nodes, 
-				 "IGNORE":ignore, 
-				 "OUTTREE":dModelTrees[model], 
-				 "OUTPARAMS":dModelParams[model], 
-				 "BACKUP":dModelLog[model], 
-				 "param":bppFile}
+		     "FORMAT":alnFormat, 
+		     "TREEFILE":treeFile, 
+		     "MODEL":modelDesc, 
+		     "NODES":nodes, 
+		     "IGNORE":ignore, 
+		     "OUTTREE":dModelTrees[model], 
+		     "OUTPARAMS":dModelParams[model], 
+		     "BACKUP":dModelLog[model], 
+		     "param":bppFile}
 
 	  # running bppml
 	  logger.info("Running {:s} optimization".format(model))
@@ -174,6 +195,13 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 			logger.info("LRT of M8 vs M8a: {} (Treshold: {})".format(p88a, ts88a))
 		else:
 			logger.info("Possible failed optimization, likelihoods have not been computed.")
+	if "DFP07" and "DFP07_0" in lModels:
+		if "DFP07" and "DFP07_0" in dLogLlh:
+			LRDFP, pDFP = PSPFunc.LRT(dLogLlh["DFP07_0"], dLogLlh["DFP07"], 1)
+			tsDFP = 0.5*pDFP + 0.5
+			logger.info("LRT of DFP07 vs DFP07_07: {} (Treshold: {})".format(pDFP, tsDFP))
+		else:
+			logger.info("Possible failed optimization, likelihoods have not been computed.")
 			
 	# Bppmixedlikelihoods
 	""" 
@@ -193,11 +221,11 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		else:
 			treeFile = dModelTrees[model]+"_1"
 		
-		if model == "M0":
+		if model in ["M0","DFP07_0"]:
 			continue
 			
 		# dictionary(model:results file name)
-		dModelResults = {model:outSite+baseName+"_results"+model+".log" for model in lModels}
+		dModelResults = {model:outSite+baseName+"_results_"+model+".log" for model in lModels}
 
 		dMixCmd = {"INPUTFILE":alnFile, 
 			   "FORMAT":alnFormat, 
@@ -209,6 +237,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		logger.info("Running mixed likelihoods with model {:s}".format(model))
 		argsMx = "\""+"\" \"".join([k+"="+v for k, v in dMixCmd.items()])+"\""
 		logger.debug("bppmixedlikelihoods "+argsMx)
+		logger.info("bppmixedlikelihoods "+argsMx)
 		runMx = subprocess.Popen("bppmixedlikelihoods "+argsMx, shell=True, stdout=subprocess.PIPE).wait()
 		logger.debug(subprocess.PIPE)
 			

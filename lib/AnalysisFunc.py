@@ -525,9 +525,9 @@ def parseGard(kh, aln, o, logger):
 		for x in range(1,len(lBP)):
 			dFrag = {}
 			if lBP[x-1] == 0:
-				extension = "{:d}to{:d}".format(lBP[x-1], lBP[x])
+				extension = "_{:d}_{:d}".format(lBP[x-1], lBP[x])
 			else:
-				extension = "{:d}to{:d}".format(lBP[x-1]-1, lBP[x])
+				extension = "_{:d}_{:d}".format(lBP[x-1]-1, lBP[x])
 
 			outFrag = o+aln.split("/")[-1].split(".")[0]+"_frag"+extension+".best.fas"
 			for name in lNameGene:
