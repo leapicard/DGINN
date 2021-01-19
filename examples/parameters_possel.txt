@@ -94,9 +94,8 @@ paml:False
 # Can also be used to indicate the path to a BIO++ parameter file
 bppml:True
 
-# Same as previously, but for extracting results from the results
-# computed from bppml
-mixedlikelihood:True
+# Same as previously, but for extracting results from the results computed from bppml
+mixedlikelihood: True
 
 # Option for using BIO++ for the detection of branches under positive selection
 # If True, parameter file will be automatically generated

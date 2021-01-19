@@ -41,12 +41,12 @@ def pspAnalysis(data, parms, aln, tree):
 	logger.info("Analysis to be run:")
 
 	dAnalysis = {"paml": "Site (codeml)", 
-				 "BUSTED":"Whole-Gene", 
-				 "bppml":"Site (Bio++ - Optimization)", 
-				 "bppmixedlikelihood":"Site (Bio++ - Results)", 
-				 "OPB":"Branch", 
-				 "GNH":"Branch-site on positively selected branches", 
-				 "MEME":"Branch-site"}
+		     "BUSTED":"Whole-Gene", 
+		     "bppml":"Site (Bio++ - Optimization)", 
+		     "bppmixedlikelihood":"Site (Bio++ - Results)", 
+		     "OPB":"Branch", 
+		     "GNH":"Branch-site on positively selected branches", 
+		     "MEME":"Branch-site"}
 	for key in dCtrls.keys():
 		logger.info(dAnalysis[key])
 	
@@ -60,42 +60,39 @@ def pspAnalysis(data, parms, aln, tree):
 	if "MEME" in dCtrls:
 		try:
 			BranchAnalysis.memeBranchSite(aln, 
-										  cladoFile, 
-										  outDir, 
-										  data.baseName, 
-										  logger)
+						      cladoFile, 
+						      outDir, 
+						      data.baseName, 
+						      logger)
 		except Exception:
 			logger.error("MEME encountered an unexpected error, skipping.")
 			
-	if "bppml" and "bppmixedlikelihood" in dCtrls and len(lModels) > 1:
-	  #try:
-	  SiteAnalysis.bppSite(dCtrls["bppml"], 
-						   dCtrls["bppmixedlikelihood"], 
-						   aln, 
-						   data.alnFormat, 
-						   tree, 
-						   lModels, 
-						   outDir, 
-						   data.baseName, 
-						   logger)
-	  #except Exception:
-	    #logger.error("Bio++ Site encountered an unexpected error, skipping.")
-	elif "bppml" or "bppmixedlikelihood" not in dCtrls:
-	  logger.error("Part of parameters for Bio++ site analysis are completed but not all.")
-	  logger.error("Analysis ignored (if unexpected, check paths to Bio++/bpp parameter files).")
-	elif "bppml" and "bppmixedlikelihood" not in dCtrls:
-		next
+	if "bppml" in dCtrls:
+#	  try:
+            if not dCtrls["bppmixedlikelihood"]:
+              dCtrls["bppmixedlikelihood"]=dCtrls["bppml"]
+            SiteAnalysis.bppSite(dCtrls["bppml"], 
+			         dCtrls["bppmixedlikelihood"], 
+			         aln, 
+			         data.alnFormat, 
+			         tree, 
+			         lModels, 
+			         outDir, 
+			         data.baseName, 
+			         logger)
+#	  except Exception:
+#	    logger.error("Bio++ Site encountered an unexpected error, skipping.")
 	
 	lPSNodes = []
 	if "OPB" in dCtrls:
 		try:
 			params = BranchAnalysis.bppBranch(dCtrls["OPB"], 
-											  outDir, 
-											  data.baseName, 
-											  aln, 
-											  data.alnFormat, 
-											  tree, 
-											  logger)	
+							  outDir, 
+							  data.baseName, 
+							  aln, 
+							  data.alnFormat, 
+							  tree, 
+							  logger)	
 		except Exception:
 			logger.error("Bio++ Branch Analysis encountered an unexpected error, skipping.")
 		try:
@@ -109,14 +106,14 @@ def pspAnalysis(data, parms, aln, tree):
 		except Exception:
 			logger.error("Bio++ Pseudo Branch-Site Analysis encountered an unexpected error, skipping.")
 	
-	if "paml" in dCtrls and dCtrls["paml"] not in ["False", False] and len(lModels) > 1:
+	if "paml" in dCtrls:
 		SiteAnalysis.pamlSite(aln, 
-							  tree, 
-							  lModels, 
-							  dCtrls["paml"], 
-							  outDir, 
-							  data.baseName, 
-							  logger)
+				      tree, 
+				      lModels, 
+				      dCtrls["paml"], 
+				      outDir, 
+				      data.baseName, 
+				      logger)
 		"""try:
 			SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
 		except Exception:
