@@ -10,20 +10,22 @@ def pspAnalysis(data, parms, aln, tree):
 	"""
 	logger=logging.getLogger("main.positiveSelection")
 	dCtrls, lModels = PSPFunc.getParams(parms["models"], 
-										parms["paml"], 
-										parms["bppml"], 
-										parms["mixedlikelihood"], 
-										parms["busted"], 
-										parms["meme"], 
-										parms["opb"], 
-										parms["gnh"])
+					    parms["paml"], 
+					    parms["bppml"], 
+					    parms["mixedlikelihood"], 
+					    parms["busted"], 
+					    parms["meme"], 
+					    parms["opb"], 
+					    parms["gnh"])
 	timeStamp = strftime("%Y%m%d%H%M", localtime())
 	
 	outDir = data.o+"positive_selection_results_"+timeStamp+"/"
 	if not os.path.exists(outDir):
 		os.makedirs(outDir)
 	
-	cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
+	 ogger.info(":"+tree+":")
+
+        #cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
 					
 	### Terminal output for user
 	logger.info("Output directory: {:s}".format(outDir))

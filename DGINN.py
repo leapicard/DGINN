@@ -155,9 +155,9 @@ if __name__ == "__main__":
 			                                        parameters["LBopt"])
 
 			  dAlTree = TreeFunc.treeTreatment(Data, 
-							       			   dAlTree, 
-							       			   parameters["nbspecies"],
-							       			   parameters["phymlOpt"])
+							   dAlTree, 
+							   parameters["nbspecies"],
+							   parameters["phymlOpt"])
 
 			elif lSteps[i] == "recombination" and parameters["recombination"]:
 			  if parameters["step"] == "recombination":
@@ -183,11 +183,12 @@ if __name__ == "__main__":
 			    listArgsPosSel.append(listArgs)
 					
 			    with open(Data.o+"files_list.txt", "w") as fAT:
-			      fAT.write(aln+"\t"+dAlTree[aln])
-			      PosSelFunc.pspAnalysis(Data, 
-							   parameters, 
-							   aln, 
-							   dAlTree[aln])
+                              if len(dAlTree[aln]): # only if it exists
+			        fAT.write(aln+"\t"+dAlTree[aln])
+			        PosSelFunc.pspAnalysis(Data, 
+						       parameters, 
+						       aln, 
+						       dAlTree[aln])
 	
 	logger = logging.getLogger("main")	    
 	logger.info("Finished DGINN analyses, exiting.")
