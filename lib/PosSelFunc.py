@@ -23,7 +23,7 @@ def pspAnalysis(data, parms, aln, tree):
 	if not os.path.exists(outDir):
 		os.makedirs(outDir)
 	
-	 ogger.info(":"+tree+":")
+	logger.info(":"+tree+":")
 
         #cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
 					
