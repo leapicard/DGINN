@@ -25,7 +25,7 @@ def pspAnalysis(data, parms, aln, tree):
 	
 	logger.info(":"+tree+":")
 
-        #cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
+	cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
 					
 	### Terminal output for user
 	logger.info("Output directory: {:s}".format(outDir))
