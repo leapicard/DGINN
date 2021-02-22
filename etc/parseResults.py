@@ -61,7 +61,7 @@ if __name__ == "__main__":
 	dAlnCov = {}
 	llhFile = inDir+"/DGINN_{}_likelihoods.tab".format(timeStamp)
 	llh = open(llhFile, "w")
-	llh.write("File\tMethod\tM1\tM2\tM7\tM8\n")
+	llh.write("File\tMethod\tM1\tM2\tM7\tM8\tDFP07_0\tDFP07\n")
 	
 	for posDir, aln in dSub2Cut.items():
 	#posDir = "/home/lea/Documents/genes/2020_shScreen/TRIM69_CCDS_results_202004012008/TRIM69_sequences_filtered_longestORFs_mafft_mincov_prank_results_202004201724/positive_selection_results_202004201724/"
@@ -95,9 +95,10 @@ if __name__ == "__main__":
 		dGene.update(bust)
 		meme = PRS.ResMeme(baseName, posDir)
 		dGene.update(meme)
-		bpp1v2, bpp7v8, bppLlh = PRS.ResBpp(baseName, posDir, pr)
+		bpp1v2, bpp7v8, bppdfp, bppLlh = PRS.ResBpp(baseName, posDir, pr)
 		dGene.update(bpp1v2)
 		dGene.update(bpp7v8)
+		dGene.update(bppdfp)
 		paml1v2, paml7v8, pamlLlh = PRS.ResPaml(posDir, pr)
 		dGene.update(paml1v2)
 		dGene.update(paml7v8)
@@ -139,12 +140,12 @@ if __name__ == "__main__":
 		resLine = "\t".join(lBaseRes + list(dGene.values()))
 		allRes.append(resLine)
 
-		bppLlhRes = [str(bppLlh[k]) for k in ["M1","M2","M7","M8"]]
+		bppLlhRes = [str(bppLlh[k]) for k in ["M1","M2","M7","M8","DFP07_0","DFP07"]]
 		llh.write(baseName+"\tBPP\t"+"\t".join(bppLlhRes)+"\n")
 
 		if type(bppLlh) is dict:
 			pamlLlhRes = [str(value) for value in pamlLlh.values()]
-			llh.write(baseName+"\tPAML\t"+"\t".join(pamlLlhRes)+"\n")
+			llh.write(baseName+"\tPAML\t"+"\t".join(pamlLlhRes)+2*"\tna"+"\n")
 		else:
 			llh.write(baseName+"\tPAML\tna\n")
 
