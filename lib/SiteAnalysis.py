@@ -57,7 +57,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 			     "M7":{"YNGP_M7.p":"[omega/(1-omega),1][omega==1]","YNGP_M7.q":"1"},
 			     "M8":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]","YNGP_M8.q":"1"},
                              "DFP07_0":{"DFP07.omega":"omega"},
-                             "DFP07":{"DFP07.omega":"omega"}}
+                             "DFP07":{"DFP07.omega":"omega", "DFP07.p0":"0.1"}} #0.1 to avoid optim stuck at p0=1
 	  dnewpar={}
 	  
 	  if not os.path.exists(dModelLog[model]):
