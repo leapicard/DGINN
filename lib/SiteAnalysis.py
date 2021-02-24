@@ -57,7 +57,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 			     "M7":{"YNGP_M7.p":"[omega/(1-omega),1][omega==1]","YNGP_M7.q":"1"},
 			     "M8":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]","YNGP_M8.q":"1"},
                              "DFP07_0":{"DFP07.omega":"omega"},
-                             "DFP07":{"DFP07.omega":"omega"}}
+                             "DFP07":{"DFP07.omega":"omega", "DFP07.p0":"0.1"}} #0.1 to avoid optim stuck at p0=1
 	  dnewpar={}
 	  
 	  if not os.path.exists(dModelLog[model]):
@@ -159,7 +159,6 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		
 	  # join each couple of the cmd dictionary so that it reads "k1 = v1" "k2 = v2" etc...
 	  argsMx = "\""+"\" \"".join([k+"="+v for k, v in dBppCmd.items()])+"\""
-	  logger.info("bppml "+argsMx)
 	  logger.debug("bppml "+argsMx)
 	  runMx = subprocess.Popen("bppml "+argsMx, shell=True, stdout=subprocess.PIPE).wait()
 	  logger.debug(subprocess.PIPE)
@@ -237,7 +236,6 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		logger.info("Running mixed likelihoods with model {:s}".format(model))
 		argsMx = "\""+"\" \"".join([k+"="+v for k, v in dMixCmd.items()])+"\""
 		logger.debug("bppmixedlikelihoods "+argsMx)
-		logger.info("bppmixedlikelihoods "+argsMx)
 		runMx = subprocess.Popen("bppmixedlikelihoods "+argsMx, shell=True, stdout=subprocess.PIPE).wait()
 		logger.debug(subprocess.PIPE)
 			
@@ -251,11 +249,10 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
 	logger.info("PAML codeml")
 	
 	dModelRun = {}
-	if "M8a" in lModels:
-		lModels.remove("M8a")
 	for model in lModels:
-		logger.info("Running {:s}".format(model))
-		dModelRun[model] = tree.run_model(model)
+	  if model in ["M0","M1","M2","M7","M8"]:
+	    logger.info("Running {:s}".format(model))
+	    dModelRun[model] = tree.run_model(model)
 	
 	if "M1" and "M2" in dModelRun:
 		p12 = tree.get_most_likely("M2", "M1")

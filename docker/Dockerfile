@@ -25,9 +25,6 @@ RUN apt-get -y install build-essential \
 RUN apt-get -y install build-essential cmake
 
 
-
-
-
 #################
 ## Install PRANK
 FROM base as prank
@@ -41,7 +38,8 @@ RUN git clone https://github.com/ariloytynoja/prank-msa.git && cd prank-msa/src 
 FROM base as phyml
 WORKDIR /opt
 
-RUN git clone  https://github.com/stephaneguindon/phyml && cd phyml && sh ./autogen.sh && ./configure --enable-phyml && make
+##RUN git clone  https://github.com/stephaneguindon/phyml && cd phyml && sh ./autogen.sh && ./configure --enable-phyml && make
+RUN apt-get -y install phyml
 
 
 #################
@@ -161,7 +159,7 @@ ENV PATH /opt/mafft/bin/:/opt/mafft/lib/:$PATH
 #
 
 
-COPY --from=phyml /opt/phyml/src/phyml /opt/bin/phyml
+COPY --from=phyml /usr/lib/phyml/bin/phyml /opt/bin/phyml
 
 
 COPY --from=treerecs  /opt/Treerecs /opt/treerecs
