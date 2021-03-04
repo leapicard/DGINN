@@ -213,7 +213,7 @@ def paramDef(params, inf, queryName, outdir):
 				    print(M + " isn't a valid model.")
 				  else:
 				    ltemp.append(M)
-				dParams[opt] = ",".join(ltemp)
+				dParams["models"] = ",".join(ltemp)
 
 	elif dParams["step"] == "positiveSelection":
 		print("Error: positiveSelection option set to false and step set to positiveSelection.")
@@ -317,13 +317,13 @@ def initLogger(args, debug, version):
 	logger.info("Starting {:s} (v{:s})".format(__file__, version))
 
 	mainData = DataObject.basicData(args["infile"], 
-									args["outdir"], 
-									args["blastdb"], 
-									timeStamp, 
-									args["sptree"], 
-									args["alnfile"], 
-									args["treefile"], 
-									args["queryName"])
+					args["outdir"], 
+					args["blastdb"], 
+					timeStamp, 
+					args["sptree"], 
+					args["alnfile"], 
+					args["treefile"], 
+					args["queryName"])
 
 	if args["step"] == "duplication" and args["duplication"] == False:
 		args["duplication"] = True
