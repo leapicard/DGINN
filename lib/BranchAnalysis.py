@@ -1,6 +1,9 @@
 import os, shlex, logging, subprocess, re
 from AnalysisFunc import cmd
 from subprocess import PIPE
+from shutil import copyfile
+from SiteAnalysis import getNewParfromOptim, setIgnoreParams
+import PSPFunc
 
 def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 	### BRANCH ANALYSIS: BIO++ ONE PER BRANCH
@@ -12,10 +15,12 @@ def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 	if not os.path.exists(outOPB):
 		os.makedirs(outOPB)
 	
+	model = "M2"	
+
 	outFileName = outOPB+baseName
-	outTree = outFileName+"_branch.dnd"
-	outParams = outFileName+"_branch.params"
-	outBackup = outFileName+"_branch_optimization"
+	outTree = outFileName+"_"+model+".dnd"
+	outParams = outFileName+"_"+model+".params"
+	outBackup = outFileName+"_optimization_"+model
 	
 	# create dictionary with all elements of the two argument lists to build commands
 	dBppCmd = {"INPUTFILE": alnFile, 
@@ -24,15 +29,92 @@ def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 		   "OUTTREE": outTree, 
 		   "OUTPARAMS": outParams, 
 		   "BACKUP": outBackup, 
-		   "param": OPBFile}
-		
+	           "model1":"YNGP_"+model+"(frequencies=F3X4(initFreqs=observed))",
+		   "param": OPBFile,
+                   "process1":"OnePerBranch(model=1, tree=1, rate=1, root_freq=1, shared_parameters=(*kappa, *Full.theta*))"}
 	# running bppml
 	logger.info("Running Branch optimization")
+
+        ### look for previous M0 optim
+	outSite = outDir+"bpp_site/"
+	outSiteFileName = outSite+baseName
+
+	lModels=["M0", "M2"]
+	dPrevModelLog = {model:outSiteFileName+"_optimization_"+model for model in lModels}
+	prevmodel, dnewpar = getNewParfromOptim(model, lModels, dPrevModelLog, logger)
+	lignore=[]
+	if prevmodel!="":        
+	  fnew=open(outBackup,"w")
+	  for k,v in dnewpar.items():
+	     fnew.write(k+"="+v.strip()+"\n")
+	  fnew.close()
+	lignore= setIgnoreParams(model, prevmodel, lModels, logger)
+        
+	dBppCmd["IGNORE"]=",".join(lignore)
+         
 	# join each couple of the cmd dictionary so that it reads "k1 = v1" "k2 = v2" etc...
 	argsOPB = "bppml \""+"\" \"".join([k+"="+v for k, v in dBppCmd.items()])+"\""
 	logger.debug(argsOPB)
 	runOPB = cmd(argsOPB, False)
 
+        # test each branch
+        # Scan all parameter names
+	fback = open(dBppCmd["BACKUP"]+".def","r")
+	dparam={param.split("=")[0]:float(param.split("=")[1]) for param in fback.readlines()}
+	fback.close()
+
+	valM2=float(dparam["f(x)"])
+        
+        # cp outParams for each branch with M2 replaced with M1
+        # only for the where theta1 < 0.999 & theta2 < 0.999
+
+	fparam = open(outParams, "r")
+	lcmd=[l for l in fparam.readlines()]
+	fparam.close()
+
+        ## Look for correspondance  model_nb <-> node_id        
+	lprocess=[l for l in lcmd if l[:7]=="process"][0]
+	lid=lprocess.split(".nodes_id=(")
+	cormodid={}
+	for i in range(0,len(lid),2):
+	  mod=int(lid[i][lid[i].rfind("l")+1:])
+	  idi=int(lid[i+1][:lid[i+1].find(")"):])
+	  cormodid[idi]=mod
+
+        ## Compute lk for each node with theta1_mod * theta2_mod < 0.999:
+	fresbranch=open(outFileName+"_branch.txt","w")
+	fresbranch.write("Id\tomega2\tprop\tM2\tM1\tLR\tp\n")
+	del(dBppCmd["process1"])
+	del(dBppCmd["model1"])
+	for idi,mod in cormodid.items():
+	  if dparam["YNGP_M2.theta2_%d"%mod] * dparam["YNGP_M2.theta1_%d"%mod] >= 0.999:
+	     continue
+	  fback = open(outBackup+"_%d"%mod,"w")
+	  [fback.write(key+"="+str(val)+"\n") for key,val in dparam.items() if key!="YNGP_M2.theta2_%d"%mod]
+	  fback.write("YNGP_M2.theta2_%d=1\n"%mod)
+	  fback.write("YNGP_M2.omega2_%d=1\n"%mod)
+	  fback.close()
+
+	  lignore2=lignore[:]+[key for key in dparam if key not in ["YNGP_M2.theta1_%d"%mod, "YNGP_M2.omega0_%d"%mod]] 
+	  dBppCmd["IGNORE"]=",".join(lignore2)
+	  dBppCmd["params"] = outParams
+	  dBppCmd["OUTPARAMS"] = outParams+"_%d"%idi
+	  dBppCmd["BACKUP"] = outBackup+"_%d"%mod 
+          
+	  argsOPB = "bppml \""+"\" \"".join([k+"="+v for k, v in dBppCmd.items()])+"\""
+#	  logger.debug(argsOPB)
+	  runOPB = cmd(argsOPB, False)
+
+	  fback = open(dBppCmd["BACKUP"]+".def","r")
+	  dparam2={param.split("=")[0]:float(param.split("=")[1]) for param in fback.readlines()}
+	  fback.close()
+
+	  valM1=float(dparam2["f(x)"])
+	  LR, p = PSPFunc.LRT(valM2,valM1,2)
+	  fresbranch.write("%d\t%f\t%f\t%f\t%f\t%f\t%f\n"%(idi,dparam["YNGP_M2.omega2_%d"%mod],(1-dparam["YNGP_M2.theta2_%d"%mod]) * (1-dparam["YNGP_M2.theta1_%d"%mod]),valM2,valM1,LR,p))
+	  if p<0.05:
+	    logger.info("Node {:d} is interesting (w = {:f})".format(idi, dparam["YNGP_M2.omega2_%d"%mod]))
+	fresbranch.close()
 	return(outParams)
 
 def parseNodes(outParams, logger):
