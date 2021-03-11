@@ -174,10 +174,15 @@ def phymlRecEntry(Data, step = "tree"):
 					     Data.queryFile, 
 					     Data.aln, 
 					     step)
-		
-		with open(Data.aln) as orf:
-			Data.geneName = orf.readline().split("_")[1]
-			orf.close()		
+		try:
+		  with open(Data.aln) as orf:
+		    Data.geneName = orf.readline().split("_")[1]
+		    orf.close()
+		except IndexError:
+		  with open(Data.aln) as orf:
+		    Data.geneName = orf.readline().strip()
+		    orf.close()
+                  
 	else:
 	  logger=logging.getLogger(".".join(["main",step]))
 	  logger.error("Provided file is not a multiple sequence alignment, terminating DGINN.")
