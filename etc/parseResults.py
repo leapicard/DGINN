@@ -64,11 +64,11 @@ if __name__ == "__main__":
 	llh.write("File\tMethod\tM1\tM2\tM7\tM8\tDFP07_0\tDFP07\n")
 	
 	for posDir, aln in dSub2Cut.items():
-	#posDir = "/home/lea/Documents/genes/2020_shScreen/TRIM69_CCDS_results_202004012008/TRIM69_sequences_filtered_longestORFs_mafft_mincov_prank_results_202004201724/positive_selection_results_202004201724/"
-	#aln = "/home/lea/Documents/genes/2020_shScreen/TRIM69_CCDS_results_202004012008/TRIM69_sequences_filtered_longestORFs_mafft_mincov_prank.best.fas"
-
-	#if os.path.exists(posDir):
 		baseName = aln.split("/")[-1].split(".")[0]
+		repDir = "/".join(posDir.split("/")[:-1])
+		allF = [repDir+"/"+f for f in os.listdir(repDir) if f.endswith("fas") or f.endswith("fasta")]
+		if len(allF)!=0:
+		        aln=max(allF, key=os.path.getctime)
 		M0fileBpp = posDir+"/bpp_site/"+baseName+"_optimization_M0.def"
 		M0filePaml = posDir+"/paml_site/M0/rst1"
 		dGene = OrderedDict()
