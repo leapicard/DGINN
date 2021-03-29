@@ -72,7 +72,10 @@ def remoteDl(lBlastRes, queryName, apiKey):
 					name = ""
 					
 		if "." in name or "-" in name or name == "":
-			name = "pot"+queryName.split("_")[1]
+			try:
+                                name = "pot"+queryName.split("_")[1]
+			except IndexError:
+                                name = "pot"
 		if tax == "synCon" or 'GBSeq_sequence' not in record.keys():
 			continue
 		else:
