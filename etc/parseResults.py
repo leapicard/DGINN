@@ -10,6 +10,7 @@ import argparse, os
 from time import localtime, strftime
 from collections import OrderedDict
 from Bio import SeqIO, AlignIO
+import glob
 
 #################################################
 ## Variables Globales
@@ -69,11 +70,11 @@ if __name__ == "__main__":
 		allF = [repDir+"/"+f for f in os.listdir(repDir) if f.endswith("fas") or f.endswith("fasta")]
 		if len(allF)!=0:
 		        aln=max(allF, key=os.path.getctime)
-		M0fileBpp = posDir+"/bpp_site/"+baseName+"_optimization_M0.def"
+		M0fileBpp = glob.glob(posDir+"/bpp_site/*_optimization_M0.def")
 		M0filePaml = posDir+"/paml_site/M0/rst1"
 		dGene = OrderedDict()
 		try:
-			with open(M0fileBpp, "r") as M0:
+			with open(M0fileBpp[0], "r") as M0:
                           l=M0.readline()
                           while l:
                             if l.find("omega")!=-1:
