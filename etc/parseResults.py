@@ -65,6 +65,7 @@ if __name__ == "__main__":
 	llh.write("File\tMethod\tM1\tM2\tM7\tM8\tDFP07_0\tDFP07\n")
 	
 	for posDir, aln in dSub2Cut.items():
+		posDir=posDir.rstrip("/")
 		baseName = aln.split("/")[-1].split(".")[0]
 		repDir = "/".join(posDir.split("/")[:-1])
 		allF = [repDir+"/"+f for f in os.listdir(repDir) if f.endswith("fas") or f.endswith("fasta")]

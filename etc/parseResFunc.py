@@ -135,8 +135,8 @@ def ResBpp(baseName, posDir, pr):
 	lModels = ["M1","M2","M7","M8", "DFP07_0", "DFP07"]
 
 	for model in lModels:
-		dSA[model] = glob.glob(posDir+"bpp_site/*"+model+".params")
-		dSAres[model] = glob.glob(posDir+"bpp_site/*_results_"+model+".log")
+		dSA[model] = glob.glob(posDir+"/bpp_site/*"+model+".params")
+		dSAres[model] = glob.glob(posDir+"/bpp_site/*_results_"+model+".log")
 		if len(dSA[model])>=1 and os.path.exists(dSA[model][0]):
 			with open(dSA[model][0], "r") as params:
 				dLogLlh[model] = float(params.readline().strip().split("= ")[-1])
