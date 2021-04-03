@@ -96,27 +96,27 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 
 	# perform LRT
         # M1 vs M2
-	if "M1" and "M2" in lModels:
-              if "M1" and "M2" in dLogLlh:
+	if "M1"  in lModels and "M2" in lModels:
+              if "M1"  in dLogLlh and "M2" in dLogLlh:
                       LR12, p12 = PSPFunc.LRT(dLogLlh["M1"], dLogLlh["M2"], 2)
                       logger.info("LRT of M1 vs M2: {}".format(p12))
               else:
                       logger.info("Possible failed optimization, likelihoods of M1 and M2 have not been computed.")
-	if "M7" and "M8" in lModels:
-              if "M7" and "M8" in dLogLlh:
+	if "M7"  in lModels and "M8" in lModels:
+              if "M7"  in dLogLlh and "M8" in dLogLlh:
                       LR78, p78 = PSPFunc.LRT(dLogLlh["M7"], dLogLlh["M8"], 2)
                       logger.info("LRT of M7 vs M8: {}".format(p78))
               else:
                       logger.info("Possible failed optimization, likelihoods of M7 and M8 have not been computed.")
-	if "M8" and "M8a" in lModels:
-              if "M8" and "M8a" in dLogLlh:
+	if "M8" in lModels and "M8a" in lModels:
+              if "M8"  in dLogLlh and "M8a" in dLogLlh:
                       LR88a, p88a = PSPFunc.LRT(dLogLlh["M8a"], dLogLlh["M8"], 1)
                       ts88a = 0.5*p88a + 0.5
                       logger.info("LRT of M8 vs M8a: {} (Treshold: {})".format(p88a, ts88a))
               else:
                       logger.info("Possible failed optimization, likelihoods have not been computed.")
-	if "DFP07" and "DFP07_0" in lModels:
-              if "DFP07" and "DFP07_0" in dLogLlh:
+	if "DFP07"  in lModels and "DFP07_0" in lModels:
+              if "DFP07"  in dLogLlh and "DFP07_0" in dLogLlh:
                       LRDFP, pDFP = PSPFunc.LRT(dLogLlh["DFP07_0"], dLogLlh["DFP07"], 1)
                       tsDFP = 0.5*pDFP + 0.5
                       logger.info("LRT of DFP07 vs DFP07_07: {} (Treshold: {})".format(pDFP, tsDFP))
@@ -273,15 +273,14 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
           logger.info("Running {:s}".format(model))
           dModelRun[model] = tree.run_model(model)
 
-      if "M1" and "M2" in dModelRun:
+      if "M1" in dModelRun and "M2" in dModelRun:
               p12 = tree.get_most_likely("M2", "M1")
               logger.info("LRT of M1 vs M2 = {}".format(p12))
-      if "M7" and "M8" in dModelRun:
+      if "M7"  in dModelRun and "M8" in dModelRun:
               p78 = tree.get_most_likely("M8", "M7")
               logger.info("LRT of M7 vs M8 = {}".format(p78))
-      """
-      if "M8a" and "M8" in dModelRun:
+      if "M8a"  in dModelRun and "M8" in dModelRun:
               p88a = tree.get_most_likely("M8a", "M8")
               logger.info("LRT of M8 vs M8a = {}".format(p88a))
-      """
+
 
