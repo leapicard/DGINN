@@ -230,7 +230,8 @@ mixedlikelihood:
 
 # Option for using BIO++ for the detection of branches under positive selection
 # If True, parameter file will be automatically generated
-# Can be used to indicate the path to a BIO++ parameter file
+# Positive selection on each is assessed through LRT M2 vs M1 model in bio++.
+# Parameters different from omega are shared between all branches.
 opb:
 ```
 

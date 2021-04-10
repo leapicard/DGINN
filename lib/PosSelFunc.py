@@ -33,8 +33,6 @@ def pspAnalysis(data, parms, aln, tree):
 	logger.info("Alignement is in {:s} format.".format(data.alnFormat))
 	logger.info("Tree: {:s}".format(tree))
 
-	nodes = PSPFunc.nbNode(tree, logger)
-					
 	### Run the different analysis as determined by control file
 	logger.info("Starting positive selection analyses.")
 	logger.info("POSITIVE SELECTION ANALYSIS: ")
@@ -85,7 +83,7 @@ def pspAnalysis(data, parms, aln, tree):
 	
 	lPSNodes = []
 	if "OPB" in dCtrls:
-		try:
+#		try:
 			params = BranchAnalysis.bppBranch(dCtrls["OPB"], 
 							  outDir, 
 							  data.baseName, 
@@ -93,18 +91,14 @@ def pspAnalysis(data, parms, aln, tree):
 							  data.alnFormat, 
 							  tree, 
 							  logger)	
-		except Exception:
-			logger.error("Bio++ Branch Analysis encountered an unexpected error, skipping.")
-		try:
-			lPSNodes = BranchAnalysis.parseNodes(params, logger)	
-		except Exception:
-			logger.error("Could not find info about positively selected branches in Bio++ results. If unexpected, check Bio++ parameter files for OPB.")
+		# except Exception:
+		# 	logger.error("Bio++ Branch Analysis encountered an unexpected error, skipping.")
 	
 	if "OPB" and "GNH" in dCtrls and len(lPSNodes) > 1:
-		try:
+#		try:
 			BranchAnalysis.bppBranchSite(dCtrls["GNH"], lPSNodes, outDir, data.baseName, aln, data.alnFormat, tree, logger)
-		except Exception:
-			logger.error("Bio++ Pseudo Branch-Site Analysis encountered an unexpected error, skipping.")
+		# except Exception:
+		# 	logger.error("Bio++ Pseudo Branch-Site Analysis encountered an unexpected error, skipping.")
 	
 	if "paml" in dCtrls:
 		SiteAnalysis.pamlSite(aln, 

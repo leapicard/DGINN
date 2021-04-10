@@ -10,6 +10,7 @@ import argparse, os
 from time import localtime, strftime
 from collections import OrderedDict
 from Bio import SeqIO, AlignIO
+import glob
 
 #################################################
 ## Variables Globales
@@ -63,18 +64,18 @@ if __name__ == "__main__":
 	llh = open(llhFile, "w")
 	llh.write("File\tMethod\tM1\tM2\tM7\tM8\tDFP07_0\tDFP07\n")
 	
-	for posDir, laln in dSub2Cut.items():
-		if len(laln)>1:
-                  baseName = laln[0]
-                  fastaName = laln[1]
-		else:
-		  baseName = laln[0].split("/")[-1].split(".")[0]
-		  fastaName = laln[0]
-		M0fileBpp = posDir+"/bpp_site/"+baseName+"_optimization_M0.def"
+	for posDir, aln in dSub2Cut.items():
+		posDir=posDir.rstrip("/")
+		baseName = aln.split("/")[-1].split(".")[0]
+		repDir = "/".join(posDir.split("/")[:-1])
+		allF = [repDir+"/"+f for f in os.listdir(repDir) if f.endswith("fas") or f.endswith("fasta")]
+		if len(allF)!=0:
+		        aln=max(allF, key=os.path.getctime)
+		M0fileBpp = glob.glob(posDir+"/bpp_site/*_optimization_M0.def")
 		M0filePaml = posDir+"/paml_site/M0/rst1"
 		dGene = OrderedDict()
 		try:
-			with open(M0fileBpp, "r") as M0:
+			with open(M0fileBpp[0], "r") as M0:
                           l=M0.readline()
                           while l:
                             if l.find("omega")!=-1:

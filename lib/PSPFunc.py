@@ -8,7 +8,7 @@ def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 	dCtrls = {}
 	lModels = []
 	if models != "":
-		if bppml not in ["", "False", False] and mixed not in ["", "False", False]:
+		if bppml not in ["", "False", False]:# and mixed not in ["", "False", False]:
 			dCtrls["bppml"] = bppml
 			dCtrls["bppmixedlikelihood"] = mixed
 		if paml not in ["", "False", False]:
@@ -92,11 +92,6 @@ def pspFileCreation(path, option):
         dparams["model1"] = "$(MODEL)"
         dparams["process1"] = "Homogeneous(model=1, tree=1, rate=1, root_freq=1)"
         dparams["scenario1"] = "split(model=1)"
-      elif option == "opb":
-        dparams["nonhomogeneous"] = "one_per_branch"
-        dparams["model"] = "YNGP_M0(frequencies=F3X4(initFreqs=observed))"
-        dparams["process1"] = "OnePerBranch(model=1, tree=1, rate=1, shared_parameters=(YN98.kappa, YN98.123_*))"
-        dparams["nonhomogeneous_one_per_branch.shared_parameters"] = "YN98.kappa, YN98.*theta*"
       elif option == "gnh":
         dparams["nonhomogeneous"] = "general"
         dparams["nonhomogeneous.number_of_models"] = "2"
