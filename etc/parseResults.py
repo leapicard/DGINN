@@ -34,7 +34,7 @@ if __name__ == "__main__":
 	files.add_argument('-o', '--outdir', metavar="<path/to/directory>", type=str, default="", required=False, dest = 'outDir', help =\
 						'folder for analysis results (path - by default output file will be saved in the incoming directory)')
 	files.add_argument('-pr', '--postrate', metavar="<value>", type=float, default=0.95, required=False, dest = 'pr', help =\
-						'folder for analysis results (path - by default output file will be saved in the incoming directory)')	
+						'Threshold rate of omega>1 to admit positive selected sites.')	
 
 	
 	# Check parameters and get arguments
@@ -49,7 +49,7 @@ if __name__ == "__main__":
 	
 	lDirs = [line.rstrip() for line in open(inFile)]
 	lDirs = [line for line in lDirs if line!='']
-	dSub2Cut = OrderedDict({sub.split("\t")[0]:sub.split("\t")[1] for sub in lDirs})
+	dSub2Cut = OrderedDict({sub.split("\t")[0]:sub.split("\t")[1:] for sub in lDirs})
 	#dSub2Cut = OrderedDict({sub:"/".join(sub.split("/")[0:-1])[0:-21]+".best.fas" for sub in lDirs if os.path.exists("/".join(sub.split("/")[0:-1])[0:-21]+".best.fas")})
 
 	timeStamp = strftime("%Y%m%d%H%M", localtime())
@@ -63,12 +63,13 @@ if __name__ == "__main__":
 	llh = open(llhFile, "w")
 	llh.write("File\tMethod\tM1\tM2\tM7\tM8\tDFP07_0\tDFP07\n")
 	
-	for posDir, aln in dSub2Cut.items():
-	#posDir = "/home/lea/Documents/genes/2020_shScreen/TRIM69_CCDS_results_202004012008/TRIM69_sequences_filtered_longestORFs_mafft_mincov_prank_results_202004201724/positive_selection_results_202004201724/"
-	#aln = "/home/lea/Documents/genes/2020_shScreen/TRIM69_CCDS_results_202004012008/TRIM69_sequences_filtered_longestORFs_mafft_mincov_prank.best.fas"
-
-	#if os.path.exists(posDir):
-		baseName = aln.split("/")[-1].split(".")[0]
+	for posDir, laln in dSub2Cut.items():
+		if len(laln)>1:
+                  baseName = laln[0]
+                  fastaName = laln[1]
+		else:
+		  baseName = laln[0].split("/")[-1].split(".")[0]
+		  fastaName = laln[0]
 		M0fileBpp = posDir+"/bpp_site/"+baseName+"_optimization_M0.def"
 		M0filePaml = posDir+"/paml_site/M0/rst1"
 		dGene = OrderedDict()
@@ -102,12 +103,15 @@ if __name__ == "__main__":
 		paml1v2, paml7v8, pamlLlh = PRS.ResPaml(posDir, pr)
 		dGene.update(paml1v2)
 		dGene.update(paml7v8)
-		f = SeqIO.parse(open(aln),'fasta')
-		ids = [fasta.id.split("_")[1].upper() for fasta in f]
-		f = SeqIO.parse(open(aln),'fasta')
+		f = SeqIO.parse(open(fastaName),'fasta')
+		try:
+		  ids = [fasta.id.split("_")[1].upper() for fasta in f]
+		except IndexError:
+		  ids = [fasta.id.strip() for fasta in f]
+		f = SeqIO.parse(open(fastaName),'fasta')
 		sp = set([fasta.id.split("_")[0] for fasta in f])
 		nbSp = len(sp)
-		f = SeqIO.parse(open(aln),'fasta')
+		f = SeqIO.parse(open(fastaName),'fasta')
 		lLen = [len(str(fasta.seq)) for fasta in f]
 		alnLen = max(lLen)/3
 
@@ -149,7 +153,7 @@ if __name__ == "__main__":
 		else:
 			llh.write(baseName+"\tPAML\tna\n")
 
-		dAlnCov[baseName+"\t"+shortName] = PRS.getCov(aln)
+		dAlnCov[baseName+"\t"+shortName] = PRS.getCov(fastaName)
 
 	dCovSort = {x:dAlnCov[x] for x in sorted(dAlnCov, key=lambda k: len(dAlnCov[k]), reverse = True)}
 	with open(cov, "w") as outf:

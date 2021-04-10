@@ -50,7 +50,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	  # Use previous backup file (in order M0->M1->M2->M7->M8) to accelerate optimization
           # dictionary of equivalences of specific parameter names between models
 	  dequiv={}
-          ## omega from M0->M1->M2->M7 & M0->DFP07
+          ## omega from M0->M1->M2->M7 & M0->DFP07_0->DFP07
 	  dequiv["omega"] = {"M1":{"YNGP_M1.omega":"omega"},
 			     "M2":{"YNGP_M2.omega0":"omega"},
 			     "M0":{"YN98.omega":"omega"},

@@ -99,7 +99,7 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 	d = OrderedDict({method:"na", method+"_p-value":"na", method+"_NbSites":"0", method+"_PSS":"na"})
 	if isinstance(dLogLlh[model1], float) and isinstance(dLogLlh[model2], float):
 		try:
-			if model1 and model2 in dLogLlh:
+			if model1  in dLogLlh and model2 in dLogLlh:
 				LR, p = LRT(dLogLlh[model1], dLogLlh[model2], 2)
 				if p < 0.05 and os.path.exists(dSAres[model2]):
 					df = pandas.read_csv(dSAres[model2], sep='\t')

@@ -106,13 +106,13 @@ the format speSpe_GENE_Id (ex: homSap_MX1_CCDS13673,
 macMul_APOBEC3G_NM_001198693).
 
 ```
+# Step at which to enter the pipeline (default: blast)
+# Please refer to 3/ Entry steps for names and necessary files
+step:
+
 # Path or list of paths (absolute or relative) to the files needed to start the pipeline
 # Please refer to **3/ Entry steps** for necessary files
 infile:
-
-# NCBI database on which the blast is to be performed (ex: nr)
-# Future implementations will include the possibility to perform the search on local databases
-blastdb:
 
 # Output directory for all results
 # Automatically created if not specified
@@ -122,6 +122,14 @@ outdir:
 # Automatically created if not specified
 logfile:
 
+###############################################
+##### BLAST
+###############################################
+
+# NCBI database on which the blast is to be performed (ex: nr)
+# Future implementations will include the possibility to perform the search on local databases
+blastdb:
+
 # E-value for Blast (default: 10⁻⁴)
 evalue:
 
@@ -130,6 +138,7 @@ mincov:
 
 # Percentage of identity for Blast (default: 70)
 percID:
+
 
 # Option for eliminating overly long sequences (default: cutoff(3))
 # IQR or cutoff, factor can be put after in parenthesis
@@ -141,10 +150,6 @@ maxLen:
 # https://www.ncbi.nlm.nih.gov/books/NBK3837/#EntrezHelp.Entrez_Searching_Options
 entryQuery:
 
-# Step at which to enter the pipeline (default: blast)
-# Please refer to 3/ Entry steps for names and necessary files
-step:
-
 # Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName:
 
@@ -154,11 +159,19 @@ remote:
 # NCBI API key to increase Blast speed, obtainable from the NCBI
 APIKey:
 
+###############################################
+##### PHYML
+###############################################
+
 # Options for running PhyML
 # Input the command in the same way you would to run PhyML yourself in the following manner phyml -i ALN [the rest of your options]
 # For example, to run PhyML with a GTR model with 100 bootstraps, the option would be phymlOpt:phyml -i ALN -m GTR -b 100
 # Please be aware that PhyML will run even if your options are wrong, but with its own default parameters
 phymlOpt:
+
+###############################################
+##### TREERECS
+###############################################
 
 # Path to the species tree for the detection of duplication events and ortholog group assignment
 # Species names must be formated as speSpe or speSpeSpe (ex: homSap, gorGorGor)
@@ -166,6 +179,10 @@ sptree:
 
 # Option for the identification of duplication events (default: False)
 duplication:
+
+###############################################
+##### CLEANING
+###############################################
 
 # Option for Long Branch separation (default: cutoff(50))
 # IQR or cutoff, factor can be put after in parenthesis (ex: cutoff(50))
@@ -175,8 +192,16 @@ LBopt:
 # Minimum number of species for assignment to an ortholog group (default: 8)
 nbspecies:
 
+###############################################
+##### GARD
+###############################################
+
 # Option for the detection of recombination events (default: False)
 recombination:
+
+###############################################
+##### PS
+###############################################
 
 # Option for the detection of positive selection (default: False)
 positiveSelection:
@@ -191,7 +216,7 @@ busted:
 meme:
 
 # Models to be computed by BIO++ (Gueguen *et al.*, 2013) and PAML (Yang, 2007)
-# Implemented models: M0, M1, M2, M7, M8
+# Implemented models: M0, M1, M2, M7, M8, DFP07_0, DFP07
 # Must be comma separated (ex: M0,M1,M2)
 models:
 
