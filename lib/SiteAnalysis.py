@@ -6,6 +6,9 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	# outDir=os.getcwd()+"/"  # used to debug
 	logger.info(os.getcwd())
 	### SITE ANALYSIS: BIO++
+	dallMod={"M0":0,"M1":1,"M2":2,"M7":3,"M8a":4,"M8":5,"DFP07_0":1,"DFP07":2}
+	lModels.sort(key = lambda x : dallMod[x])
+
 	logger.info("Bio++ Site Analysis")
 	logger.info("Models to be run: {:s}".format(", ".join(model for model in lModels)))
 	logger.info("Bppml parameter file: {:s}".format(bppFile))
@@ -37,7 +40,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	dModelSyntax.update({model:[model[:5],"protmodel=JTT92", "frequencies=F3X4(initFreqs=observed)"] for model in lModels if model[:5]=="DFP07"})
 	# take into account the specificities of each model (number of classes n for example)
 	for model in lModels:
-          if model in ["M7","M8"]:
+          if model in ["M7","M8","M8a"]:
             dModelSyntax[model].append("n=4")
             dModelSyntax[model].append("q=1")
           if model[0]=="M" and len(model) > 2:
@@ -162,14 +165,15 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 
 
 def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new values for parameters
-  # Use previous backup file (in order M0->M1->M2->M7->M8) to accelerate optimization
+  # Use previous backup file (in order M0->M1->M2->M7->(M8a)->M8) to accelerate optimization
   # dictionary of equivalences of specific parameter names between models
   dequiv={}
-  ## omega from M0->M1->M2->M7 & M0->DFP07
+  ## omega from M0->M1->M2->M7(->M8a)->M8 &M0->DFP07
   dequiv["omega"] = {"M1":{"YNGP_M1.omega":"omega"},
 		     "M2":{"YNGP_M2.omega0":"omega"},
 		     "M0":{"YN98.omega":"omega"},
 		     "M7":{"YNGP_M7.p":"[omega/(1-omega),1][omega==1]"},
+		     "M8a":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]"},
 		     "M8":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]"},
                      "DFP07_0":{"DFP07.omega":"omega"},
                      "DFP07":{"DFP07.omega":"omega"}}
@@ -181,7 +185,7 @@ def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new valu
   prevmodel = ""
   if not os.path.exists(dModelLog[model]):
     if model[0]=="M":
-      for prevmodel in ["M7","M2","M1","M0"]:
+      for prevmodel in ["M8a","M7","M2","M1","M0"]:
         if not prevmodel in lModels or not os.path.exists(dModelLog[prevmodel]+".def"):
           prevmodel=""
         else:
@@ -201,7 +205,13 @@ def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new valu
       fprev.close()
 
       dprevpar={l[:l.find("=")]:l[l.find("=")+1:] for l in lprev}
+      if prevmodel=="M8a":  # Trick to get right parameters prefix
+        prevmodel="M8"
+      if model=="M8a":  # Trick to get right parameters prefix
+        model="M8"
+        
 
+      logger.info("Optimization for model " + model + " uses optimized parameters from model " + prevmodel)  
       # first copy all parameters
       for st,val in dprevpar.items(): 
         if prevmodel=="M0":
@@ -210,7 +220,7 @@ def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new valu
           else:
             nst=st.replace("YN98","DFP07")
         else:
-          nst=st.replace(prevmodel,model)
+            nst=st.replace(prevmodel,model)
 
         if not nst in dnewpar.keys():
           dnewpar[nst]=val
