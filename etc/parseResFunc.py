@@ -132,7 +132,7 @@ def ResBpp(baseName, posDir, pr):
 	dSA = {}
 	dSAres = {}
 	dLogLlh = {}
-	lModels = ["M1","M2","M7","M8", "DFP07_0", "DFP07"]
+	lModels = ["M1","M2","M7", "M8a", "M8", "DFP07_0", "DFP07"]
 
 	for model in lModels:
 		dSA[model] = glob.glob(posDir+"/bpp_site/*"+model+".params")
@@ -146,9 +146,10 @@ def ResBpp(baseName, posDir, pr):
 
 	m1m2 = ResBppExtract("M1 M2", dLogLlh, dSAres, posDir, baseName, pr)
 	m7m8 = ResBppExtract("M7 M8", dLogLlh, dSAres, posDir, baseName, pr)
+	m8am8 = ResBppExtract("M8a M8", dLogLlh, dSAres, posDir, baseName, pr)
 	dfp = ResBppExtract("DFP07_0 DFP07", dLogLlh, dSAres, posDir, baseName, pr)
 	
-	return(m1m2, m7m8, dfp, dLogLlh)
+	return(m1m2, m7m8, m8am8, dfp, dLogLlh)
 
 def ResPamlExtract(models, dModelLlh, dModelFile, pr):
 	model1, model2 = models.split(" ")[0], models.split(" ")[1]
@@ -183,7 +184,7 @@ def ResPamlExtract(models, dModelLlh, dModelFile, pr):
 
 def ResPaml(posDir, pr):
 	PAML = posDir+"/paml_site/"
-	lModels = ["M1","M2","M7","M8"]
+	lModels = ["M1","M2","M7","M8","M8a"]
 	dModelLlh = OrderedDict({model:"na" for model in lModels})
 	dModelFile = {model:"na" for model in lModels}
 	#dModelOmega = {model:"na" for model in lModels}
@@ -211,8 +212,9 @@ def ResPaml(posDir, pr):
 
 	m1m2 = ResPamlExtract("M1 M2", dModelLlh, dModelFile, pr)
 	m7m8 = ResPamlExtract("M7 M8", dModelLlh, dModelFile, pr)
+	m8am8 = ResPamlExtract("M8a M8", dModelLlh, dModelFile, pr)
 			
-	return(m1m2, m7m8, dModelLlh)
+	return(m1m2, m7m8, m8am8, dModelLlh)
 	
 	#else:
 	#	return("PamlM1M2\tna\n", "PamlM7M8\tna\n", "na")

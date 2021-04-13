@@ -62,7 +62,7 @@ if __name__ == "__main__":
 	dAlnCov = {}
 	llhFile = inDir+"/DGINN_{}_likelihoods.tab".format(timeStamp)
 	llh = open(llhFile, "w")
-	llh.write("File\tMethod\tM1\tM2\tM7\tM8\tDFP07_0\tDFP07\n")
+	llh.write("File\tMethod\tM1\tM2\tM7\tM8a\tM8\tDFP07_0\tDFP07\n")
 	
 	for posDir, aln in dSub2Cut.items():
 		posDir=posDir.rstrip("/")
@@ -97,13 +97,15 @@ if __name__ == "__main__":
 		dGene.update(bust)
 		meme = PRS.ResMeme(baseName, posDir)
 		dGene.update(meme)
-		bpp1v2, bpp7v8, bppdfp, bppLlh = PRS.ResBpp(baseName, posDir, pr)
+		bpp1v2, bpp7v8, bpp8av8, bppdfp, bppLlh = PRS.ResBpp(baseName, posDir, pr)
 		dGene.update(bpp1v2)
 		dGene.update(bpp7v8)
+		dGene.update(bpp8av8)
 		dGene.update(bppdfp)
-		paml1v2, paml7v8, pamlLlh = PRS.ResPaml(posDir, pr)
+		paml1v2, paml7v8, paml8av8, pamlLlh = PRS.ResPaml(posDir, pr)
 		dGene.update(paml1v2)
 		dGene.update(paml7v8)
+		dGene.update(paml8av8)
 		f = SeqIO.parse(open(aln),'fasta')
 		ids = [fasta.id.split("_")[1].upper() for fasta in f]
 		f = SeqIO.parse(open(aln),'fasta')
@@ -142,7 +144,7 @@ if __name__ == "__main__":
 		resLine = "\t".join(lBaseRes + list(dGene.values()))
 		allRes.append(resLine)
 
-		bppLlhRes = [str(bppLlh[k]) for k in ["M1","M2","M7","M8","DFP07_0","DFP07"]]
+		bppLlhRes = [str(bppLlh[k]) for k in ["M1","M2","M7","M8a","M8","DFP07_0","DFP07"]]
 		llh.write(baseName+"\tBPP\t"+"\t".join(bppLlhRes)+"\n")
 
 		if type(bppLlh) is dict:
