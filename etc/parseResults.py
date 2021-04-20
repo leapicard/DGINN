@@ -68,9 +68,11 @@ if __name__ == "__main__":
 		posDir=posDir.rstrip("/")
 		baseName = aln.split("/")[-1].split(".")[0]
 		repDir = "/".join(posDir.split("/")[:-1])
-		allF = [repDir+"/"+f for f in os.listdir(repDir) if f.endswith("fas") or f.endswith("fasta")]
-		if len(allF)!=0:
-		        aln=max(allF, key=os.path.getctime)
+		if (not aln.startswith(repDir)):
+		        allF = [repDir+"/"+f for f in os.listdir(repDir) if f.endswith("fas") or f.endswith("fasta")]
+		        if len(allF)!=0:
+                                aln=max(allF, key=os.path.getctime)
+                                                                                                                    
 		M0fileBpp = glob.glob(posDir+"/bpp_site/*_optimization_M0.def")
 		M0filePaml = posDir+"/paml_site/M0/rst1"
 		dGene = OrderedDict()

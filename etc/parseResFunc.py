@@ -221,7 +221,11 @@ def ResPaml(posDir, pr):
 
 def getCov(fAln):
 	lCov = []
-	aln = AlignIO.read(open(fAln, "r"), "fasta")
+	try:
+	        aln = AlignIO.read(open(fAln, "r"), "fasta")
+	except ValueError:
+                print("Alignment does not fit "  + fAln)
+                return
 	nbSeq = len(aln)
 	alnLen = aln.get_alignment_length()
 	for i in range(0, alnLen):
