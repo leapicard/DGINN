@@ -6,7 +6,7 @@ from collections import defaultdict, OrderedDict, Counter
 from time import localtime, strftime
 from statistics import median
 from scipy import stats
-
+import glob
 
 #################################################
 ## Functions
@@ -37,11 +37,11 @@ def LRT(ll1, ll2, df):
 	return(LR, p)
 
 def ResBusted(baseName, posDir):
-	WG = posDir+"/busted/"+baseName+"_busted.out"
+	WG = glob.glob(posDir+"/busted/*_busted.out")
 	posSel = ""
 	d = OrderedDict()
-	if os.path.exists(WG):
-		with open(WG, "r") as wg:
+	if len(WG)>= 1 and os.path.exists(WG[0]):
+		with open(WG[0], "r") as wg:
 			try:
 				p = wg.read().split("**")[-2].replace(" ", "").split("=")[1]
 
@@ -61,13 +61,12 @@ def ResBusted(baseName, posDir):
 	return(d)
 
 def ResMeme(baseName, posDir):
-	BS = posDir+"/meme/"+baseName+"_meme.out"
-	MemePss = posDir+"/"+baseName+"_meme_pss.fasta"
+	BS = glob.glob(posDir+"/meme/*_meme.out")
 	d = OrderedDict({"MEME_NbSites":"0", "MEME_PSS":"na"})
 
-	if os.path.exists(BS):
+	if len(BS)>=1 and os.path.exists(BS[0]):
 		try:
-			with open(BS, "r") as bs:
+			with open(BS[0], "r") as bs:
 				BSlines = bs.readlines()
 			
 			lRes = []
@@ -101,19 +100,19 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 		try:
 			if model1 and model2 in dLogLlh:
 				LR, p = LRT(dLogLlh[model1], dLogLlh[model2], 2)
-				if p < 0.05 and os.path.exists(dSAres[model2]):
-					df = pandas.read_csv(dSAres[model2], sep='\t')
+				if p < 0.05 and os.path.exists(dSAres[model2][0]):
+					df = pandas.read_csv(dSAres[model2][0], sep='\t')
 					w = float(df.columns[-2].split("=")[-1])*0.8
 
 					lRes1 = df[df.iloc[:,-1]>w].iloc[:,0].tolist()
 					lRes2 = df[df.iloc[:,-2]>pr].iloc[:,0].tolist()
 					lRes = list(map(lambda x:x+1,set(lRes1).intersection(lRes2)))
-					lRes.sort()
-					lResFinal = str("{}".format(lRes).replace("[", "").replace("]", ""))
-
+					if len(lRes)!=0:
+					        lResFinal = str("{}".format(lRes).replace("[", "").replace("]", ""))
+					else:
+                                                lResFinal = "na"
 					posSel = "Y"
 					nbPSS = str(len(lRes))
-					
 				else:
 					posSel = "N"
 					lResFinal = "na"
@@ -133,13 +132,13 @@ def ResBpp(baseName, posDir, pr):
 	dSA = {}
 	dSAres = {}
 	dLogLlh = {}
-	lModels = ["M1","M2","M7","M8", "DFP07_0", "DFP07"]
+	lModels = ["M1","M2","M7", "M8a", "M8", "DFP07_0", "DFP07"]
 
 	for model in lModels:
-		dSA[model] = posDir+"/bpp_site/"+baseName+"_"+model+".params"
-		dSAres[model] = posDir+"/bpp_site/"+baseName+"_results_"+model+".log"
-		if os.path.exists(dSA[model]):
-			with open(dSA[model], "r") as params:
+		dSA[model] = glob.glob(posDir+"/bpp_site/*"+model+".params")
+		dSAres[model] = glob.glob(posDir+"/bpp_site/*_results_"+model+".log")
+		if len(dSA[model])>=1 and os.path.exists(dSA[model][0]):
+			with open(dSA[model][0], "r") as params:
 				dLogLlh[model] = float(params.readline().strip().split("= ")[-1])
 
 		else:
@@ -147,9 +146,10 @@ def ResBpp(baseName, posDir, pr):
 
 	m1m2 = ResBppExtract("M1 M2", dLogLlh, dSAres, posDir, baseName, pr)
 	m7m8 = ResBppExtract("M7 M8", dLogLlh, dSAres, posDir, baseName, pr)
+	m8am8 = ResBppExtract("M8a M8", dLogLlh, dSAres, posDir, baseName, pr)
 	dfp = ResBppExtract("DFP07_0 DFP07", dLogLlh, dSAres, posDir, baseName, pr)
 	
-	return(m1m2, m7m8, dfp, dLogLlh)
+	return(m1m2, m7m8, m8am8, dfp, dLogLlh)
 
 def ResPamlExtract(models, dModelLlh, dModelFile, pr):
 	model1, model2 = models.split(" ")[0], models.split(" ")[1]
@@ -184,7 +184,7 @@ def ResPamlExtract(models, dModelLlh, dModelFile, pr):
 
 def ResPaml(posDir, pr):
 	PAML = posDir+"/paml_site/"
-	lModels = ["M1","M2","M7","M8"]
+	lModels = ["M1","M2","M7","M8","M8a"]
 	dModelLlh = OrderedDict({model:"na" for model in lModels})
 	dModelFile = {model:"na" for model in lModels}
 	#dModelOmega = {model:"na" for model in lModels}
@@ -212,15 +212,20 @@ def ResPaml(posDir, pr):
 
 	m1m2 = ResPamlExtract("M1 M2", dModelLlh, dModelFile, pr)
 	m7m8 = ResPamlExtract("M7 M8", dModelLlh, dModelFile, pr)
+	m8am8 = ResPamlExtract("M8a M8", dModelLlh, dModelFile, pr)
 			
-	return(m1m2, m7m8, dModelLlh)
+	return(m1m2, m7m8, m8am8, dModelLlh)
 	
 	#else:
 	#	return("PamlM1M2\tna\n", "PamlM7M8\tna\n", "na")
 
 def getCov(fAln):
 	lCov = []
-	aln = AlignIO.read(open(fAln, "r"), "fasta")
+	try:
+	        aln = AlignIO.read(open(fAln, "r"), "fasta")
+	except ValueError:
+                print("Alignment does not fit "  + fAln)
+                return
 	nbSeq = len(aln)
 	alnLen = aln.get_alignment_length()
 	for i in range(0, alnLen):

@@ -6,6 +6,9 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	# outDir=os.getcwd()+"/"  # used to debug
 	logger.info(os.getcwd())
 	### SITE ANALYSIS: BIO++
+	dallMod={"M0":0,"M1":1,"M2":2,"M7":3,"M8a":4,"M8":5,"DFP07_0":1,"DFP07":2}
+	lModels.sort(key = lambda x : dallMod[x])
+
 	logger.info("Bio++ Site Analysis")
 	logger.info("Models to be run: {:s}".format(", ".join(model for model in lModels)))
 	logger.info("Bppml parameter file: {:s}".format(bppFile))
@@ -37,7 +40,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	dModelSyntax.update({model:[model[:5],"protmodel=JTT92", "frequencies=F3X4(initFreqs=observed)"] for model in lModels if model[:5]=="DFP07"})
 	# take into account the specificities of each model (number of classes n for example)
 	for model in lModels:
-          if model in ["M7","M8"]:
+          if model in ["M7","M8","M8a"]:
             dModelSyntax[model].append("n=4")
             dModelSyntax[model].append("q=1")
           if model[0]=="M" and len(model) > 2:
@@ -96,27 +99,27 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 
 	# perform LRT
         # M1 vs M2
-	if "M1" and "M2" in lModels:
-              if "M1" and "M2" in dLogLlh:
+	if "M1"  in lModels and "M2" in lModels:
+              if "M1"  in dLogLlh and "M2" in dLogLlh:
                       LR12, p12 = PSPFunc.LRT(dLogLlh["M1"], dLogLlh["M2"], 2)
                       logger.info("LRT of M1 vs M2: {}".format(p12))
               else:
                       logger.info("Possible failed optimization, likelihoods of M1 and M2 have not been computed.")
-	if "M7" and "M8" in lModels:
-              if "M7" and "M8" in dLogLlh:
+	if "M7"  in lModels and "M8" in lModels:
+              if "M7"  in dLogLlh and "M8" in dLogLlh:
                       LR78, p78 = PSPFunc.LRT(dLogLlh["M7"], dLogLlh["M8"], 2)
                       logger.info("LRT of M7 vs M8: {}".format(p78))
               else:
                       logger.info("Possible failed optimization, likelihoods of M7 and M8 have not been computed.")
-	if "M8" and "M8a" in lModels:
-              if "M8" and "M8a" in dLogLlh:
+	if "M8" in lModels and "M8a" in lModels:
+              if "M8"  in dLogLlh and "M8a" in dLogLlh:
                       LR88a, p88a = PSPFunc.LRT(dLogLlh["M8a"], dLogLlh["M8"], 1)
                       ts88a = 0.5*p88a + 0.5
                       logger.info("LRT of M8 vs M8a: {} (Treshold: {})".format(p88a, ts88a))
               else:
                       logger.info("Possible failed optimization, likelihoods have not been computed.")
-	if "DFP07" and "DFP07_0" in lModels:
-              if "DFP07" and "DFP07_0" in dLogLlh:
+	if "DFP07"  in lModels and "DFP07_0" in lModels:
+              if "DFP07"  in dLogLlh and "DFP07_0" in dLogLlh:
                       LRDFP, pDFP = PSPFunc.LRT(dLogLlh["DFP07_0"], dLogLlh["DFP07"], 1)
                       tsDFP = 0.5*pDFP + 0.5
                       logger.info("LRT of DFP07 vs DFP07_07: {} (Treshold: {})".format(pDFP, tsDFP))
@@ -162,14 +165,15 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 
 
 def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new values for parameters
-  # Use previous backup file (in order M0->M1->M2->M7->M8) to accelerate optimization
+  # Use previous backup file (in order M0->M1->M2->M7->(M8a)->M8) to accelerate optimization
   # dictionary of equivalences of specific parameter names between models
   dequiv={}
-  ## omega from M0->M1->M2->M7 & M0->DFP07
+  ## omega from M0->M1->M2->M7(->M8a)->M8 &M0->DFP07
   dequiv["omega"] = {"M1":{"YNGP_M1.omega":"omega"},
 		     "M2":{"YNGP_M2.omega0":"omega"},
 		     "M0":{"YN98.omega":"omega"},
 		     "M7":{"YNGP_M7.p":"[omega/(1-omega),1][omega==1]"},
+		     "M8a":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]"},
 		     "M8":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]"},
                      "DFP07_0":{"DFP07.omega":"omega"},
                      "DFP07":{"DFP07.omega":"omega"}}
@@ -181,7 +185,7 @@ def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new valu
   prevmodel = ""
   if not os.path.exists(dModelLog[model]):
     if model[0]=="M":
-      for prevmodel in ["M7","M2","M1","M0"]:
+      for prevmodel in ["M8a","M7","M2","M1","M0"]:
         if not prevmodel in lModels or not os.path.exists(dModelLog[prevmodel]+".def"):
           prevmodel=""
         else:
@@ -201,7 +205,13 @@ def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new valu
       fprev.close()
 
       dprevpar={l[:l.find("=")]:l[l.find("=")+1:] for l in lprev}
+      if prevmodel=="M8a":  # Trick to get right parameters prefix
+        prevmodel="M8"
+      if model=="M8a":  # Trick to get right parameters prefix
+        model="M8"
+        
 
+      logger.info("Optimization for model " + model + " uses optimized parameters from model " + prevmodel)  
       # first copy all parameters
       for st,val in dprevpar.items(): 
         if prevmodel=="M0":
@@ -210,7 +220,7 @@ def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new valu
           else:
             nst=st.replace("YN98","DFP07")
         else:
-          nst=st.replace(prevmodel,model)
+            nst=st.replace(prevmodel,model)
 
         if not nst in dnewpar.keys():
           dnewpar[nst]=val
@@ -273,15 +283,14 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
           logger.info("Running {:s}".format(model))
           dModelRun[model] = tree.run_model(model)
 
-      if "M1" and "M2" in dModelRun:
+      if "M1" in dModelRun and "M2" in dModelRun:
               p12 = tree.get_most_likely("M2", "M1")
               logger.info("LRT of M1 vs M2 = {}".format(p12))
-      if "M7" and "M8" in dModelRun:
+      if "M7"  in dModelRun and "M8" in dModelRun:
               p78 = tree.get_most_likely("M8", "M7")
               logger.info("LRT of M7 vs M8 = {}".format(p78))
-      """
-      if "M8a" and "M8" in dModelRun:
+      if "M8a"  in dModelRun and "M8" in dModelRun:
               p88a = tree.get_most_likely("M8a", "M8")
               logger.info("LRT of M8 vs M8a = {}".format(p88a))
-      """
+
 
