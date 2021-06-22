@@ -102,11 +102,10 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 				LR, p = LRT(dLogLlh[model1], dLogLlh[model2], 2)
 				if p < 0.05 and os.path.exists(dSAres[model2][0]):
 					df = pandas.read_csv(dSAres[model2][0], sep='\t')
-					w = float(df.columns[-2].split("=")[-1])*0.8
+					w = 1 #float(df.columns[-2].split("=")[-1])*0.8
 
-					lRes1 = df[df.iloc[:,-1]>w].iloc[:,0].tolist()
-					lRes2 = df[df.iloc[:,-2]>pr].iloc[:,0].tolist()
-					lRes = list(map(lambda x:x+1,set(lRes1).intersection(lRes2)))
+					lRes = df[df.iloc[:,-1]>w].iloc[:,0].tolist()
+					#lRes = list(map(lambda x:x+1,lRes1).intersection(lRes2)))
 					if len(lRes)!=0:
 					        lResFinal = str("{}".format(lRes).replace("[", "").replace("]", ""))
 					else:
