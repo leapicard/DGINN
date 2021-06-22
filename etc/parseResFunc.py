@@ -102,11 +102,10 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 				LR, p = LRT(dLogLlh[model1], dLogLlh[model2], 2)
 				if p < 0.05 and os.path.exists(dSAres[model2][0]):
 					df = pandas.read_csv(dSAres[model2][0], sep='\t')
-					w = float(df.columns[-2].split("=")[-1])*0.8
+					w = 1 #float(df.columns[-2].split("=")[-1])*0.8
 
-					lRes1 = df[df.iloc[:,-1]>w].iloc[:,0].tolist()
-					lRes2 = df[df.iloc[:,-2]>pr].iloc[:,0].tolist()
-					lRes = list(map(lambda x:x+1,set(lRes1).intersection(lRes2)))
+					lRes = df[df.iloc[:,-1]>w].iloc[:,0].tolist()
+					#lRes = list(map(lambda x:x+1,lRes1).intersection(lRes2)))
 					if len(lRes)!=0:
 					        lResFinal = str("{}".format(lRes).replace("[", "").replace("]", ""))
 					else:
@@ -221,7 +220,11 @@ def ResPaml(posDir, pr):
 
 def getCov(fAln):
 	lCov = []
-	aln = AlignIO.read(open(fAln, "r"), "fasta")
+	try:
+	        aln = AlignIO.read(open(fAln, "r"), "fasta")
+	except ValueError:
+                print("Alignment does not fit "  + fAln)
+                return
 	nbSeq = len(aln)
 	alnLen = aln.get_alignment_length()
 	for i in range(0, alnLen):
