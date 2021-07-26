@@ -206,10 +206,11 @@ def paramDef(params, inf, queryName, outdir):
 					
 			elif opt == "models":
 				ltemp = []
+				lmodelok = ["M0", "M1", "M2", "M7", "M8", "M8a", "M10", "DFP07_0", "DFP07"]
 				for M in map(str.strip,dParams[opt].split(",")):
 				  if M == "":
 				    next
-				  elif M not in ["M0", "M1", "M2", "M7", "M8", "M8a", "DFP07_0", "DFP07"] and M[:-2] not in ["M0", "M1", "M2", "M7", "M8", "M8a", "DFP07_0", "DFP07"]:
+				  elif M not in lmodelok and M[:-2] not in lmodelok:
 				    print(M + " isn't a valid model.")
 				  else:
 				    ltemp.append(M)

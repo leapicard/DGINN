@@ -9,7 +9,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	lModels = [m if (m[-2:]=="_C" or m.find("_G")!=-1) else m+"_G" for m in lModels] #gamma(n=4) distrib is default
 	dlModels = {"C":[m[:-2] for m in lModels if m[-2:]=="_C"]}  #constant distrib
 	dlModels["G"] = [m[:m.rfind("_")] for m in lModels if m[-2:]!="_C"]  #gamma distrib
-	dallMod={"M0":0,"M1":1,"M2":2,"M7":3,"M8a":4,"M8":5,"DFP07_0":1,"DFP07":2}
+	dallMod={"M0":0,"M1":1,"M2":2,"M7":3,"M8a":4,"M8":5,"M10":4,"DFP07_0":1,"DFP07":2}
 	for k in ["C","G"]:
                 dlModels[k].sort(key = lambda x : dallMod[x])
 
@@ -28,7 +28,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		FORMAT - format of the aln file (here, phyx)
 		TREEFILE - tree file for the analyzed aln
 		MODEL - choose which model you want run on the data YNGP_M0 through 8, same models as PAML, and DFP07 models
-		IGNORE - parameters to ignore for optimization, for example if one is fixated (ex: omegas in M8a)
+		IGNORE - parameters to ignore for optimization, for example if one is fixed (ex: omegas in M8a)
 		OUTTREE - name of the optimized output tree
 		OUTPARAMS - name of the output file summarizing parameters
 		BACKUP - name of log file
@@ -52,10 +52,14 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	 for model in lmod:
           if model in ["M7","M8","M8a"]:
             dModelSyntax[k][model].append("n=4")
+          if model in ["M7","M8"]:
             dModelSyntax[k][model].append("q=1")
-          if model[0]=="M" and len(model) > 2:
-            dModelSyntax[k][model][0] = dModelSyntax[k][model][0][:-1]
+          if model=="M8a":
             dModelSyntax[k][model].append("omegas=1")
+          if model in ["M10"]:
+            dModelSyntax[k][model].append("nbeta=4")
+            dModelSyntax[k][model].append("ngamma=4")
+            
           if model[:5]=="DFP07":
             dModelSyntax[k][model].append(["p0=1","p0=0.1"][model=="DFP07"])
             
@@ -127,6 +131,12 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
                       logger.info("LRT of M7_%s vs M8_%s: %f"%(k,k,p78))
               else:
                       logger.info("Possible failed optimization, likelihoods of M7_%s and M8_%s have not been computed."%(k,k))
+	 if "M7"  in lModels and "M10" in lModels:
+              if "M7"  in dLogLlh[k] and "M10" in dLogLlh[k]:
+                      LR710, p710 = PSPFunc.LRT(dLogLlh[k]["M7"], dLogLlh[k]["M10"], 3)
+                      logger.info("LRT of M7_%s vs M10_%s: %f"%(k,k,p710))
+              else:
+                      logger.info("Possible failed optimization, likelihoods of M7_%s and M10_%s have not been computed."%(k,k))
 	 if "M8" in lModels and "M8a" in lModels:
               if "M8"  in dLogLlh[k] and "M8a" in dLogLlh[k]:
                       LR88a, p88a = PSPFunc.LRT(dLogLlh[k]["M8a"], dLogLlh[k]["M8"], 1)
@@ -187,23 +197,24 @@ def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new valu
   dequiv={}
   distr=model[-2:]  # dist _C or _G
   ## omega from M0->M1->M2->M7(->M8a)->M8 &M0->DFP07
+  ## omega from M0->M1->M2->M7->M10
   dequiv["omega"] = {"M1":{"YNGP_M1.omega":"omega"},
 		     "M2":{"YNGP_M2.omega0":"omega"},
 		     "M0":{"YN98.omega":"omega"},
 		     "M7":{"YNGP_M7.p":"[omega/(1-omega),1][omega==1]"},
 		     "M8a":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]"},
 		     "M8":{"YNGP_M8.p":"[omega/(1-omega),1][omega==1]"},
-                     "DFP07_0":{"DFP07.omega":"omega"},
+                      "DFP07_0":{"DFP07.omega":"omega"},
                      "DFP07":{"DFP07.omega":"omega"}}
   dequiv["p0"] = {"DFP07_0":{"DFP07.p0":"1"},
-                  "DFP07":{"DFP07.p0":"0.1"}}
+                  "DFP07":{"DFP07.p0":"0.1"}} #0.1 to avoid optim gap for p0=1
 
   dnewpar={}
   
   prevmodel = ""
   if not os.path.exists(dModelLog[model]):
     if model[0]=="M":
-      for prevmodel in [x+distr for x in ["M8a","M7","M2","M1","M0"]]:
+      for prevmodel in [x+distr for x in ["M10", "M8a","M7","M2","M1","M0"]]:
         if not prevmodel in lModels or not os.path.exists(dModelLog[prevmodel]+".def"):
           prevmodel=""
         else:
@@ -303,7 +314,7 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
       dModelRun = {}
       for k,lModels in dlModels.items():
        for model in lModels:
-        if model in ["M0","M1","M2","M7","M8"]:
+        if model in ["M0","M1","M2","M7","M8","M8a"]:
           logger.info("Running {:s}".format(model))
           if k=="G":
                   dModelRun[model+"_"+k] = tree.run_model(model,ncatG=4)
