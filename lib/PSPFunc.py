@@ -79,10 +79,10 @@ def pspFileCreation(path, option):
       dparams["output.likelihoods.file"] = "$(OUTINFO)"
     else:
       dparams["root_freq1"] = "F3X4(initFreqs=observed)"
-      dparams["rate_distribution1"] = "Constant()"
+      dparams["rate_distribution1"] = "$(DISTRIB)"
       dparams["optimization"] = "FullD(derivatives=Newton)"
       dparams["optimization.ignore_parameters"] = "$(IGNORE)"
-      dparams["optimization.max_number_f_eval"] = "1000"
+      dparams["optimization.max_number_f_eval"] =  "1000"
       dparams["optimization.tolerance"] = "0.00001"
       dparams["output.tree.file"] = "$(OUTTREE)"
       dparams["output.tree.format"] = "Newick"

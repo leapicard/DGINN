@@ -110,9 +110,9 @@ macMul_APOBEC3G_NM_001198693).
 # Please refer to **3/ Entry steps** for necessary files
 infile:
 
-# NCBI database on which the blast is to be performed (ex: nr)
-# Future implementations will include the possibility to perform the search on local databases
-blastdb:
+# Step at which to enter the pipeline (default: blast)
+# Please refer to 3/ Entry steps for names and necessary files
+step:
 
 # Output directory for all results
 # Automatically created if not specified
@@ -121,6 +121,14 @@ outdir:
 # Path to a file where progress of the pipeline will be logged
 # Automatically created if not specified
 logfile:
+
+##################################################
+###### BLAST
+##################################################
+
+# NCBI database on which the blast is to be performed (ex: nr)
+# Future implementations will include the possibility to perform the search on local databases
+blastdb:
 
 # E-value for Blast (default: 10⁻⁴)
 evalue:
@@ -141,10 +149,6 @@ maxLen:
 # https://www.ncbi.nlm.nih.gov/books/NBK3837/#EntrezHelp.Entrez_Searching_Options
 entryQuery:
 
-# Step at which to enter the pipeline (default: blast)
-# Please refer to 3/ Entry steps for names and necessary files
-step:
-
 # Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName:
 
@@ -154,11 +158,21 @@ remote:
 # NCBI API key to increase Blast speed, obtainable from the NCBI
 APIKey:
 
+##################################################
+###### TREE
+##################################################
+
 # Options for running PhyML
 # Input the command in the same way you would to run PhyML yourself in the following manner phyml -i ALN [the rest of your options]
 # For example, to run PhyML with a GTR model with 100 bootstraps, the option would be phymlOpt:phyml -i ALN -m GTR -b 100
 # Please be aware that PhyML will run even if your options are wrong, but with its own default parameters
 phymlOpt:
+
+
+##################################################
+###### ORTHOLOGS
+##################################################
+
 
 # Path to the species tree for the detection of duplication events and ortholog group assignment
 # Species names must be formated as speSpe or speSpeSpe (ex: homSap, gorGorGor)
@@ -175,8 +189,18 @@ LBopt:
 # Minimum number of species for assignment to an ortholog group (default: 8)
 nbspecies:
 
+##################################################
+###### RECOMBINATION
+##################################################
+
 # Option for the detection of recombination events (default: False)
 recombination:
+
+
+##################################################
+###### POSITIVE SELECTION
+##################################################
+
 
 # Option for the detection of positive selection (default: False)
 positiveSelection:
@@ -190,9 +214,12 @@ busted:
 # Option for using the Hyphy method BUSTED (Murrel *et al.*, 2015) (default: False)
 meme:
 
-# Models to be computed by BIO++ (Gueguen *et al.*, 2013) and PAML (Yang, 2007)
-# Implemented models: M0, M1, M2, M7, M8
+# Models to be computed by BIO++ (Gueguen *et al.*, 2013) and/or PAML (Yang, 2007)
+# Implemented models: M0, M1, M2, M7, M8, M8a, DFP07, DFP07_0
 # Must be comma separated (ex: M0,M1,M2)
+#
+# Rate distribution are either Constant ou Gamma(n=4)
+# Default is Gamma, and explicit rate distribution are available through "_C" or "_G" suffixes to model names (ex: M0_C, M0_G)
 models:
 
 # Option for using BIO++ for the detection of sites under positive selection
