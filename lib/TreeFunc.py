@@ -317,7 +317,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 						
 						if not already:
 							nDuplSign += 1
-							outFile = o+ORF.split("/")[-1].split(".")[0]+"_D"+str(nodeNb)+"gp"+str(nGp)+".fasta"
+							outFile = o+ORF.split("/")[-1].split(".")[0]+"_D"+str(nodeNb)+"_gp"+str(nGp)+".fasta"
 							lOut.append(outFile)
 							
 							# create new file of orthologous sequences
@@ -339,7 +339,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 			dRemain = {left: dID2Seq[left] for left in leftovers if left in dID2Seq}
 			
 			if len(dRemain.keys()) > int(nbSp) - 1:
-				outFile = o+ORF.split("/")[-1].split(".")[0]+"_duplication_remainingsequences.fasta"
+				outFile = o+ORF.split("/")[-1].split(".")[0]+"_Drem.fasta"
 				nDuplSign += 1
 
 				with open(outFile, "w") as fasta:
@@ -526,8 +526,10 @@ def treeTreatment(data, dAlnTree, nbSp, phymlOpt):
 						    data.o)
 			tree = AnalysisFunc.runPhyML(aln, phymlOpt, data.o)
 			dAlnTree2[aln] = tree+"_phyml_tree.txt"
+	logger.info(str(dAlnTree2))
+	if len(dAlnTree2)!=0:
+         dAlnTree=dAlnTree2
 
-	dAlnTree.update(dAlnTree2)
 
 	return dAlnTree
 

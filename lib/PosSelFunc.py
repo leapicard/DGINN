@@ -7,6 +7,8 @@ def pspAnalysis(data, parms, aln, tree):
 	procedure which execute functions for psp step
 
 	@param1 data: basicData object
+
+        @return Output directory name
 	"""
 	logger=logging.getLogger("main.positiveSelection")
 	dCtrls, lModels = PSPFunc.getParams(parms["models"], 
@@ -23,9 +25,7 @@ def pspAnalysis(data, parms, aln, tree):
 	if not os.path.exists(outDir):
 		os.makedirs(outDir)
 	
-	logger.info(":"+tree+":")
-
-	cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
+[B	cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
 					
 	### Terminal output for user
 	logger.info("Output directory: {:s}".format(outDir))

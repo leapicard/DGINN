@@ -46,9 +46,8 @@ def getORFs(catFile, queryName, geneDir):
 	outORFraw = geneDir+catFile.split("/")[-1].split(".")[0]+"_allORFs.fasta"
 	logger = logging.getLogger("main.orf")
 	
+	logger.debug("getorf -sequence {:s} -outseq {:s} -table 0 -find 3 -noreverse".format(catFile, outORFraw))
 	cmd("getorf -sequence {:s} -outseq {:s} -table 0 -find 3 -noreverse".format(catFile, outORFraw), False)
-	
-	logger.debug(cmd)
 	
 	dId2ORFs = defaultdict(list)
 	f = SeqIO.parse(open(outORFraw),'fasta')
@@ -134,6 +133,7 @@ def runPrank(ORFs, geneName, o):
 	logger.info("Started Prank codon alignment")
 	outPrank = o+ORFs.split("/")[-1].split(".")[0]+"_prank"
 	
+	logger.debug("prank -d={:s} -o={:s} -codon -F".format(ORFs, outPrank))
 	cmd("prank -d={:s} -o={:s} -codon -F".format(ORFs, outPrank), False)
 	
 	logger.info("Finished Prank codon alignment: {:s}.best.fas".format(outPrank))

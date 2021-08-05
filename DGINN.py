@@ -185,10 +185,10 @@ if __name__ == "__main__":
 			    listArgsPosSel.append(listArgs)
 					
 
-			    with open(Data.o+"files_list.txt", "w") as fAT:
-                              if len(dAlTree[aln]): # only if it exists
+			    if len(dAlTree[aln]): # only if it exists
                                 fAT.write(aln+"\t"+dAlTree[aln])
-                                PosSelFunc.pspAnalysis(Data, parameters, aln, dAlTree[aln])
+                                outDir=PosSelFunc.pspAnalysis(Data, parameters, aln, dAlTree[aln])
+                                fAT.write("\t"+outDir+"\n")
 	
 	logger = logging.getLogger("main")	    
 	logger.info("Finished DGINN analyses, exiting.")
