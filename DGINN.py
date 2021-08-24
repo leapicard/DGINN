@@ -123,9 +123,8 @@ if __name__ == "__main__":
 							      parameters["mincov"], 
 							      Data.queryName, 
 							      Data.o)
-			  Data.aln = AnalysisFunc.runPrank(fasCov, 
-							   Data.geneName, 
-							   Data.o)
+			  Data.aln = AnalysisFunc.runPrank(fasCov, Data.o)
+			  Data.aln = AnalysisFunc.isoformAln(Data.aln, Data.o)
 
 			elif lSteps[i] == "tree":
 			  if parameters["step"] == "tree":

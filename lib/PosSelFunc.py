@@ -25,7 +25,7 @@ def pspAnalysis(data, parms, aln, tree):
 	if not os.path.exists(outDir):
 		os.makedirs(outDir)
 	
-[B	cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
+	cladoFile =  PSPFunc.supBoot(outDir, data.baseName, tree, logger)
 					
 	### Terminal output for user
 	logger.info("Output directory: {:s}".format(outDir))

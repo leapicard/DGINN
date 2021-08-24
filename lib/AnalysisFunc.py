@@ -120,13 +120,12 @@ def orfFinder(data):
 #######=================================================================================================================
 ######PRANK=============================================================================================================
 	
-def runPrank(ORFs, geneName, o):
+def runPrank(ORFs, o):
 	"""
 	Function to run PRANK software for codon alignment (Löytynoja, 2014).
 	
 	@param1 ORFs: Path
-	@param2 geneName: Gene name
-	@param3 geneDir: Gene Directory
+	@param2 geneDir: Gene Directory
 	@return outPrank: Path to Prank results file
 	"""
 	logger = logging.getLogger("main.alignment")
@@ -135,15 +134,15 @@ def runPrank(ORFs, geneName, o):
 	
 	logger.debug("prank -d={:s} -o={:s} -codon -F".format(ORFs, outPrank))
 	cmd("prank -d={:s} -o={:s} -codon -F".format(ORFs, outPrank), False)
-	
-	logger.info("Finished Prank codon alignment: {:s}.best.fas".format(outPrank))
-	
+
+	logger.info("Finished Prank codon alignment: {:s}.best.fas".format(outPrank)) 
+
 	if os.path.exists(outPrank+".fas"):
 		os.rename(outPrank+".fas", outPrank+".best.fas")
 	
 	return(outPrank+".best.fas")
 
-def runMafft(ORFs, geneName, o):
+def runMafft(ORFs, o):
 	logger = logging.getLogger("main.alignment")
 	logger.info("Started Mafft nucleotide alignment")
 
@@ -153,10 +152,10 @@ def runMafft(ORFs, geneName, o):
 	outMafft = o+ORFs.split("/")[-1].split(".")[0]+"_mafft.fasta"
 	with open (outMafft, "w") as outM:
 		run = subprocess.run(lCmd, 
-							 shell=False, 
-							 check=True,
-							 stdout=outM, 
-							 stderr=subprocess.PIPE)
+				     shell=False, 
+				     check=True,
+				     stdout=outM, 
+				     stderr=subprocess.PIPE)
 
 	logger.info("Finished Mafft nucleotide alignment: {:s}".format(outMafft))
 
@@ -204,6 +203,80 @@ def covAln(aln, cov, queryName, o):
 		logger.warning("Provided query name not found in the alignment, skipping coverage check.")
 		return(aln, 0)
 
+def isoformAln(aln, o):
+        """Function to cluster isoforms according to the alignment. Return the
+overall coverage of these isoforms.
+
+	Isoforms are from the same species (recognized through keyword
+	xxxXxx at the beginning of their name) and same letters or
+	indels at same positions in alignment.
+
+	@param1 aln: Path to alignment
+	@param2 o: output directory
+	@return outAln: Path to file of resulting alignment
+
+        """
+
+        logger = logging.getLogger("main.alignment")
+        logger.info("Clustering isoforms.")
+
+        dRem={} #for remaining sequences
+        dId2Seq={} #for remaining sequences
+        laln=0 #alignement length
+        for fasta in SeqIO.parse(open(aln),'fasta'):
+                post=fasta.id.find("_")
+                if post!=-1: #regular format
+                        sp=fasta.id[:post]
+                        tag=fasta.id[post+1:]
+                        if not sp in dId2Seq:
+                                dId2Seq[sp]={}
+                        dId2Seq[sp][tag]=str(fasta.seq)
+                        if laln==0:
+                                laln=len(fasta.seq)
+                else:
+                        dRem[fasta.id]=str(fasta.seq)
+
+        
+        outCov = o+aln.split("/")[-1].split(".")[0]+"_clustiso.fasta"
+        clustok=False #flag to check if a cluster has occured
+        for sp,dtagseq in dId2Seq.items():
+                lclust=[list(dtagseq)] #list of clusters of tags to be split
+                for pos in range(laln):
+                        lclust2=[]
+                        for clust in lclust:
+                                dlet={tag:dtagseq[tag][pos] for tag in clust}
+                                llet=set([x for x in dlet.values() if x!="-"])
+                                if len(llet)<=1: #one letter at most, keep all
+                                        lclust2.append(clust)
+                                        continue
+                                else:
+                                        for x in llet:
+                                                lclust2.append([tag for tag in clust if dlet[tag]==x])
+                                        lind=[tag for tag in clust if dlet[tag]=="-"] #conservative, do not know wether to merge, may be improved
+                                        if len(lind)!=0:
+                                                lclust2.append(lind)
+                        lclust=lclust2
+                                        
+                #now merge sequences in each cluster
+                for clust in lclust:
+                        if len(clust)==1:
+                                dRem[sp+"_"+clust[0]]=dtagseq[clust[0]]
+                        else:
+                                clustok=True
+                                ntag=clust[-1]+"_clust"
+                                logger.info("Clustered sequences " + sp+"_" + (", %s_"%(sp)).join(clust) + " into %s_"%(sp)+ntag)
+                                nseq="".join([max([dtagseq[tag][pos] for tag in clust]) for pos in range(laln)])
+                                dRem[sp+"_"+ntag]=nseq
+
+        if clustok:
+                with open(outCov, "w") as outC:
+        	        outC.write(FastaResFunc.dict2fasta(dRem))
+        	        outC.close()
+	
+                return(outCov)
+        else:
+                return(aln)
+
 def alnPrank(data):
 	"""
 	Function creating alignment (aln) attribute in each gene object of the list.
@@ -211,14 +284,12 @@ def alnPrank(data):
 	@param1 data: basicdata object
 	"""
 	aln = runPrank(data.ORFs, 
-				   data.geneName, 
-				   data.o)
+		       data.o)
 	data.aln = aln
 
 def alnMafft(data):
 	aln = runMafft(data.ORFs, 
-				   data.geneName, 
-				   data.o)
+		       data.o)
 	data.aln = aln
 
 #######=================================================================================================================
@@ -383,7 +454,7 @@ def checkPhyMLTree(data, dAlnTree, nbSp, LBopt, step="duplication"):
 	for aln in dAlnTree:
 		if dAlnTree[aln] == "":
 			logger.info("Reconstructing alignments and phylogenies following long branch parsing.")
-			aln = runPrank(aln, data.geneName, data.o)
+			aln = runPrank(aln, data.o)
 			tree = runPhyML(aln, LBopt, data.o)
 			dAlnTree2[aln] = tree+"_phyml_tree.txt"
 			
