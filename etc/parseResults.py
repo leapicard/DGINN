@@ -74,7 +74,7 @@ if __name__ == "__main__":
 		        allF = [repDir+"/"+f for f in os.listdir(repDir) if f.endswith("fas") or f.endswith("fasta")]
 		        if len(allF)!=0:
 		                aln=max(allF, key=os.path.getctime)
-		M0fileBpp = glob.glob(posDir+"/bpp_site/*_optimization_M0.def")
+		M0fileBpp = glob.glob(posDir+"/bpp_site/*_optimization_M0_G.def")
 		M0filePaml = posDir+"/paml_site/M0/rst1"
 		dGene = OrderedDict()
 		try:
