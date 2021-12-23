@@ -123,9 +123,8 @@ if __name__ == "__main__":
 							      parameters["mincov"], 
 							      Data.queryName, 
 							      Data.o)
-			  Data.aln = AnalysisFunc.runPrank(fasCov, 
-							   Data.geneName, 
-							   Data.o)
+			  Data.aln = AnalysisFunc.runPrank(fasCov, Data.o)
+			  Data.aln = AnalysisFunc.isoformAln(Data.aln, Data.o)
 
 			elif lSteps[i] == "tree":
 			  if parameters["step"] == "tree":
@@ -185,10 +184,10 @@ if __name__ == "__main__":
 			    listArgsPosSel.append(listArgs)
 					
 
-			    with open(Data.o+"files_list.txt", "w") as fAT:
-                              if len(dAlTree[aln]): # only if it exists
+			    if len(dAlTree[aln]): # only if it exists
                                 fAT.write(aln+"\t"+dAlTree[aln])
-                                PosSelFunc.pspAnalysis(Data, parameters, aln, dAlTree[aln])
+                                outDir=PosSelFunc.pspAnalysis(Data, parameters, aln, dAlTree[aln])
+                                fAT.write("\t"+outDir+"\n")
 	
 	logger = logging.getLogger("main")	    
 	logger.info("Finished DGINN analyses, exiting.")

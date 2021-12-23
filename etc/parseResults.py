@@ -62,18 +62,19 @@ if __name__ == "__main__":
 	dAlnCov = {}
 	llhFile = inDir+"/DGINN_{}_likelihoods.tab".format(timeStamp)
 	llh = open(llhFile, "w")
-	llh.write("File\tMethod\tM1\tM2\tM7\tM8a\tM8\tDFP07_0\tDFP07\n")
+	lmeth=["M1","M2","M7","M8a","M8","M10","DFP07_0","DFP07"]
+	llh.write("File\tMethod\t"+"\t".join(lmeth)+"\n")
 	
 	for posDir, aln in dSub2Cut.items():
 		posDir=posDir.rstrip("/")
 		baseName = aln.split("/")[-1].split(".")[0]
 		repDir = "/".join(posDir.split("/")[:-1])
+		print(aln,repDir)
 		if (not aln.startswith(repDir)):
 		        allF = [repDir+"/"+f for f in os.listdir(repDir) if f.endswith("fas") or f.endswith("fasta")]
 		        if len(allF)!=0:
-                                aln=max(allF, key=os.path.getctime)
-                                                                                                                    
-		M0fileBpp = glob.glob(posDir+"/bpp_site/*_optimization_M0.def")
+		                aln=max(allF, key=os.path.getctime)
+		M0fileBpp = glob.glob(posDir+"/bpp_site/*_optimization_M0_G.def")
 		M0filePaml = posDir+"/paml_site/M0/rst1"
 		dGene = OrderedDict()
 		try:
@@ -99,9 +100,10 @@ if __name__ == "__main__":
 		dGene.update(bust)
 		meme = PRS.ResMeme(baseName, posDir)
 		dGene.update(meme)
-		bpp1v2, bpp7v8, bpp8av8, bppdfp, bppLlh = PRS.ResBpp(baseName, posDir, pr)
+		bpp1v2, bpp7v8, bpp7v10, bpp8av8, bppdfp, bppLlh = PRS.ResBpp(baseName, posDir, pr)
 		dGene.update(bpp1v2)
 		dGene.update(bpp7v8)
+		dGene.update(bpp7v10)
 		dGene.update(bpp8av8)
 		dGene.update(bppdfp)
 		paml1v2, paml7v8, paml8av8, pamlLlh = PRS.ResPaml(posDir, pr)
@@ -116,7 +118,6 @@ if __name__ == "__main__":
 		f = SeqIO.parse(open(aln),'fasta')
 		lLen = [len(str(fasta.seq)) for fasta in f]
 		alnLen = max(lLen)/3
-
 		
 		splitName = baseName.split("_")
 		shortName = baseName.split("_")[0]
@@ -146,7 +147,7 @@ if __name__ == "__main__":
 		resLine = "\t".join(lBaseRes + list(dGene.values()))
 		allRes.append(resLine)
 
-		bppLlhRes = [str(bppLlh[k]) for k in ["M1","M2","M7","M8a","M8","DFP07_0","DFP07"]]
+		bppLlhRes = [str(bppLlh[k]) for k in lmeth]
 		llh.write(baseName+"\tBPP\t"+"\t".join(bppLlhRes)+"\n")
 
 		if type(bppLlh) is dict:

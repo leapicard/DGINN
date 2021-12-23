@@ -67,36 +67,36 @@ def paramDef(params, inf, queryName, outdir):
 
 	#Parsing
 	lParams = ["infile", 
-			   "queryName", 
-			   "queryFile", 
-			   "blastdb", 
-			   "outdir", 
-			   "logfile", 
-			   "evalue", 
-			   "mincov", 
-			   "percID", 
-			   "maxLen",
-			   "step", 
-			   "remote", 
-			   "entryQuery", 
-			   "sptree", 
-			   "APIKey",
-			   "phymlOpt",
-			   "recombination", 
-			   "duplication", 
-			   "LBopt",
-			   "nbspecies", 
-			   "positiveSelection", 
-			   "basename", 
-			   "hyphySeuil", 
-			   "busted", 
-			   "meme", 
-			   "models", 
-			   "paml", 
-			   "bppml", 
-			   "mixedlikelihood", 
-			   "opb", 
-			   "gnh"]
+		   "queryName", 
+		   "queryFile", 
+		   "blastdb", 
+		   "outdir", 
+		   "logfile", 
+		   "evalue", 
+		   "mincov", 
+		   "percID", 
+		   "maxLen",
+		   "step", 
+		   "remote", 
+		   "entryQuery", 
+		   "sptree", 
+		   "APIKey",
+		   "phymlOpt",
+		   "recombination", 
+		   "duplication", 
+		   "LBopt",
+		   "nbspecies", 
+		   "positiveSelection", 
+		   "basename", 
+		   "hyphySeuil", 
+		   "busted", 
+		   "meme", 
+		   "models", 
+		   "paml", 
+		   "bppml", 
+		   "mixedlikelihood", 
+		   "opb", 
+		   "gnh"]
 			   
 	with open(params, mode="r", encoding="utf-8") as content:
 		dParams = {}
@@ -206,10 +206,11 @@ def paramDef(params, inf, queryName, outdir):
 					
 			elif opt == "models":
 				ltemp = []
+				lmodelok = ["M0", "M1", "M2", "M7", "M8", "M8a", "M10", "DFP07_0", "DFP07"]
 				for M in map(str.strip,dParams[opt].split(",")):
 				  if M == "":
 				    next
-				  elif M not in ["M0", "M1", "M2", "M7", "M8", "M8a", "DFP07_0", "DFP07"]:
+				  elif M not in lmodelok and M[:-2] not in lmodelok:
 				    print(M + " isn't a valid model.")
 				  else:
 				    ltemp.append(M)

@@ -95,34 +95,45 @@ def ResMeme(baseName, posDir):
 def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 	model1, model2 = models.split(" ")[0], models.split(" ")[1]
 	method = "Bpp{:s}{:s}".format(model1, model2)
-	d = OrderedDict({method:"na", method+"_p-value":"na", method+"_NbSites":"0", method+"_PSS":"na"})
+	d = OrderedDict({method:"na", method+"_p-value":"na", method+"_NbSites":"0", method+"_wPS":"0", method+"_PSS":"na"})
 	if isinstance(dLogLlh[model1], float) and isinstance(dLogLlh[model2], float):
 		try:
 			if model1 and model2 in dLogLlh:
 				LR, p = LRT(dLogLlh[model1], dLogLlh[model2], 2)
-				if p < 0.05 and os.path.exists(dSAres[model2][0]):
+				#if p < 0.05 and os.path.exists(dSAres[model2][0]):
+				if os.path.exists(dSAres[model2][0]):
 					df = pandas.read_csv(dSAres[model2][0], sep='\t')
-					w = float(df.columns[-2].split("=")[-1])*0.8
-
-					lRes1 = df[df.iloc[:,-1]>w].iloc[:,0].tolist()
-					lRes2 = df[df.iloc[:,-2]>pr].iloc[:,0].tolist()
-					lRes = list(map(lambda x:x+1,set(lRes1).intersection(lRes2)))
+					val = [float(x.split("=")[1]) if x[:2]=="Pr" else 0 for x in df.columns ]
+					ival = [i for i in range(len(val))  if val[i]>1 ]
+					if len(ival)>0:
+					  wPS = sum([val[i] for i in ival])/len(ival)
+					else:
+                                          wPS=0
+					lRespp= df[df.iloc[:,ival].sum(axis=1)>0.9].iloc[:,0].tolist()
+					lResw = df[df.iloc[:,-1]>1].iloc[:,0].tolist()
+					if wPS<5:
+					  lRes = [x for x in lResw if x in lRespp]
+					else:
+					  lRes = lResw
+					lRes = list(map(lambda x:x+1,lRes))
 					if len(lRes)!=0:
 					        lResFinal = str("{}".format(lRes).replace("[", "").replace("]", ""))
 					else:
                                                 lResFinal = "na"
 					posSel = "Y"
 					nbPSS = str(len(lRes))
+					wPS=str(wPS)
 				else:
 					posSel = "N"
 					lResFinal = "na"
 					nbPSS = "0"
-
-				
+					wPS = "0"
+				        
 				d[method] = posSel
 				d[method+"_p-value"] = str(p)
 				d[method+"_NbSites"] = nbPSS
 				d[method+"_PSS"] = lResFinal
+				d[method+"_wPS"] = wPS
 					
 		except:
 			next
@@ -132,11 +143,10 @@ def ResBpp(baseName, posDir, pr):
 	dSA = {}
 	dSAres = {}
 	dLogLlh = {}
-	lModels = ["M1","M2","M7", "M8a", "M8", "DFP07_0", "DFP07"]
-
+	lModels = ["M1","M2","M7", "M8a", "M8", "M10", "DFP07_0", "DFP07"]
 	for model in lModels:
-		dSA[model] = glob.glob(posDir+"/bpp_site/*"+model+".params")
-		dSAres[model] = glob.glob(posDir+"/bpp_site/*_results_"+model+".log")
+		dSA[model] = glob.glob(posDir+"/bpp_site/*"+model+"_G.params")
+		dSAres[model] = glob.glob(posDir+"/bpp_site/*_results_"+model+"_G.log")
 		if len(dSA[model])>=1 and os.path.exists(dSA[model][0]):
 			with open(dSA[model][0], "r") as params:
 				dLogLlh[model] = float(params.readline().strip().split("= ")[-1])
@@ -146,10 +156,11 @@ def ResBpp(baseName, posDir, pr):
 
 	m1m2 = ResBppExtract("M1 M2", dLogLlh, dSAres, posDir, baseName, pr)
 	m7m8 = ResBppExtract("M7 M8", dLogLlh, dSAres, posDir, baseName, pr)
+	m7m10 = ResBppExtract("M7 M10", dLogLlh, dSAres, posDir, baseName, pr)
 	m8am8 = ResBppExtract("M8a M8", dLogLlh, dSAres, posDir, baseName, pr)
 	dfp = ResBppExtract("DFP07_0 DFP07", dLogLlh, dSAres, posDir, baseName, pr)
 	
-	return(m1m2, m7m8, m8am8, dfp, dLogLlh)
+	return(m1m2, m7m8, m7m10, m8am8, dfp, dLogLlh)
 
 def ResPamlExtract(models, dModelLlh, dModelFile, pr):
 	model1, model2 = models.split(" ")[0], models.split(" ")[1]
