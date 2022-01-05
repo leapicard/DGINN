@@ -19,7 +19,7 @@ def makeAccnsFile(lBlastRes, queryName, outDir):
 	logger = logging.getLogger("main.accessions")
 	geneAllAccns = "\n".join(set(lBlastRes))
 	
-	logger.debug(geneAllAccns)
+	logger.debug("All Accns: " + ",".join(set(lBlastRes)))
 		
 	with open(outBlastn, "w") as out:
 		out.write(geneAllAccns)

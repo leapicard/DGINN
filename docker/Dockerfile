@@ -3,7 +3,7 @@ MAINTAINER Lea Picard lea.picard@gmail.com
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get clean && apt-get update && apt-get install -y apt-utils
+RUN apt-get  clean && apt-get update && apt-get install -y apt-utils
 
 RUN TZ="Europe/Paris" apt-get -y install tzdata
 
@@ -55,7 +55,7 @@ RUN git  clone https://gitlab.inria.fr/Phylophile/Treerecs && cd Treerecs && cma
 FROM base as biopp
 WORKDIR /opt
 
-RUN mkdir bpp && cd bpp && mkdir sources && cd sources && for d in bpp-core; \
+RUN mkdir bpp && cd  bpp && mkdir sources && cd sources && for d in bpp-core; \
 	do git clone -b newlik  https://github.com/BioPP/$d; \
 	cd $d; \
 	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
