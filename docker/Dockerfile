@@ -56,7 +56,7 @@ FROM base as biopp
 WORKDIR /opt
 
 RUN mkdir bpp && cd  bpp && mkdir sources && cd sources && for d in bpp-core; \
-	do git clone -b newlik  https://github.com/BioPP/$d; \
+	do git clone https://github.com/BioPP/$d; \
 	cd $d; \
 	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
 	make -j 4; \
@@ -65,7 +65,7 @@ RUN mkdir bpp && cd  bpp && mkdir sources && cd sources && for d in bpp-core; \
 	done
 
 RUN  cd bpp && cd sources && for d in bpp-seq; \
-	do git clone -b newlik https://github.com/BioPP/$d; \
+	do git clone https://github.com/BioPP/$d; \
 	cd $d; \
 	cmake  -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
 	make -j 4; \
@@ -74,7 +74,7 @@ RUN  cd bpp && cd sources && for d in bpp-seq; \
 	done
 
 RUN cd bpp && cd sources && for  d in bpp-phyl; \
-	do git clone -b newlik https://github.com/BioPP/$d; \
+	do git clone https://github.com/BioPP/$d; \
 	cd $d; \
 	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
 	make -j 4; \
@@ -91,7 +91,7 @@ RUN cd bpp && cd sources && for d in bpp-popgen; \
 	cd ..; \
 	done
 
-RUN cd bpp && git clone -b newlik  https://github.com/BioPP/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ && make -j 4 && make install
+RUN cd bpp && git clone https://github.com/BioPP/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ && make -j 4 && make install
 
 
 #################
