@@ -319,7 +319,7 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
           if k=="G":
                   dModelRun[model+"_"+k] = tree.run_model(model,ncatG=4)
           else:
-                  dModelRun[model+"_"+k] = tree.run_model(model,ncatG=1)
+                  dModelRun[model+"_"+k] = tree.run_model(model,alpha=0,fix_alpha=1)
 
       for k in dlModels.keys():
         if "M1"+"_"+k in dModelRun and "M2"+"_"+k in dModelRun:
