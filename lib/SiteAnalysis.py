@@ -325,10 +325,10 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
         if "M1"+"_"+k in dModelRun and "M2"+"_"+k in dModelRun:
               p12 = tree.get_most_likely("M2", "M1")
               logger.info("LRT of M1_"+k+ " vs M2_"+k+" = {}".format(p12))
-      if "M7"  in dModelRun and "M8" in dModelRun:
+        if "M7"  in dModelRun and "M8" in dModelRun:
               p78 = tree.get_most_likely("M8", "M7")
               logger.info("LRT of M7_"+k+ " vs M8_"+k+ " = {}".format(p78))
-      if "M8a"  in dModelRun and "M8" in dModelRun:
+        if "M8a"  in dModelRun and "M8" in dModelRun:
               p88a = tree.get_most_likely("M8a", "M8")
               logger.info("LRT of M8_"+k+ " vs M8a_"+k+ " = {}".format(p88a))
 
