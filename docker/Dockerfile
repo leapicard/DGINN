@@ -58,7 +58,7 @@ WORKDIR /opt
 RUN mkdir bpp && cd  bpp && mkdir sources && cd sources && for d in bpp-core; \
 	do git clone https://github.com/BioPP/$d; \
 	cd $d; \
-	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
+	cmake  -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
 	make -j 4; \
 	make install; \
 	cd ..; \
