@@ -106,6 +106,10 @@ the format speSpe_GENE_Id (ex: homSap_MX1_CCDS13673,
 macMul_APOBEC3G_NM_001198693).
 
 ```
+# Step at which to enter the pipeline (default: blast)
+# Please refer to 3/ Entry steps for names and necessary files
+step:
+
 # Path or list of paths (absolute or relative) to the files needed to start the pipeline
 # Please refer to **3/ Entry steps** for necessary files
 infile:
@@ -122,10 +126,6 @@ outdir:
 # Automatically created if not specified
 logfile:
 
-##################################################
-###### BLAST
-##################################################
-
 # NCBI database on which the blast is to be performed (ex: nr)
 # Future implementations will include the possibility to perform the search on local databases
 blastdb:
@@ -138,6 +138,7 @@ mincov:
 
 # Percentage of identity for Blast (default: 70)
 percID:
+
 
 # Option for eliminating overly long sequences (default: cutoff(3))
 # IQR or cutoff, factor can be put after in parenthesis
@@ -173,13 +174,16 @@ phymlOpt:
 ###### ORTHOLOGS
 ##################################################
 
-
 # Path to the species tree for the detection of duplication events and ortholog group assignment
 # Species names must be formated as speSpe or speSpeSpe (ex: homSap, gorGorGor)
 sptree:
 
 # Option for the identification of duplication events (default: False)
 duplication:
+
+###############################################
+##### CLEANING
+###############################################
 
 # Option for Long Branch separation (default: cutoff(50))
 # IQR or cutoff, factor can be put after in parenthesis (ex: cutoff(50))
@@ -196,11 +200,9 @@ nbspecies:
 # Option for the detection of recombination events (default: False)
 recombination:
 
-
 ##################################################
 ###### POSITIVE SELECTION
 ##################################################
-
 
 # Option for the detection of positive selection (default: False)
 positiveSelection:
@@ -221,6 +223,9 @@ meme:
 # Rate distribution are either Constant ou Gamma(n=4)
 # Default is Gamma, and explicit rate distribution are available through "_C" or "_G" suffixes to model names (ex: M0_C, M0_G)
 models:
+
+# Option for using paml for the detection of sites under positive selection (default: False)
+paml:
 
 # Option for using BIO++ for the detection of sites under positive selection
 # If True, parameter file will be automatically generated

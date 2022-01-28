@@ -45,8 +45,8 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	dModelLog = {model:outFileName+"_optimization_"+model for model in lModels}
 	dModelSyntax = {}
 	for k,lmod in dlModels.items():
-	        dModelSyntax[k]={model:["YNGP_"+model,"frequencies=F3X4(initFreqs=observed)"] for model in lmod if model[0]=="M"}		# dictionary model number - [MODEL name, MODEL arguments for bppml]
-	        dModelSyntax[k].update({model:[model[:5],"protmodel=JTT92", "frequencies=F3X4(initFreqs=observed)"] for model in lmod if model[:5]=="DFP07"})
+	        dModelSyntax[k]={model:["YNGP_"+model,"frequencies=F3X4","initFreqs=observed", "data=1"] for model in lmod if model[0]=="M"}		# dictionary model number - [MODEL name, MODEL arguments for bppml]
+	        dModelSyntax[k].update({model:[model[:5],"protmodel=JTT92", "frequencies=F3X4","initFreqs=observed", "data=1"] for model in lmod if model[:5]=="DFP07"})
 	# take into account the specificities of each model (number of classes n for example)
 	for k,lmod in dlModels.items():
 	 for model in lmod:
@@ -54,7 +54,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
             dModelSyntax[k][model].append("n=4")
           if model in ["M7","M8"]:
             dModelSyntax[k][model].append("q=1")
-          if model=="M8a":
+          if model=="M8"
             dModelSyntax[k][model].append("omegas=1")
           if model in ["M10"]:
             dModelSyntax[k][model].append("nbeta=4")
@@ -119,6 +119,8 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	# perform LRT
         # M1 vs M2
 	for k,lModels in dlModels.items():
+	 if not k in dLogLlh.keys():
+                 continue
 	 if "M1"  in lModels and "M2" in lModels:
               if "M1"  in dLogLlh[k] and "M2" in dLogLlh[k]:
                       LR12, p12 = PSPFunc.LRT(dLogLlh[k]["M1"], dLogLlh[k]["M2"], 2)
@@ -302,34 +304,67 @@ def setIgnoreParams(model, prevmodel, lModels, logger):
 
 def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
 
-      lModels = [m if (m[-2:]=="_C" or m.find("_G")!=-1) else m+"_G" for m in lModels] #gamma(n=4) distrib is default
+      lModels = [m if (m[-2:]=="_C" or m.find("_G")!=-1) else m+"_C" for m in lModels] #constant distrib only available
       dlModels = {"C":[m[:-2] for m in lModels if m[-2:]=="_C"]}  #constant distrib
-      dlModels["G"] = [m[:m.rfind("_")] for m in lModels if m[-2:]!="_C"]  #gamma distrib
+#      dlModels["G"] = [m[:m.rfind("_")] for m in lModels if m[-2:]!="_C"]  #gamma distrib
       tree = EvolTree(treeFile)
-      os.mkdir(outDir+"paml_site/")
-      tree.workdir = outDir+"paml_site/"
-      tree.link_to_alignment(alnFile, "Fasta")
       logger.info("PAML codeml")
-
-      dModelRun = {}
+      tree.link_to_alignment(alnFile, "Fasta")
+      dLogLlh = {}		# dictionary(model:logllh)
+      os.mkdir(outDir+"paml_site/")
       for k,lModels in dlModels.items():
+       dLogLlh[k]={}
+       outpaml=outDir+"paml_site/"+k+"/"
+       os.mkdir(outpaml)
+       tree.workdir = outpaml
        for model in lModels:
         if model in ["M0","M1","M2","M7","M8","M8a"]:
-          logger.info("Running {:s}".format(model))
-          if k=="G":
-                  dModelRun[model+"_"+k] = tree.run_model(model,ncatG=4)
-          else:
-                  dModelRun[model+"_"+k] = tree.run_model(model,ncatG=1)
+          logger.info("Running {:s}".format(model+"_"+k))
+          tree.run_model(model,ncatG=4)
+          lgl=pamlGetLogL(outpaml+model+"/")
+          if lgl!=None:
+                  dLogLlh[k][model]=lgl
+          logger.info("Log Likelihood = {}".format(dLogLlh[k].get(model,None)))
 
-      for k in dlModels.keys():
-        if "M1"+"_"+k in dModelRun and "M2"+"_"+k in dModelRun:
-              p12 = tree.get_most_likely("M2", "M1")
-              logger.info("LRT of M1_"+k+ " vs M2_"+k+" = {}".format(p12))
-      if "M7"  in dModelRun and "M8" in dModelRun:
-              p78 = tree.get_most_likely("M8", "M7")
-              logger.info("LRT of M7_"+k+ " vs M8_"+k+ " = {}".format(p78))
-      if "M8a"  in dModelRun and "M8" in dModelRun:
-              p88a = tree.get_most_likely("M8a", "M8")
-              logger.info("LRT of M8_"+k+ " vs M8a_"+k+ " = {}".format(p88a))
+       for k,lModels in dlModels.items():
+         if not k in dLogLlh.keys():
+                 continue
+         if "M1"  in lModels and "M2" in lModels:
+                       if "M1"  in dLogLlh[k] and "M2" in dLogLlh[k]:
+                        LR12, p12 = PSPFunc.LRT(dLogLlh[k]["M1"], dLogLlh[k]["M2"], 2)
+                        logger.info("LRT of M1_%s vs M2_%s: %f"%(k,k,p12))
+                       else:
+                        logger.info("Possible failed optimization, likelihoods of M1_%s and M2_%s have not been computed."%(k,k))
+       	 if "M7"  in lModels and "M8" in lModels:
+                     if "M7"  in dLogLlh[k] and "M8" in dLogLlh[k]:
+                        LR78, p78 = PSPFunc.LRT(dLogLlh[k]["M7"], dLogLlh[k]["M8"], 2)
+                        logger.info("LRT of M7_%s vs M8_%s: %f"%(k,k,p78))
+                     else:
+                        logger.info("Possible failed optimization, likelihoods of M7_%s and M8_%s have not been computed."%(k,k))
+       	 if "M7"  in lModels and "M10" in lModels:
+                     if "M7"  in dLogLlh[k] and "M10" in dLogLlh[k]:
+                        LR710, p710 = PSPFunc.LRT(dLogLlh[k]["M7"], dLogLlh[k]["M10"], 3)
+                        logger.info("LRT of M7_%s vs M10_%s: %f"%(k,k,p710))
+                     else:
+                        logger.info("Possible failed optimization, likelihoods of M7_%s and M10_%s have not been computed."%(k,k))
+       	 if "M8" in lModels and "M8a" in lModels:
+                     if "M8"  in dLogLlh[k] and "M8a" in dLogLlh[k]:
+                        LR88a, p88a = PSPFunc.LRT(dLogLlh[k]["M8a"], dLogLlh[k]["M8"], 1)
+                        ts88a = 0.5*p88a + 0.5
+                        logger.info("LRT of M8_%s vs M8a_%s: %f (Treshold: %f)"%(k, k, p88a, ts88a))
+                     else:
+                        logger.info("Possible failed optimization, likelihoods of M8_%s and M8a_%s have not been computed."%(k,k))
 
 
+def pamlGetLogL(pamldir):
+#        """ Get LogL from rst file."""
+#        try:
+                f=open(pamldir+"rst","r")
+                for l in f.readlines():
+                        if l[:3]=="lnL":
+                                x=float(l.split(" ")[-1])
+                                f.close()
+                                return x
+                f.close()
+#        except:
+#                return

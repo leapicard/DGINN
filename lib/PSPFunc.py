@@ -78,7 +78,7 @@ def pspFileCreation(path, option):
       #dparams["params"] = "$(PARAMS)"
       dparams["output.likelihoods.file"] = "$(OUTINFO)"
     else:
-      dparams["root_freq1"] = "F3X4(initFreqs=observed)"
+      dparams["root_freq1"] = "F3X4(init=observed, data=1)"
       dparams["rate_distribution1"] = "$(DISTRIB)"
       dparams["optimization"] = "FullD(derivatives=Newton)"
       dparams["optimization.ignore_parameters"] = "$(IGNORE)"
@@ -95,8 +95,8 @@ def pspFileCreation(path, option):
       elif option == "gnh":
         dparams["nonhomogeneous"] = "general"
         dparams["nonhomogeneous.number_of_models"] = "2"
-        dparams["model1"] = "YNGP_M1(frequencies=F3X4(initFreqs=observed))"
-        dparams["model2"] = "YNGP_M2(frequencies=F3X4(initFreqs=observed),kappa=YNGP_M1.kappa_1,omega=YNGP_M1.omega_1)"
+        dparams["model1"] = "YNGP_M1(frequencies=F3X4,initFreqs=observed, data=1)"
+        dparams["model2"] = "YNGP_M2(frequencies=F3X4,initFreqs=observed,kappa=YNGP_M1.kappa_1,omega=YNGP_M1.omega_1, data=1)"
         dparams["process1"] = "NonHomogeneous(model1=1, model1.nodes_id=$(NODES1), model2=2, model2.nodes_id$(NODES2), tree=1, rate=1, root=1)"
         dparams["optimization.ignore_parameters"] = "BrLen,*kappa*,*theta*,Ancient"
 
