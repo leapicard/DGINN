@@ -29,7 +29,7 @@ def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 		   "OUTTREE": outTree, 
 		   "OUTPARAMS": outParams, 
 		   "BACKUP": outBackup, 
-	           "model1":"YNGP_"+model+"(frequencies=F3X4(initFreqs=observed))",
+	           "model1":"YNGP_"+model+"(frequencies=F3X4, initFreqs=observed, data=1)",
 		   "param": OPBFile,
                    "process1":"OnePerBranch(model=1, tree=1, rate=1, root_freq=1, shared_parameters=(*kappa, *Full.theta*))"}
 	# running bppml

@@ -45,8 +45,8 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	dModelLog = {model:outFileName+"_optimization_"+model for model in lModels}
 	dModelSyntax = {}
 	for k,lmod in dlModels.items():
-	        dModelSyntax[k]={model:["YNGP_"+model,"frequencies=F3X4(initFreqs=observed)"] for model in lmod if model[0]=="M"}		# dictionary model number - [MODEL name, MODEL arguments for bppml]
-	        dModelSyntax[k].update({model:[model[:5],"protmodel=JTT92", "frequencies=F3X4(initFreqs=observed)"] for model in lmod if model[:5]=="DFP07"})
+	        dModelSyntax[k]={model:["YNGP_"+model,"frequencies=F3X4","initFreqs=observed", "data=1"] for model in lmod if model[0]=="M"}		# dictionary model number - [MODEL name, MODEL arguments for bppml]
+	        dModelSyntax[k].update({model:[model[:5],"protmodel=JTT92", "frequencies=F3X4","initFreqs=observed", "data=1"] for model in lmod if model[:5]=="DFP07"})
 	# take into account the specificities of each model (number of classes n for example)
 	for k,lmod in dlModels.items():
 	 for model in lmod:
@@ -54,7 +54,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
             dModelSyntax[k][model].append("n=4")
           if model in ["M7","M8"]:
             dModelSyntax[k][model].append("q=1")
-          if model=="M8a":
+          if model=="M8"
             dModelSyntax[k][model].append("omegas=1")
           if model in ["M10"]:
             dModelSyntax[k][model].append("nbeta=4")
