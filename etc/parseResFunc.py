@@ -32,7 +32,7 @@ def LRT(ll1, ll2, df):
 	:param df: degrees of freedom of difference between the two models
 	"""
 	stats.chisqprob = lambda chisq, df: stats.chi2.sf(chisq, df)
-	LR = abs(2*(ll1-ll2))
+	LR = max(2*(ll2-ll1),0)
 	p = stats.chisqprob(LR, df)
 	return(LR, p)
 
@@ -73,7 +73,7 @@ def ResMeme(baseName, posDir):
 					nbSites = int(line.split("_")[1])
 				
 			if nbSites > 0:
-				lRes = [int(line.split("|")[1].replace(" ", "")) for line in BSlines if line.startswith("|") and line.split("|")[1].replace(" ", "").isdigit()]
+				lRes = [int(line.split("|")[1].replace(" ", ""))+1 for line in BSlines if line.startswith("|") and line.split("|")[1].replace(" ", "").isdigit()]
 
 			if len(lRes) > 0:
 				d["MEME_NbSites"] = str(len(lRes))
@@ -106,7 +106,7 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 					  wPS = sum([val[i] for i in ival])/len(ival)
 					else:
                                           wPS=0
-					lRespp= df[df.iloc[:,ival].sum(axis=1)>0.9].iloc[:,0].tolist()
+					lRespp= df[df.iloc[:,ival].sum(axis=1)>pr].iloc[:,0].tolist()
 					lResw = df[df.iloc[:,-1]>1].iloc[:,0].tolist()
 					if wPS<5:
 					  lRes = [x for x in lResw if x in lRespp]
@@ -175,7 +175,7 @@ def ResPamlExtract(models, dModelLlh, dModelFile, pr):
 				content = modFile.read()
 				res = content.split("BEB")[1].split("The grid")[0].split("SE for w")[-1].split("\n")
 				res = list(filter(None, res))
-				PSS = [int(line.strip().split(" ")[0]) for line in res if float(list(filter(None, line.split(" ")))[2].replace("*", "")) > pr]
+				PSS = [int(line.strip().split(" ")[0])+1 for line in res if float(list(filter(None, line.split(" ")))[2].replace("*", "")) > pr]
 			
 			posSel = "Y"
 			nbPSS = str(len(PSS))
