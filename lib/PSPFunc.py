@@ -47,8 +47,8 @@ def LRT(ll1, ll2, df):
 	:params ll1, ll2: likelihood of the two models studied
 	:param df: degrees of freedom of difference between the two models
 	"""
-	LR = abs(2*(ll1-ll2))
-	stats.chisqprob = lambda chisq, df: stats.chi2.sf(LR, df)
+	stats.chisqprob = lambda chisq, df: stats.chi2.sf(chisq, df)
+	LR = max(2*(ll2-ll1),0)
 	p = stats.chisqprob(LR, df)
 	return(LR, p)
 
