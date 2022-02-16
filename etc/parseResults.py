@@ -35,7 +35,9 @@ if __name__ == "__main__":
 	files.add_argument('-o', '--outdir', metavar="<path/to/directory>", type=str, default="", required=False, dest = 'outDir', help =\
 						'folder for analysis results (path - by default output file will be saved in the incoming directory)')
 	files.add_argument('-pr', '--postrate', metavar="<value>", type=float, default=0.95, required=False, dest = 'pr', help =\
-						'Threshold rate of omega>1 to admit positive selected sites.')	
+						'Threshold posterior probability of omega>1 to admit positive selected sites.')	
+	files.add_argument('-pm', '--pvmeme', metavar="<value>", type=float, default=0.01, required=False, dest = 'pvmeme', help =\
+						'Maximum p-value of PS site significance for MEME method.')	
 
 	
 	# Check parameters and get arguments
@@ -44,6 +46,7 @@ if __name__ == "__main__":
 	inDir = "/".join(inFile.split("/")[0:-1])
 	outDir = args.outDir
 	pr = args.pr
+	pvmeme = args.pvmeme
 	if outDir == "":
 		outDir = inDir
 	#debug = args.debug
@@ -101,7 +104,7 @@ if __name__ == "__main__":
 		bust = PRS.ResBusted(baseName, posDir)
 		dGene.update(bust)
 
-		meme = PRS.ResMeme(baseName, posDir)
+		meme = PRS.ResMeme(baseName, posDir, pvmeme)
 		dGene.update(meme)
 
 		resBpp = PRS.ResBpp(baseName, posDir, pr)
