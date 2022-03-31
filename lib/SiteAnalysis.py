@@ -28,7 +28,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 		FORMAT - format of the aln file (here, phyx)
 		TREEFILE - tree file for the analyzed aln
 		MODEL - choose which model you want run on the data YNGP_M0 through 8, same models as PAML, and DFP07 models
-		IGNORE - parameters to ignore for optimization, for example if one is fixed (ex: omegas in M8a)
+		IGNORE - parameters to ignore for optimization, for example if one is fixed.
 		OUTTREE - name of the optimized output tree
 		OUTPARAMS - name of the output file summarizing parameters
 		BACKUP - name of log file
@@ -54,8 +54,8 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
             dModelSyntax[k][model].append("n=4")
           if model in ["M7","M8"]:
             dModelSyntax[k][model].append("q=1")
-          if model=="M8"
-            dModelSyntax[k][model].append("omegas=1")
+          if model=="M8":
+            dModelSyntax[k][model].append("omegas=2")
           if model in ["M10"]:
             dModelSyntax[k][model].append("nbeta=4")
             dModelSyntax[k][model].append("ngamma=4")
@@ -238,11 +238,6 @@ def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new valu
       dprevpar={l[:l.find("=")]:l[l.find("=")+1:] for l in lprev}
       modeldeb=model[:-2]
       prevmodeldeb=prevmodel[:-2]
-      if prevmodeldeb=="M8a":  # Trick to get right parameters prefix
-        prevmodeldeb="M8"
-      if modeldeb=="M8a":  # Trick to get right parameters prefix
-        modeldeb="M8"
-        
 
       # first copy all parameters
       for st,val in dprevpar.items(): 
@@ -285,9 +280,6 @@ def setIgnoreParams(model, prevmodel, lModels, logger):
   if model!="M0"+distr and "M0"+distr in lModels:
     lignore.append("BrLen")
   
-  if model == "M8a"+distr:
-    lignore.append("YNGP_M8.omegas*")
-
   if model=="DFP07_0"+distr:
     lignore.append("DFP07.p0_1")
     

@@ -32,7 +32,7 @@ def LRT(ll1, ll2, df):
 	:param df: degrees of freedom of difference between the two models
 	"""
 	stats.chisqprob = lambda chisq, df: stats.chi2.sf(chisq, df)
-	LR = abs(2*(ll1-ll2))
+	LR = max(2*(ll2-ll1),0)
 	p = stats.chisqprob(LR, df)
 	return(LR, p)
 
@@ -52,34 +52,35 @@ def ResBusted(baseName, posDir):
 					posSel = "N"
 				d["BUSTED_sel"] = posSel
 				d["BUSTED_pv"] = str(p)
-			except:
+			except FileNotFoundError:
 				d = {}
 
 	return(d)
 
-def ResMeme(baseName, posDir):
+def ResMeme(baseName, posDir, pv):
 	BS = glob.glob(posDir+"/meme/*_meme.out")
-	d = OrderedDict({"MEME_NbSites":"na", "MEME_PSS":"na"})
+	d = OrderedDict({"MEME_NbSites":"0", "MEME_PSS":"na"})
 
 	if len(BS)>=1 and os.path.exists(BS[0]):
 		try:
-			with open(BS[0], "r") as bs:
-				BSlines = bs.readlines()
-			
-			lRes = []
-			nbSites = 0
-			for line in BSlines:
-				if line.startswith("### ** Found"):
-					nbSites = int(line.split("_")[1])
-				
+			bs = open(BS[0], "r")
+			dPS={}
+			for BSLine in bs.readlines():
+                          if not BSLine.startswith("|"):
+                            continue
+                          Bspl= list(map(lambda s:s.strip(),BSLine.split("|")))
+                          if not Bspl[1].isdigit():
+                            continue
+                          dPS[int(Bspl[1])]=float(Bspl[7].split("=")[1])
+                        
+			dPSok={k:v for k,v in dPS.items() if v<=pv}
+			nbSites = len(dPSok)
+
 			if nbSites > 0:
-				lRes = [int(line.split("|")[1].replace(" ", "")) for line in BSlines if line.startswith("|") and line.split("|")[1].replace(" ", "").isdigit()]
-
-			if len(lRes) > 0:
-				d["MEME_NbSites"] = str(len(lRes))
-				d["MEME_PSS"] = "{}".format(lRes).replace("[", "").replace("]", "")
-
-		except:
+				d["MEME_NbSites"] = str(nbSites)
+				d["MEME_PSS"] = ",".join(map(str,dPSok.keys()))
+			bs.close()
+		except FileNotFoundError:
 			next
 
 	"""
@@ -106,13 +107,13 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 					  wPS = sum([val[i] for i in ival])/len(ival)
 					else:
                                           wPS=0
-					lRespp= df[df.iloc[:,ival].sum(axis=1)>0.9].iloc[:,0].tolist()
+					lRespp= df[df.iloc[:,ival].sum(axis=1)>pr].iloc[:,0].tolist()
 					lResw = df[df.iloc[:,-1]>1].iloc[:,0].tolist()
-					if wPS<5:
-					  lRes = [x for x in lResw if x in lRespp]
-					else:
-					  lRes = lResw
-					lRes = list(map(lambda x:x+1,lRes))
+					#if wPS<5:
+					lRes = [x for x in lResw if x in lRespp]
+					#else:
+					#  lRes = lResw
+					#lRes = list(map(lambda x:x+1,lRes))
 					if len(lRes)!=0:
 					        lResFinal = str("{}".format(lRes).replace("[", "").replace("]", ""))
 					else:
@@ -132,7 +133,7 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
 				d["PSS"] = lResFinal
 				d["wPS"] = wPS
 					
-		except:
+		except FileNotFoundError:
 			next
 	return(d)
 
@@ -194,7 +195,7 @@ def ResPamlExtract(models, dModelLlh, dModelFile, pr):
 	return(d)
 
 def ResPaml(posDir, pr):
-	PAML = posDir+"/paml_site/"
+	PAML = posDir+"/paml_site/C/"
 	lModels = ["M1","M2","M7","M8","M8a"]
 	lcpl=[("M1","M2"),("M7","M8"), ("M8a","M8")]
 	dModelLlh = OrderedDict({model:"na" for model in lModels})
@@ -202,13 +203,11 @@ def ResPaml(posDir, pr):
 	#dModelOmega = {model:"na" for model in lModels}
 
 	if os.path.exists(PAML):
-		pamlDirs = OrderedDict({dI:os.path.join(PAML, dI) for dI in sorted(os.listdir(PAML)) if os.path.isdir(os.path.join(PAML, dI))})
-
+		pamlDirs = {dI:os.path.join(PAML, dI) for dI in sorted(os.listdir(PAML)) if os.path.isdir(os.path.join(PAML, dI))}
 		for pDir in pamlDirs:
 			for model in lModels:
 				if model in pamlDirs[pDir].split("/"):
 					dModelFile[model] = pamlDirs[pDir]+"/out"
-					#print(dModelFile)
 					if os.path.exists(pamlDirs[pDir]+"/rst1"):
 						with open(pamlDirs[pDir]+"/rst1", "r") as modelFile:
 							line = modelFile.read().strip()
