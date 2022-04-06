@@ -1,20 +1,20 @@
 # DGINN: Detection of Genetic INNovations pipeline
 
-DGINN is a pipeline dedicated to the detection of genetic innovations, starting from a nucleotidic sequence. 
+DGINN is a pipeline dedicated to the detection of genetic innovations, starting from a nucleotidic sequence.
 
 It automatizes all the necessary preliminary steps for evolutionary
 analyses, including retrieval of homologs, assignment to orthology
 groups, codon alignment and reconstruction of gene phylogeny.
 
-It automatizes all the necessary preliminary steps for evolutionary analyses, including retrieval of homologs, 
-assignment to orthology groups, codon alignment and reconstruction of gene phylogeny. 
-Following the obtention of the alignements and corresponding phylogenies, three major genetic innovations are detected: 
-duplication events, recombination events, and signatures of positive selection. 
+It automatizes all the necessary preliminary steps for evolutionary analyses, including retrieval of homologs,
+assignment to orthology groups, codon alignment and reconstruction of gene phylogeny.
+Following the obtention of the alignements and corresponding phylogenies, three major genetic innovations are detected:
+duplication events, recombination events, and signatures of positive selection.
 
-DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted on BioRxiv 
+DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted on BioRxiv
 (doi: https://doi.org/10.1101/2020.02.25.964155).
 Results from the validation are available in the [corresponding repository](https://github.com/leapicard/DGINN_validation).
-The version of DGINN used in the paper refers to [commit 5db0253](https://github.com/leapicard/DGINN/commit/5db02532408afcafad50a0b70dcf247ab4800492) 
+The version of DGINN used in the paper refers to [commit 5db0253](https://github.com/leapicard/DGINN/commit/5db02532408afcafad50a0b70dcf247ab4800492)
 and can be fetched through:
 ```{sh}
 git init
@@ -24,25 +24,29 @@ git checkout FETCH_HEAD
 ```
 The docker is available for both the paper version and the current version of DGINN.
 
-Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.fr, 
+Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.fr,
 laurent.gueguen [at] univ-lyon1.fr or lucie.etienne [at] ens-lyon.fr.
 
 # Overview
 
-![alt text](https://github.com/leapicard/DGINN/blob/master/etc/pipeline_diagram.pdf)
+![Diagram of DGINN main steps](https://github.com/leapicard/DGINN/blob/master/etc/pipeline_diagram.pdf)
 
 # Installation
 
 ## 1/ Necessary dependencies and softwares
 
-- Softwares and versions: [EMBOSS:6.6](http://en.bio-soft.net/format/emboss.html), [PhyML 3.0](https://github.com/stephaneguindon/phyml), [PRANK v.170427](http://wasabiapp.org/software/prank/prank_installation/), [Treerecs v1.0](https://gitlab.inria.fr/Phylophile/Treerecs), [HYPHY 2.3](http://www.hyphy.org/installation/), [Bio++ v.2](https://github.com/BioPP)
+- Softwares and versions: [EMBOSS:6.6](http://en.bio-soft.net/format/emboss.html), [PhyML 3.0](https://github.com/stephaneguindon/phyml), [PRANK v.170427](http://wasabiapp.org/software/prank/prank_installation/), [Treerecs v1.0](https://gitlab.inria.fr/Phylophile/Treerecs), [HYPHY 2.3](http://www.hyphy.org/installation/), [Bio++ v.3](https://github.com/BioPP)
 - Python (>3.5) and packages: Biopython, ete3, collections, logging, shlex, os, numpy, scipy, requests, pandas, statistics, time, re, argparse
 
-## 2/ Docker
+## 2/ Containers
 
-A [docker image](https://hub.docker.com/repository/docker/leapicard/dginn) is available to provide a way to use DGINN without requiring installation of any software except for [Docker](https://docs.docker.com/install/).
+The simplest way to use DGINN is through the use of a container, which frees the user from the necessity of installing all of DGINN's dependencies, and should make cross-platform usage possible (Linux/Mac OS/Windows).
+We strongly advise the user to use either of the images that we provide through [Docker](https://docs.docker.com/install/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html), so the only software installation needed is the one for the chosen container system.
 
-Get the docker:
+Please be aware that, due to Docker necessiting root access, the Docker container is not appropriate for usage in cluster environments, though it is appropriate for cloud computing (tutorial to come) and local usage. The Singularity container should be usable in every environment.
+
+### a/ Docker
+A [Docker image](https://hub.docker.com/repository/docker/leapicard/dginn) is available and can be obtained through the following command:
 ```{sh}
 docker pull leapicard/dginn
 ```
@@ -58,7 +62,22 @@ docker run --rm -u $(id -u $USER):$(id -u $USER) -e HOME=. -v $PWD:$PWD -w $PWD 
 ```
 The command should be run as is, and should work on both Mac and Linux systems, provided the user belong to the 'docker' group (please refer to the [Docker Documentation](https://docs.docker.com/install/linux/linux-postinstall/) for help about setting the user as part of this group on Linux.)
 
+We unfortunately cannot promise about the Docker container's usability on Windows. In case the container doesn't work, we advise the user to try the Singularity container.
+
 All other arguments are passed exactly as if DGINN were run through the command line directly from the script (such as -p parameters.txt / see next section). However, one main difference is that all the files should be referred to by their name in the parameter file and be located within the working directory, while they can be referred by their path and be located in a different directory when running the script version.
+
+### b/ Singularity
+A [Singularity image] is also available and can be downloaded through the following command:
+```{sh}
+singularity pull library://leapicard/dginn/dginn
+```
+
+Use the container:
+```{sh}
+singularity run dginn_latest.sif -p <filename>
+```
+
+All arguments should be passed in a similar manner to the script version.
 
 # Usage
 
@@ -106,10 +125,6 @@ the format speSpe_GENE_Id (ex: homSap_MX1_CCDS13673,
 macMul_APOBEC3G_NM_001198693).
 
 ```
-# Step at which to enter the pipeline (default: blast)
-# Please refer to 3/ Entry steps for names and necessary files
-step:
-
 # Path or list of paths (absolute or relative) to the files needed to start the pipeline
 # Please refer to **3/ Entry steps** for necessary files
 infile:
@@ -275,7 +290,7 @@ The first three methods are automatically parameterized in DGINN.
 
 For BIO++, the parameter files can be automatically generated by DGINN, but the user can also provide their own parameter files if they wish to tweak the parameters further. The OPB option can also be used for different analyses using Bio++ as its results do not influence any subsequent step. Example parameter files for bppml and bppmixedlikelihoods (for site models) are provided in examples/, as well as a parameter file for running a one-per-branch model.
 
-Users wishing to do the fastest check possible on their genes of interest are encouraged to run only BIO++ site models, 
+Users wishing to do the fastest check possible on their genes of interest are encouraged to run only BIO++ site models,
 as our validation results point to their providing the best compromise of solid results and shorter running times.
 
 # Tutorial
@@ -286,14 +301,18 @@ In the examples folder, two parameter files are provided.
 
 NB: these files should be updated with the absolute paths to the files referred to instead of just their name when using DGINN through the command line and not through the docker.
 
-```python3 DGINN.py -p parameters.txt```
+```
+python3 DGINN.py -p parameters.txt
+```
 
 Will launch DGINN steps 1-7 on ex_CCDS.fasta by :
 * retrieving homologs of primate species in the NCBI *nr* database
 * detecting duplications and assigning ortholog groups of at least 8 species based on ex_spTree.tree
 * detecting recombination events
 
-```python3 DGINN.py -p parameters_possel.txt```
+```
+python3 DGINN.py -p parameters_possel.txt
+```
 
 Will launch DGINN step 8 on ex_aln.fasta and ex_genetree.tree by :
 * looking for positive selection on the gene using BUSTED
@@ -304,7 +323,7 @@ Will launch DGINN step 8 on ex_aln.fasta and ex_genetree.tree by :
 
 ## 2/ Validation data
 
-DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted on BioRxiv 
+DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted on BioRxiv
 (doi: https://doi.org/10.1101/2020.02.25.964155).
 Results from the validation are available in the [corresponding repository](https://github.com/leapicard/DGINN_validation).
 
@@ -312,7 +331,7 @@ Results from the validation are available in the [corresponding repository](http
 
 ## 1/ CCDSquery
 
-In the etc folder, a script entitled CCDSquery.py is included. 
+In the etc folder, a script entitled CCDSquery.py is included.
 This script allows the user to download the CCDS sequences of human genes, by providing the properly formatted file obtained through HGNC.
 This file should at least contain a column titled "Approved symbol" and another titled "CCDS accession".
 
@@ -334,13 +353,13 @@ Mandatory input infos for running:
 
 ## 2/ Results extraction
 
-Another script called parseResults.py can also be found in the etc folder. 
+Another script called parseResults.py can also be found in the etc folder.
 
 The input file is composed of two tab-separated columns: the first one indicates the full path to the directories containing the positive selection results (the directory containing the subdirectories busted, bpp_site, paml_site, etc.), the second one the full path to the alignments on which those analyses were performed.
 
 Ex: /PATH/TO/GENENAME_sequences_filtered_longestORFs_mafft_mincov_prank_results_TIMESTAMP1/positive_selection_results_TIMESTAMP2 /PATH/TO/GENENAME_sequences_filtered_longestORFs_mafft_mincov_prank.best.fas
 
-The script will output 3 different files: 
+The script will output 3 different files:
 1. a summary of results (one gene per line)
 2. the percentages of coverage at each position of each alignment (NB: it is advised not to modify this file in any capacity to ensure proper visualization of the results)
 3. the likelihoods calculated by Bio++ (Bpp) and PAML codeml for each gene.
@@ -348,32 +367,24 @@ The script will output 3 different files:
 The different output files obtained with this script can be used to generate figures similar to those exposed in the DGINN paper through the [Shiny app](https://leapicard.shinyapps.io/DGINN-visualization/), which documentation can be found on the [corresponding repository](https://github.com/leapicard/DGINN-visualization).
 
 ```
-python3 etc/parseResults.py -h
-usage: etc/parseResults.py [-h] [-v] -in <filename>
-                                      [-o <path/to/directory>]
-                                      [-pr <value>]
+python3 DGINN/etc/parseResults.py -h
+usage: DGINN/etc/parseResults.py [-h] [-v] -in <filename> [-o <path/to/directory>] [-pr <value>] [-pm <value>]
 
-This program outputs a summary of the results obtained through running DGINN
-on a list of genes of interest.
+This program outputs a summary of the results obtained through running DGINN on a list of genes of interest.
 
 optional arguments:
   -h, --help            show this help message and exit
-  -v, --version         display /home/lea/Documents/DGINN/etc/parseResults.py
-                        version number and exit
+  -v, --version         display DGINN/etc/parseResults.py version number and exit
 
 Mandatory input infos for running:
   -in <filename>, --inFile <filename>
-                        List of all the directories containing the results
-                        from DGINN analyses on different genes, and their
-                        corresponding alignments.
+                        List of all the directories containing the results from DGINN analyses on different genes, and their corresponding alignments.
 
 Optional input infos (default values):
   -o <path/to/directory>, --outdir <path/to/directory>
-                        folder for analysis results (path - by default output
-                        file will be saved in the incoming directory)
+                        folder for analysis results (path - by default output file will be saved in the incoming directory)
   -pr <value>, --postrate <value>
-                        folder for analysis results (path - by default output
-                        file will be saved in the incoming directory)
-
+                        Threshold posterior probability of omega>1 to admit positive selected sites.
+  -pm <value>, --pvmeme <value>
+                        Maximum p-value of PS site significance for MEME method.
 ```
-
