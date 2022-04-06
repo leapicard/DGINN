@@ -8,11 +8,11 @@ groups, codon alignment and reconstruction of gene phylogeny.
 
 It automatizes all the necessary preliminary steps for evolutionary analyses, including retrieval of homologs,
 assignment to orthology groups, codon alignment and reconstruction of gene phylogeny.
-Following the obtention of the alignements and corresponding phylogenies, three major genetic innovations are detected:
+Once the alignements and corresponding phylogenies are obtained, three major genetic innovations are detected:
 duplication events, recombination events, and signatures of positive selection.
 
-DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted on BioRxiv
-(doi: https://doi.org/10.1101/2020.02.25.964155).
+DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted in the associated paper
+(doi: https://doi.org/10.1093/nar/gkaa680).
 Results from the validation are available in the [corresponding repository](https://github.com/leapicard/DGINN_validation).
 The version of DGINN used in the paper refers to [commit 5db0253](https://github.com/leapicard/DGINN/commit/5db02532408afcafad50a0b70dcf247ab4800492)
 and can be fetched through:
@@ -43,7 +43,7 @@ laurent.gueguen [at] univ-lyon1.fr or lucie.etienne [at] ens-lyon.fr.
 The simplest way to use DGINN is through the use of a container, which frees the user from the necessity of installing all of DGINN's dependencies, and should make cross-platform usage possible (Linux/Mac OS/Windows).
 We strongly advise the user to use either of the images that we provide through [Docker](https://docs.docker.com/install/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html), so the only software installation needed is the one for the chosen container system.
 
-Please be aware that, due to Docker necessiting root access, the Docker container is not appropriate for usage in cluster environments, though it is appropriate for cloud computing (tutorial to come) and local usage. The Singularity container should be usable in every environment.
+Please be aware that, due to Docker necessitating root access, the Docker container is not appropriate for usage in cluster environments, though it is appropriate for cloud computing (tutorial to come) and local usage. The Singularity container should be usable in every environment.
 
 ### a/ Docker
 A [Docker image](https://hub.docker.com/repository/docker/leapicard/dginn) is available and can be obtained through the following command:
@@ -67,7 +67,7 @@ We unfortunately cannot promise about the Docker container's usability on Window
 All other arguments are passed exactly as if DGINN were run through the command line directly from the script (such as -p parameters.txt / see next section). However, one main difference is that all the files should be referred to by their name in the parameter file and be located within the working directory, while they can be referred by their path and be located in a different directory when running the script version.
 
 ### b/ Singularity
-A [Singularity image] is also available and can be downloaded through the following command:
+A [Singularity image](https://cloud.sylabs.io/library/leapicard/dginn/dginn) is also available and can be downloaded through the following command:
 ```{sh}
 singularity pull library://leapicard/dginn/dginn
 ```
@@ -386,5 +386,10 @@ Optional input infos (default values):
   -pr <value>, --postrate <value>
                         Threshold posterior probability of omega>1 to admit positive selected sites.
   -pm <value>, --pvmeme <value>
-                        Maximum p-value of PS site significance for MEME method.
+                        Maximum p-value of PS site significance for MEME method.cd
 ```
+
+# Citation  
+
+In case of usage of DGINN, please cite:
+Lea Picard, Quentin Ganivet, Omran Allatif, Andrea Cimarelli, Laurent Guéguen, Lucie Etienne, DGINN, an automated and highly-flexible pipeline for the detection of genetic innovations on protein-coding genes, Nucleic Acids Research, Volume 48, Issue 18, 09 October 2020, Page e103, https://doi.org/10.1093/nar/gkaa680
