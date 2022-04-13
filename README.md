@@ -114,10 +114,6 @@ step:
 # Please refer to **3/ Entry steps** for necessary files
 infile:
 
-# Step at which to enter the pipeline (default: blast)
-# Please refer to 3/ Entry steps for names and necessary files
-step:
-
 # Output directory for all results
 # Automatically created if not specified
 outdir:
@@ -267,8 +263,8 @@ Thus, starting at steps upstream of positiveSelection with non codon alignments 
 DGINN includes different softwares to check for positive selection:
 * BUSTED (Murrel et al., Molecular Biology and Evolution, 2015) from Hyphy
 * MEME (Murrel et al., PLoS Genetics, 2012) from Hyphy
-* PAML codeml (Yang, Molecular Biology and Evolution, 2007) for site models M0, M1, M2, M7 and M8
-* BIO++ (Guéguen et al., Molecular Biology and Evolution, 2013) for site models M0, M1, M2, M7 and M8
+* PAML codeml (Yang, Molecular Biology and Evolution, 2007) for site models M0, M1, M2, M7, M8a and M8
+* BIO++ (Guéguen et al., Molecular Biology and Evolution, 2013) for site models M0, M1, M2, M7 M8a, M8, M10 and DFP_07
 * BIO++ for one-per-branch (OPB) model (similar to PAML codeml FreeRatio model) to test positive selection on branches
 
 The first three methods are automatically parameterized in DGINN.
@@ -298,8 +294,8 @@ Will launch DGINN steps 1-7 on ex_CCDS.fasta by :
 Will launch DGINN step 8 on ex_aln.fasta and ex_genetree.tree by :
 * looking for positive selection on the gene using BUSTED
 * looking for sites under episodic positive selection using MEME
-* looking for sites under positive selection using models M0-NS, M1-NS, M2-NS, M7-NS and M8-NS from BIO++
-* looking for sites under positive selection using models M0, M1, M2, M7 and M8 from PAML codeml
+* looking for sites under positive selection using models M0-NS, M1-NS, M2-NS, M7-NS, M8a-NS and M8-NS from BIO++
+* looking for sites under positive selection using models M0, M1, M2, M7, M8a and M8 from PAML codeml
 * looking for branches under positive selection using BIO++
 
 ## 2/ Validation data
@@ -310,7 +306,39 @@ Results from the validation are available in the [corresponding repository](http
 
 # Utility scripts
 
-## 1/ CCDSquery
+## 1/ multi_dginn
+
+In the etc folder, the script multi_dginn.py allows the user to run
+several DGINN containers in parallel, from a file of several inputs. A
+maximum number of running containers can be entered (default is 4) and
+processes are run up to this maximum. Later (when some runs are
+completed) the same script can be run on the same file of inputs, and
+successive analyses will be run. So, by calling repetively this
+script, the user will easily complete as many analyses as wanted.
+
+```
+python3  multi_dginn.py dataname -p parameters [-i image][-v][-j jobs]
+
+where:
+
+   dataname: name of the file where the input names are stored per
+             line (aka used as argument of --infile option of
+             DGINN.py).
+
+   -p parameters: name of the DGINN parameters file (aka used with
+                  option -p in DGINN.py).
+
+optional arguments:
+   -h show this help message and exit
+   
+   -i image: name of the docker image used (default lpicard/dginn).
+
+   -j jobs : number of jobs used in parallel (default 4)
+
+   -v  verbosity of the commands.   (default False)
+```
+
+## 2/ CCDSquery
 
 In the etc folder, a script entitled CCDSquery.py is included. 
 This script allows the user to download the CCDS sequences of human genes, by providing the properly formatted file obtained through HGNC.
