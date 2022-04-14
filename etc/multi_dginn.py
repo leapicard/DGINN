@@ -37,7 +37,7 @@ def main(argv):
 
        -i image: name of the docker image used (default lpicard/dginn).
 
-       -j jobs : number of jobs used in parallel (default 4)
+       -j jobs: number of jobs used in parallel (default 4)
 
        -v  verbosity of the commands.   (default False)
       """)

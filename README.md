@@ -325,18 +325,23 @@ Results from the validation are available in the [corresponding repository](http
 
 # Utility scripts
 
-## 1/ multi_dginn
+Several utility scripts upstream and downstream of DGINN in the etc folder, 
 
-In the etc folder, the script multi_dginn.py allows the user to run
-several DGINN containers in parallel, from a file of several inputs. A
-maximum number of running containers can be entered (default is 4) and
-processes are run up to this maximum. Later (when some runs are
-completed) the same script can be run on the same file of inputs, and
-successive analyses will be run. So, by calling repetively this
-script, the user will easily complete as many analyses as wanted.
+
+## 1/ Upstream
+
+### 1/ multi_dginn
+
+multi_dginn.py allows the user to run several DGINN containers in
+parallel, from a file of several inputs. A maximum number of running
+containers can be entered (default is 4) and processes are run up to
+this maximum. Later (when some runs are completed) the same script can
+be run on the same file of inputs, and successive analyses will be
+run. So, by calling repetively this script, the user will easily
+complete as many analyses as wanted.
 
 ```
-python3  multi_dginn.py dataname -p parameters [-i image][-v][-j jobs]
+python3 DGINN/etc/multi_dginn.py dataname -p parameters [-i image][-v][-j jobs]
 
 where:
 
@@ -357,11 +362,12 @@ optional arguments:
    -v  verbosity of the commands.   (default False)
 ```
 
-## 2/ CCDSquery
+### 2/ CCDSquery
 
-In the etc folder, a script entitled CCDSquery.py is included.
-This script allows the user to download the CCDS sequences of human genes, by providing the properly formatted file obtained through HGNC.
-This file should at least contain a column titled "Approved symbol" and another titled "CCDS accession".
+CCDSquery.py allows the user to download the CCDS sequences of human
+genes, by providing the properly formatted file obtained through HGNC.
+This file should at least contain a column titled "Approved symbol"
+and another titled "CCDS accession".
 
 ```
 python3 DGINN/etc/CCDSQuery.py -h
@@ -379,18 +385,50 @@ Mandatory input infos for running:
                         interest, obtained from HGNC Biomart
 ```
 
-## 2/ Results extraction
+## 2/ Downstream
 
-Another script called parseResults.py can also be found in the etc folder.
+### 1/ recup_to_parse
 
-The input file is composed of two tab-separated columns: the first one indicates the full path to the directories containing the positive selection results (the directory containing the subdirectories busted, bpp_site, paml_site, etc.), the second one the full path to the alignments on which those analyses were performed.
+recup_to_parse produces a file that will be used by parseResult (see
+below) to parse the output of DGINN analyses.
+
+recup_to_parse is to be run in the directory from which all DGINN
+analyses have been run, and where the output files
+"tag_DGINN_date.log" are written. The script scans all those file,
+keeping the most recent successful one for each tag, in case there
+have been several analyses.
+
+Message outputs whether analyses seem to have worked well (+tag) or
+positive selection but no clean exit (~tag), or not at all (-tag).
+Any gene with + or ~ sign is written in the parsing file.
+
+```
+python3 recup_to_parse.py [-o outfile]
+
+where:
+
+-o outfile: output file that will parsed by parseResults.py
+    
+```
+    
+### 2/ parseResult
+
+parseResult parses a file describing where results of DGINN are to be
+found for several genes, and output a summary of the analyses in a
+single file.
+
+The input file is composed of two tab-separated columns: the first one
+indicates the full path to the directories containing the positive
+selection results (the directory containing the subdirectories busted,
+bpp_site, paml_site, etc.), the second one the full path to the
+alignments on which those analyses were performed.
 
 Ex: /PATH/TO/GENENAME_sequences_filtered_longestORFs_mafft_mincov_prank_results_TIMESTAMP1/positive_selection_results_TIMESTAMP2 /PATH/TO/GENENAME_sequences_filtered_longestORFs_mafft_mincov_prank.best.fas
 
-The script will output 3 different files:
+The script will output 2 different files:
 1. a summary of results (one gene per line)
 2. the percentages of coverage at each position of each alignment (NB: it is advised not to modify this file in any capacity to ensure proper visualization of the results)
-3. the likelihoods calculated by Bio++ (Bpp) and PAML codeml for each gene.
+<!--- 3. the likelihoods calculated by Bio++ (Bpp) and PAML codeml for each gene. --->
 
 The different output files obtained with this script can be used to generate figures similar to those exposed in the DGINN paper through the [Shiny app](https://leapicard.shinyapps.io/DGINN-visualization/), which documentation can be found on the [corresponding repository](https://github.com/leapicard/DGINN-visualization).
 
