@@ -137,6 +137,18 @@ outdir:
 # Automatically created if not specified
 logfile:
 
+##################################
+### STEP
+##################################
+
+# Step at which to enter the pipeline (default: blast)
+# Please refer to 3/ Entry steps for names and necessary files
+step: 
+
+##################################
+### BLAST
+##################################
+
 # NCBI database on which the blast is to be performed (ex: nr)
 # Future implementations will include the possibility to perform the search on local databases
 blastdb:
@@ -150,6 +162,9 @@ mincov:
 # Percentage of identity for Blast (default: 70)
 percID:
 
+#################################
+### QUERY
+#################################
 
 # Option for eliminating overly long sequences (default: cutoff(3))
 # IQR or cutoff, factor can be put after in parenthesis
@@ -233,10 +248,10 @@ meme:
 #
 # Rate distribution are either Constant ou Gamma(n=4)
 # Default is Gamma, and explicit rate distribution are available through "_C" or "_G" suffixes to model names (ex: M0_C, M0_G)
-models:
+models: M0, M1, M2
 
 # Option for using paml for the detection of sites under positive selection (default: False)
-paml:
+paml: 
 
 # Option for using BIO++ for the detection of sites under positive selection
 # If True, parameter file will be automatically generated
