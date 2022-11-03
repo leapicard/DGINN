@@ -1,0 +1,10 @@
+rule params:
+    input: 
+        param = "data/parameters.txt",
+        infile = "data/ex_CCDS.fasta",
+    output:
+        dico_params = "results/params.pkl",
+        dico_data = "results/data.pkl"
+    shell:
+        "python3 scripts/init_test.py -p {input.param} -i {input.infile}"
+
