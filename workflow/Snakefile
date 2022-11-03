@@ -1,10 +1,25 @@
-rule params:
+from snakemake.utils import min_version
+
+min_version("7.15.2")
+
+
+rule init:
     input: 
         param = "data/parameters.txt",
-        infile = "data/ex_CCDS.fasta",
+        infile = "data/ex_CCDS.fasta"
     output:
         dico_params = "results/params.pkl",
         dico_data = "results/data.pkl"
     shell:
         "python3 scripts/init_test.py -p {input.param} -i {input.infile}"
 
+
+rule blast:
+    input: 
+        dico_params = "results/params.pkl",
+        dico_data = "results/data.pkl"
+    output:
+       #tsvfile = "results/blastres.tsv",
+        dico_data_updated = "results/data_update.pkl"
+    shell:
+        "python3 scripts/blast_test.py {input.dico_params} {input.dico_data} {output.dico_data_updated}"
