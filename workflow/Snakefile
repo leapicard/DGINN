@@ -8,8 +8,8 @@ rule init:
         param = "data/parameters.txt",
         infile = "data/ex_CCDS.fasta"
     output:
-        dico_params = "results/params.pkl",
-        dico_data = "results/data.pkl"
+        dico_data_update = temp("results/data.pkl"),
+        dico_params_update = temp("results/params.pkl")
     shell:
         "python3 scripts/init_test.py -p {input.param} -i {input.infile}"
 
@@ -19,7 +19,22 @@ rule blast:
         dico_params = "results/params.pkl",
         dico_data = "results/data.pkl"
     output:
-       #tsvfile = "results/blastres.tsv",
-        dico_data_updated = "results/data_update.pkl"
+        dico_data_update = temp("results/data_blast.pkl"),
+        dico_params_update = temp("results/params_blast.pkl")
     shell:
-        "python3 scripts/blast_test.py {input.dico_params} {input.dico_data} {output.dico_data_updated}"
+        "python3 scripts/blast_test.py {input.dico_params} {input.dico_data} {output.dico_data_update} {output.dico_params_update}"
+
+
+rule extract:
+    input: 
+        dico_data = "results/data_blast.pkl"
+    output:
+        dico_data_update = temp("results/data_extract.pkl"),
+        accns = "results/accns.txt"
+    shell:
+        "python3 scripts/extract_test.py {input.dico_data} {output.accns} {output.dico_data_update}"
+
+
+
+
+

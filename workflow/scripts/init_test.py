@@ -345,7 +345,7 @@ if __name__ == "__main__" :
 	parameters_filled = paramDef(parameters.params, parameters.infile, parameters.queryName)
 	data = initLogger(parameters_filled, debug, version)
 
-	with open("results/params.pkl",'wb') as fichier_params:
-		pickle.dump(parameters_filled,fichier_params,pickle.HIGHEST_PROTOCOL)
 	with open("results/data.pkl",'wb') as fichier_data:
 		pickle.dump(data,fichier_data,pickle.HIGHEST_PROTOCOL)
+	with open("results/params.pkl",'wb') as fichier_params:
+		pickle.dump(parameters_filled,fichier_params,pickle.HIGHEST_PROTOCOL)

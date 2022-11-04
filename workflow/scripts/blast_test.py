@@ -2,7 +2,7 @@
 import logging, os, shlex, sys
 from collections import defaultdict, OrderedDict
 from Bio.Blast import NCBIWWW, NCBIXML
-from Bio import SearchIO
+from Bio import SearchIO, SeqIO
 from time import sleep
 import pickle
 from AnalysisFunc import cmd
@@ -101,7 +101,18 @@ def blast(queryFile, output_file, db, evalue, percId, cov, apiKey, remote, query
 	
 	return(blastRes)
 
+def setGenAttr(data,params):	
+		#Set attributes from the queryFile.
+		step = params["step"]
+		queryFile = data["queryFile"]
 
+		if step == "blast":
+			accns = list(SeqIO.parse(open(queryFile),'fasta'))
+			accn = accns[0]
+			data["queryName"] = accn.id
+			params["queryName"] = accn.id
+		
+		return data,params
 
 if __name__ == "__main__" :
 	with open(sys.argv[1], 'rb') as fichier:
@@ -110,7 +121,7 @@ if __name__ == "__main__" :
 		data = pickle.load(fichier)
 	
 	o = "results/blastres.tsv"
-
+	
 	data["blastRes"] = blast(data["queryFile"], 
 			      o,
 			      data["db"], 
@@ -119,9 +130,14 @@ if __name__ == "__main__" :
 			      params["mincov"], 
 			      params["APIKey"], 
 			      params["remote"], 
-			      data["queryName"])
-	print(data["blastRes"])
+			      params["entryQuery"])
+
 	data["lBlastRes"] = parseBlast(data["blastRes"])
+	
+	data,params = setGenAttr(data,params)
 
 	with open(sys.argv[3],'wb') as fichier_data:
 		pickle.dump(data,fichier_data,pickle.HIGHEST_PROTOCOL)
+	with open(sys.argv[4],'wb') as fichier_data:
+		pickle.dump(params,fichier_data,pickle.HIGHEST_PROTOCOL)
+	
