@@ -324,7 +324,8 @@ def initLogger(args, debug, version):
 	"tree":args["treefile"],
 	"queryName":args["queryName"],
 	"alnFormat":"Fasta",
-	"baseName":"" }
+	"baseName":"",
+	"aln":"" }
 
 	if args["step"] == "duplication" and args["duplication"] == False:
 		args["duplication"] = True

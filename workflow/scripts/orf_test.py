@@ -16,17 +16,17 @@ def cmd(commandLine, choice, verbose = False):
 	@param1 commandLine: String corresponding to a bash command line
 	@param2 choice: Boolean determining whether the command is executed within the shell 
 	"""
-    if verbose:
-          stdout=None
-    else:
-        stdout=subprocess.PIPE
+	if verbose:
+		stdout=None
+	else:
+		stdout=subprocess.PIPE
     
-    lCmd = shlex.split(commandLine)
+	lCmd = shlex.split(commandLine)
 	try:
-	  run = subprocess.call(lCmd, 
+		run = subprocess.call(lCmd, 
 			        shell=choice,
                           stdout=stdout,
-			        stderr=subprocess.PIPE)
+					stderr=subprocess.PIPE)
 	except subprocess.CalledProcessError as err:
 	  sys.stderr.write(str(err))
 
@@ -91,11 +91,11 @@ def getORFs(catFile, queryName, geneDir):
 		
 	logger.info("Deleted {} sequences as duplicates".format(n))
 	
-	outORF = outORFraw.replace("_allORFs.fasta","_longestORFs.fasta")
-
+	outORF = sys.argv[3]
+	#print(fastares_test.dict2fasta(dId2Longest))
 	with open(outORF, "w") as outO:
-	  outO.write(fastares_test.dict2fasta(dId2Longest))
-      outO.close()
+		outO.write(fastares_test.dict2fasta(dId2Longest))
+		outO.close()
 	  
 	logger.info("Extracted longest ORFs: {:s}".format(outORF))
 
@@ -103,18 +103,18 @@ def getORFs(catFile, queryName, geneDir):
 
 
 def orfFinder(data):
-    """
+	"""
 	Procedure which launch the ORF step
 
 	@param1 data: basicdata object
 	@param2 logger: Logging object
 	"""
 
-    ORFile = getORFs(data["seqFile"],
+	ORFile = getORFs(data["seqFile"],
 					 data["queryName"], 
 					 sys.argv[2])
-    data["ORFs"] = ORFile
-
+	data["ORFs"] = ORFile
+	return data
 
     
 
@@ -124,6 +124,6 @@ if __name__ == "__main__" :
 
     data = orfFinder(data)
     
-    with open(sys.argv[3]],'wb') as fichier_data:
+    with open(sys.argv[4],'wb') as fichier_data:
         pickle.dump(data,fichier_data,pickle.HIGHEST_PROTOCOL)
     
