@@ -2,27 +2,23 @@ from snakemake.utils import min_version
 
 min_version("7.15.2")
 
-configfile: "config.yaml"
 
 rule init:
     input: 
         param = "data/parameters.txt",
-        infile = config["infile"]
-        query = config["query"]
-        outdir = config["outdir"] 
-        hostfile = config["hostfile"]
+        infile = "data/ex_CCDS.fasta"
+
     output:
         dico_data_update = temp("results/data.pkl"),
         dico_params_update = temp("results/params.pkl")
     shell:
-        "python3 scripts/init_test.py -p {input.param} -i {input.infile} -q {input.query} -o {input.outdir} -h {input.hostfile}"
+        "python3 scripts/init_test.py -p {input.param} -i {input.infile}" #input pas obligatoire donc comment on fait 
 
 
 rule blast:
     input: 
         dico_params = "results/params.pkl", #ne va pas parce que j'aurai ça dans tous les cas
         dico_data = "results/data.pkl" #ne va pas 
-        blastfile = 'results/blast_' + fastafile
     output:
         dico_data_update = temp("results/data_blast.pkl"), # ne vas pas
         dico_params_update = "results/params_blast.pkl" #ne va pas 
@@ -32,7 +28,6 @@ rule blast:
 
 rule extract:
     input: 
-        tsvfile = 
         dico_data = "results/data_blast.pkl"
     output:
         dico_data_update = temp("results/data_extract.pkl"),
