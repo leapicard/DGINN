@@ -46,3 +46,13 @@ rule fasta_res:
     shell:
         "python3 scripts/fastares_test.py {input.dico_params} {input.dico_data} {output.seq} {output.dico_data_update}"
 
+rule get_orf:
+    input:
+        dico_data = "results/data_fastaRes.pkl"
+    output:
+        res = "results/allORFs.fasta",
+        data_update = "results/data_getorf.pkl"
+    shell:
+        "python3 scripts/analysis_test.py {input.dico_data} {output.res} {output.data_update}"
+        
+
