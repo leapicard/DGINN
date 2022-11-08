@@ -7,15 +7,16 @@ validate(config, "config.schema.yaml")
 rule init:
     input: 
         param = config["parameters"],
-        infile = config["infile"],
+        infile = config["infile"]
+    params:
         query = config["queryName"],
-        outdir = config["outdir"], 
+        outdir = config["outdir"],
         hostfile = config["hostfile"]
     output:
         dico_data_update = "results/data.pkl",
         dico_params_update = "results/params.pkl"
     shell:
-        "python3 scripts/init_test.py -p {input.param} -i {input.infile} -q {input.query} -o {input.outdir} -h {input.hostfile}"
+        "python3 scripts/init_test.py -p {input.param} -i {input.infile} -q {params.query} -o {params.outdir} -h {params.hostfile}"
 
 """
 if '.fasta' in config[infile][files]:
