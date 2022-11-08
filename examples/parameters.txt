@@ -48,7 +48,9 @@ maxLen:
 
 # Can be used to limit the search on NCBI databases to certain set of species, to exclude others, etc.
 # https://www.ncbi.nlm.nih.gov/books/NBK3837/#EntrezHelp.Entrez_Searching_Options
-entryQuery:
+# Here, limit on Primates
+
+entryQuery:Primates[Organism]
 
 # Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName:
