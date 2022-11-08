@@ -1,0 +1,41 @@
+$schema: http://json-schema.org/draft-07/schema#
+
+description: snakemake configuration file
+
+properties:
+  parameters:
+    type: string
+    description: Mandatory file with all the parameters necessary to run the pipeline.
+  infile:
+    type: string
+    description: Path or list of paths (absolute or relative) to the files needed to start the pipeline. Please refer to **3/ Entry steps** for necessary files
+  queryName:
+    type: string
+    description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+    default: ''
+  outdir:
+    type: string
+    description: Path to the output directory (if indicated, will take priority over the parameters file)
+    default: 'data'
+  hostfile:
+    type: string
+    description: Path to cluster hostfile if needed for mpi process
+    default: ''
+  step:
+    type: string
+    description: Step at which to enter the pipeline. Please refer to 3/ Entry steps for names and necessary files
+    default: blast
+  blastdb:
+    type: string
+    description: Blast DataBase to query
+    default : nr
+  remote:
+    type: string
+    description: Defines wether or not to query NCBI apis remotly or locally
+    default: yes
+
+  required:
+    - parameters
+    - infile
+additionalProperties: false
+

@@ -1,0 +1,67 @@
+WorkflowError in line 5 of /home/jerem/Documents/master/projet/DGINN_2/Files/Snakefile:
+Error validating config file.
+ValidationError: Additional properties are not allowed ('blastdb', 'remote' were unexpected)
+
+Failed validating 'additionalProperties' in schema:
+    OrderedDict([('$schema', 'http://json-schema.org/draft-07/schema#'),
+                 ('description', 'snakemake configuration file'),
+                 ('properties',
+                  OrderedDict([('parameters',
+                                OrderedDict([('type', 'string'),
+                                             ('description',
+                                              'Mandatory file with all the '
+                                              'parameters necessary to run '
+                                              'the pipeline.')])),
+                               ('infile',
+                                OrderedDict([('type', 'string'),
+                                             ('description',
+                                              'Path or list of paths '
+                                              '(absolute or relative) to '
+                                              'the files needed to start '
+                                              'the pipeline. Please refer '
+                                              'to **3/ Entry steps** for '
+                                              'necessary files')])),
+                               ('queryName',
+                                OrderedDict([('type', 'string'),
+                                             ('description',
+                                              'Full identifier of the '
+                                              'query in the format '
+                                              'SpeciesName_GeneName_GeneID '
+                                              '(if indicated, will take '
+                                              'priority over the '
+                                              'parameters file)'),
+                                             ('default', '')])),
+                               ('outdir',
+                                OrderedDict([('type', 'string'),
+                                             ('description',
+                                              'Path to the output '
+                                              'directory (if indicated, '
+                                              'will take priority over the '
+                                              'parameters file)'),
+                                             ('default', 'data')])),
+                               ('hostfile',
+                                OrderedDict([('type', 'string'),
+                                             ('description',
+                                              'Path to cluster hostfile if '
+                                              'needed for mpi process'),
+                                             ('default', '')])),
+                               ('step',
+                                OrderedDict([('type', 'string'),
+                                             ('description',
+                                              'Step at which to enter the '
+                                              'pipeline. Please refer to '
+                                              '3/ Entry steps for names '
+                                              'and necessary files'),
+                                             ('default', 'blast')])),
+                               ('required', ['parameters', 'infile'])])),
+                 ('additionalProperties', False)])
+
+On instance:
+    {'blastdb': 'nr',
+     'hostfile': '',
+     'infile': 'data/ex_CCDS.fasta',
+     'outdir': 'data',
+     'queryName': '',
+     'remote': 'True',
+     'step': 'blast'}
+  File "/home/jerem/Documents/master/projet/DGINN_2/Files/Snakefile", line 5, in <module>

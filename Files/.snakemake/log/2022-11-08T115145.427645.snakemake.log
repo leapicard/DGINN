@@ -1,0 +1,3 @@
+NameError in line 5 of /home/jerem/Documents/master/projet/DGINN_2/Files/Snakefile:
+name 'configfile' is not defined
+  File "/home/jerem/Documents/master/projet/DGINN_2/Files/Snakefile", line 5, in <module>

@@ -1,0 +1,23 @@
+Building DAG of jobs...
+Using shell: /usr/bin/bash
+Provided cores: 4
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count    min threads    max threads
+-----  -------  -------------  -------------
+init         1              1              1
+total        1              1              1
+
+Select jobs to execute...
+
+[Tue Nov  8 12:04:40 2022]
+rule init:
+    input: data/parameters.txt, data/ex_CCDS.fasta
+    output: results/data.pkl, results/params.pkl
+    jobid: 0
+    reason: Missing output files: results/params.pkl
+    resources: tmpdir=/tmp
+
+RuleException in rule init  in line 7 of /home/jerem/Documents/master/projet/DGINN_2/Files/Snakefile:
+AttributeError: 'InputFiles' object has no attribute 'query', when formatting the following:
+python3 scripts/init_test.py -p {input.param} -i {input.infile} -q {input.query} -o {input.outdir} -h {input.hostfile}
