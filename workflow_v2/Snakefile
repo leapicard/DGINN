@@ -50,13 +50,56 @@ rule get_orf:
         dico_data = "results/data_fastaRes.pkl"
     output:
         res = "results/allORFs.fasta",
-        res_longest = "results/longestORFs.fasta",
+        res_longest= "results/longestORFs.fasta",
         data_update = "results/data_getorf.pkl"
     shell:
-        "python3 scripts/analysis_test.py {input.dico_data} {output.res} {output.data_update} {output.res_Longest}"
-        
-rule align:
+        "python3 scripts/orf_test.py {input.dico_data} {output.res} {output.res_longest} {output.data_update}"
+
+# Pour l'instant, le choix de l'aligneur se fait en fonction du nom de fichier output :
+# Si le nom d'output est results/ORFs_align_codon_prank.fas, la règle align_prank devrait être lancée
+# Si le nom d'output est results/ORFs_align_codon_macse.fas, la règle align_macse devrait être lancée.
+
+rule align_prank: 
     input:
+        dico_data = "results/data_getorf.pkl",
+        lgst_ORFs = "results/longestORFs.fasta"
     output:
-    shell:
+        out_codon = "results/ORFs_align_codon_{extension}.fas",
+        out_mafft = "results/ORFs_align_mafft.fasta",
+        out_covAln = "results/ORFs_align_mafft_clean.fasta",
+        data_update_mafft = "results/data_mafft.pkl",
+        data_update_codon = "results/data_prank.pkl"
+    params:
+        extension = data["codon_aligner"]
+    run:
+        shell("mafft --auto --quiet {input.lgst_ORFs} > {output.out_mafft}"),
+        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {input.dico_data} {output.data_update_mafft}"), #in1 : alignement donné en output de mafft
+                                                                                                                                    #in2 : fichier où covAln output
+                                                                                                                                    #in3 : dictionnaire data
+                                                                                                                                    # Data est update au sein de ce script
+        shell("prank -d={output.out_covAln} -o={output.out_codon}_{params.extension}.fas -codon -F"),
+        shell("python3 scripts/data_update_prank.py {output.out_codon}_{params.extension}.fas {output.data_update_mafft} {output.data_update_codon}") #update de data["aln"] pour qu'il contienne le chemin
+                                                                                                    #vers le fichier de sortie de prank.
+
+rule align_macse: 
+    input:
+        dico_data = "results/data_getorf.pkl",
+        lgst_ORFs = "results/longestORFs.fasta"
+    output:
+        out_codon = "results/ORFs_align_codon_{extension}.fas",
+        out_mafft = "results/ORFs_align_mafft.fasta",
+        out_covAln = "results/ORFs_align_mafft_clean.fasta",
+        data_update_mafft = "results/data_mafft.pkl",
+        data_update_codon = "results/data_prank.pkl"
+    params:
+        extension = data["codon_aligner"]
+    run:
+        shell("mafft --auto --quiet {input.lgst_ORFs} > {output.out_mafft}"),
+        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {input.dico_data} {output.data_update_mafft}"), #in1 : alignement donné en output de mafft
+                                                                                                                                    #in2 : fichier où covAln output
+                                                                                                                                    #in3 : dictionnaire data
+                                                                                                                                    # Data est update au sein de ce script
+        shell("java -jar ../../macse_v2.06.jar -prog refineAlignment -align {output.out_covAln} -out_NT {output.out_codon}_{params.extension}.fas"),
+        shell("python3 scripts/data_update_prank.py {output.out_codon}_{params.extension}.fas {output.data_update_mafft} {output.data_update_codon}") #update de data["aln"] pour qu'il contienne le chemin
+                                                                                                    #vers le fichier de sortie de prank.
 '''
