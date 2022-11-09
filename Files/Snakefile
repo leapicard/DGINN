@@ -3,7 +3,7 @@ min_version("7.15.2")
 
 configfile: "config.json"
 validate(config, "config.schema.yaml")
-
+config_file = "config.json"
 rule init:
     input: 
         param = config["parameters"],
@@ -15,8 +15,8 @@ rule init:
     output:
         dico_data_update = "results/data.pkl",
         dico_params_update = "results/params.pkl"
-    shell:
-        "python3 scripts/init_test.py -p {input.param} -i {input.infile} -q {params.query} -o {params.outdir} -h {params.hostfile}"
+    run:
+        shell("python3 test.py {params.query} {params.outdir} {params.hostfile} {config_file}")
 
 """
 if '.fasta' in config[infile][files]:

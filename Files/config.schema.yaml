@@ -12,7 +12,7 @@ properties:
   queryName:
     type: string
     description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
-    default: ''
+    default: 'test'
   outdir:
     type: string
     description: Path to the output directory (if indicated, will take priority over the parameters file)
@@ -20,7 +20,7 @@ properties:
   hostfile:
     type: string
     description: Path to cluster hostfile if needed for mpi process
-    default: ''
+    default: 'coucou'
   step:
     type: string
     description: Step at which to enter the pipeline. Please refer to 3/ Entry steps for names and necessary files
@@ -37,5 +37,5 @@ properties:
   required:
     - parameters
     - infile
-additionalProperties: false
+additionalProperties: true
 

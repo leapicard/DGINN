@@ -1,9 +1,1 @@
-
-{
-
-    "parameters": "data/parameters.txt",
-    "infile": "data/ex_CCDS.fasta",
-    "blastdb": "nr",
-    "remote": "True"
-    
-}
+{"parameters": "data/parameters.txt", "infile": "data/ex_CCDS.fasta", "blastdb": "nr", "remote": "True", "hostfile": "hello"}
