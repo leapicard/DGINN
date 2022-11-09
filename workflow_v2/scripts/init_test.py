@@ -15,10 +15,10 @@ def paramDef(params):
 	@param inf: path's file
 	@return defaultParam: dico of parameters
 	"""
-			   
+	filename = list(params["infile"].split(","))[0]
 	#If infile(s) given through command line, takes priority
 	params["infile"] = list(map(str.strip,params["infile"].split(",")))
-	
+
 	#If list of file given, split and check what each file is
 	if len(params["infile"]) > 1:
 		for entryfile in params["infile"]:
@@ -99,7 +99,7 @@ def paramDef(params):
 			print("Infile and Blastdb are necessary.")
 			sys.exit()
 
-	return params
+	return params, filename
 
 
 def initLogger(args, debug, version):
@@ -176,18 +176,17 @@ if __name__ == "__main__" :
 	with open(sys.argv[1], 'r') as json_in :
 		json_dict = json.loads(json_in.read())
 	parameters = json_dict["parameters"]
-	print(parameters)
 	data = json_dict["data"]
 
-	parameters_complete = paramDef(parameters)
+	parameters_complete,filename = paramDef(parameters)
+	filename = filename.split("/")[1]
 	data_filled = initLogger(parameters_complete, parameters_complete["debug"], version)
 
 	json_dict["parameters"] = parameters_complete
 	json_dict["data"] = data_filled
 	json_dict_updated = json.dumps(json_dict)
-	print(parameters_complete["infile"])
 
-	#filePath = shutil.copy(parameters_complete["infile"][0], '/home/user/doc/')
+	shutil.copy(parameters_complete["infile"], f"results/{parameters_complete['step']}_{filename}")
 
 	with open(sys.argv[2], 'w') as json_out :
    		json_out.write(json_dict_updated)
