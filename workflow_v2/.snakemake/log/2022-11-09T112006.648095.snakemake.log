@@ -1,0 +1,14 @@
+WorkflowErrorin line 5 of /Users/Genna/DGINN2/workflow_v2/Snakefile:
+Error validating config file.
+ValidationError: '50' is not of type 'integer'
+
+Failed validating 'type' in schema['properties']['parameters']['properties']['mincov']:
+    OrderedDict([('type', 'integer'),
+                 ('description',
+                  'Path to the output directory (if indicated, will take '
+                  'priority over the parameters file)'),
+                 ('default', 50)])
+
+On instance['parameters']['mincov']:
+    '50'
+  File "/Users/Genna/DGINN2/workflow_v2/Snakefile", line 5, in <module>

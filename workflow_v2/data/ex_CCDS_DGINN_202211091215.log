@@ -1,0 +1,6 @@
+2022-11-09 12:15:08,410 - main - INFO - Starting /Users/Genna/DGINN2/workflow_v2/scripts/init_test.py (v1.0)
+2022-11-09 12:15:08,411 - main - INFO - Reading input file /Users/Genna/DGINN2/workflow_v2/data/ex_CCDS.fasta
+2022-11-09 12:15:08,411 - main - INFO - Analysis will begin at the blast step
+2022-11-09 12:15:55,344 - main - INFO - Starting /Users/Genna/DGINN2/workflow_v2/scripts/init_test.py (v1.0)
+2022-11-09 12:15:55,345 - main - INFO - Reading input file /Users/Genna/DGINN2/workflow_v2/data/ex_CCDS.fasta
+2022-11-09 12:15:55,345 - main - INFO - Analysis will begin at the blast step
