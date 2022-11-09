@@ -1,0 +1,6 @@
+Building DAG of jobs...
+MissingInputException in rule init in line 7 of /Users/Genna/DGINN2/workflow_v2/Snakefile:
+Missing input files for rule init:
+    output: results/config_update.json
+    affected files:
+        parameters

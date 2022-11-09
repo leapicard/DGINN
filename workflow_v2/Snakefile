@@ -1,0 +1,62 @@
+from snakemake.utils import min_version, validate
+min_version("7.15.2")
+
+configfile: "config/config.json"
+validate(config, "config/config.schema.yaml")
+
+
+rule init:
+    input: 
+        all_parameters = "config/config.json"
+    output:
+        configUpdate = "results/config_update.json"
+    shell:
+        "python3 scripts/init_test.py {input.all_parameters} {output.configUpdate}"
+
+''''
+rule blast:
+    input:
+        infile = "/results/{config['step']}_{sample}.fasta"
+        dico_all_parameters = "results/config_update.json"
+    output:
+
+
+    shell:
+        "python3 scripts/blast_test.py {input.dico_params} {input.dico_data} {output.dico_data_update} {output.dico_params_update}"
+
+
+rule extract:
+    input: 
+        dico_data = "results/data_blast.pkl"
+    output:
+        dico_data_update = temp("results/data_extract.pkl"),
+        accns = "results/accns.txt"
+    shell:
+        "python3 scripts/extract_test.py {input.dico_data} {output.accns} {output.dico_data_update}"
+
+
+rule fasta_res:
+    input: 
+        dico_params = "results/params_blast.pkl",
+        dico_data = "results/data_extract.pkl"
+    output:
+        dico_data_update = "results/data_fastaRes.pkl",
+        seq = "results/sequences.fasta"
+    shell:
+        "python3 scripts/fastares_test.py {input.dico_params} {input.dico_data} {output.seq} {output.dico_data_update}"
+
+rule get_orf:
+    input:
+        dico_data = "results/data_fastaRes.pkl"
+    output:
+        res = "results/allORFs.fasta",
+        res_longest = "results/longestORFs.fasta",
+        data_update = "results/data_getorf.pkl"
+    shell:
+        "python3 scripts/analysis_test.py {input.dico_data} {output.res} {output.data_update} {output.res_Longest}"
+        
+rule align:
+    input:
+    output:
+    shell:
+'''

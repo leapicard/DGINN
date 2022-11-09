@@ -1,0 +1,3 @@
+WorkflowErrorin line 4 of /Users/Genna/DGINN2/workflow_v2/Snakefile:
+Workflow defines configfile config.json but it is not present or accessible.
+  File "/Users/Genna/DGINN2/workflow_v2/Snakefile", line 4, in <module>

@@ -1,0 +1,43 @@
+
+{
+    "parameters":
+    {
+        "infile": "data/ex_CCDS.fasta,data/ex_CCDS.fasta", 
+        "remote": "true", 
+        "sptree":"data/ex_spTree.tree", 
+        "duplication": "true", 
+        "models": "M0, M1, M2",
+        "queryName":"", 
+        "queryFile":"", 
+        "blastdb":"db", 
+        "outdir":"", 
+        "logfile":"", 
+        "evalue": 1e-3, 
+        "mincov": 50, 
+        "percID": 70,
+        "maxLen":"cutoff",
+        "entryQuery": "", 
+        "APIKey": "",
+        "phymlOpt":"",
+        "LBopt":"cutoff",
+        "nbspecies": 8, 
+        "recombination": "false", 
+        "step":"blast",
+        "positiveSelection": "false", 
+        "alnfile":"", 
+        "treefile":"", 
+        "alnformat":"Fasta", 
+        "basename":"", 
+        "hyphySeuil":0.05, 
+        "busted":"false", 
+        "meme":"false", 
+        "paml":"", 
+        "bppml":"", 
+        "mixedlikelihood":"", 
+        "opb":"false", 
+        "gnh":"false",
+        "debug": "false"
+    },
+    
+    "data": {}
+}
