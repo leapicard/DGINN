@@ -1,6 +1,6 @@
 from blast_test import parseBlast
 import logging
-import pickle
+import json
 import sys
 
 """This file pools the necessary functions to treat the input file of genes and their CCDS accessions."""
@@ -27,11 +27,14 @@ def makeAccnsFile(lBlastRes, output_file):
 	return(output_file)
 
 if __name__ == "__main__" :
-	with open(sys.argv[1], 'rb') as fichier:
-		data = pickle.load(fichier)
-	
-	accnFile = makeAccnsFile(data["lBlastRes"], sys.argv[2])
-	data["accnFile"] = accnFile
 
-	with open(sys.argv[3],'wb') as fichier_data:
-		pickle.dump(data,fichier_data,pickle.HIGHEST_PROTOCOL)
+	with open(sys.argv[1], 'r') as config_in:
+		config_dict = json.loads(config_in)
+	
+	accnFile = makeAccnsFile(config_dict["data"]["lBlastRes"], sys.argv[2])		#!#
+	config_dict["data"]["accnFile"] = accnFile
+
+	config_dict_update = json.dumps(config_dict)
+
+	with open(sys.argv[1],'w') as config_out:
+		config_out.write(config_dict_update)

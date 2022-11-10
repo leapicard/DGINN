@@ -3,7 +3,8 @@ min_version("7.15.2")
 
 configfile: "config/config.json"
 validate(config, "config/config.schema.yaml")
-
+config_file = "config/config/json"
+# Pb : config lu par SnakeMake est fixe. Il ne varie pas comme config_update.
 
 rule init:
     input: 
@@ -13,47 +14,46 @@ rule init:
     shell:
         "python3 scripts/init_test.py {input.all_parameters} {output.configUpdate}"
 
-''''
+
 rule blast:
     input:
-        infile = "/results/{config['step']}_{sample}.fasta"
+        infile = "/results/blast_{config['']}.fasta"  ############ 
         dico_all_parameters = "results/config_update.json"
     output:
-
+        
 
     shell:
         "python3 scripts/blast_test.py {input.dico_params} {input.dico_data} {output.dico_data_update} {output.dico_params_update}"
 
-
+    # penser à update step à chaque fois.
 rule extract:
     input: 
-        dico_data = "results/data_blast.pkl"
+        config = "results/config_update.json"
     output:
-        dico_data_update = temp("results/data_extract.pkl"),
-        accns = "results/accns.txt"
+        accns = "results/{basename}_accns.txt"
     shell:
-        "python3 scripts/extract_test.py {input.dico_data} {output.accns} {output.dico_data_update}"
+        "python3 scripts/extract_test.py {input.config} {output.accns}"
 
 
 rule fasta_res:
     input: 
-        dico_params = "results/params_blast.pkl",
-        dico_data = "results/data_extract.pkl"
+        config = "results/config_update.json",
+        # dico_data = "results/data_extract.pkl"
     output:
-        dico_data_update = "results/data_fastaRes.pkl",
-        seq = "results/sequences.fasta"
+        # dico_data_update = "results/data_fastaRes.pkl",
+        seq = "results/{basename}_sequences.fasta"
     shell:
-        "python3 scripts/fastares_test.py {input.dico_params} {input.dico_data} {output.seq} {output.dico_data_update}"
+        "python3 scripts/fastares_test.py {input.config} {output.seq}"
 
 rule get_orf:
     input:
-        dico_data = "results/data_fastaRes.pkl"
+        config = "results/config_update.json"
     output:
-        res = "results/allORFs.fasta",
-        res_longest= "results/longestORFs.fasta",
-        data_update = "results/data_getorf.pkl"
+        res = "results/{basename}_allORFs.fasta",
+        res_longest= "results/{basename}_longestORFs.fasta",
+        # data_update = "results/data_getorf.pkl"
     shell:
-        "python3 scripts/orf_test.py {input.dico_data} {output.res} {output.res_longest} {output.data_update}"
+        "python3 scripts/orf_test.py {input.config} {output.res} {output.res_longest}"
 
 # Pour l'instant, le choix de l'aligneur se fait en fonction du nom de fichier output :
 # Si le nom d'output est results/ORFs_align_codon_prank.fas, la règle align_prank devrait être lancée
@@ -61,45 +61,55 @@ rule get_orf:
 
 rule align_prank: 
     input:
-        dico_data = "results/data_getorf.pkl",
-        lgst_ORFs = "results/longestORFs.fasta"
+        config = "results/config_update.json",
+        lgst_ORFs = "results/{basename}_longestORFs.fasta"
     output:
-        out_codon = "results/ORFs_align_codon_{extension}.fas",
-        out_mafft = "results/ORFs_align_mafft.fasta",
-        out_covAln = "results/ORFs_align_mafft_clean.fasta",
-        data_update_mafft = "results/data_mafft.pkl",
-        data_update_codon = "results/data_prank.pkl"
+        out_codon = "results/{basename}_ORFs_alcodon_prank.fas",
+        out_mafft = "results/{basename}_ORFs_al_mafft.fasta",
+        out_covAln = "results/{basename}_ORFs_al_mafft_clean.fasta",
+        # data_update_mafft = "results/data_mafft.pkl",
+        # data_update_codon = "results/data_prank.pkl"
     params:
-        extension = data["codon_aligner"]
+        extension = config["codon_aligner"]                     # Seconde partie du nom du fichier de sortie
+        out_codon_param = "results/{basename}_ORFs_alcodon"     # Première partie du nom du fichier de sortie
     run:
         shell("mafft --auto --quiet {input.lgst_ORFs} > {output.out_mafft}"),
-        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {input.dico_data} {output.data_update_mafft}"), #in1 : alignement donné en output de mafft
-                                                                                                                                    #in2 : fichier où covAln output
-                                                                                                                                    #in3 : dictionnaire data
-                                                                                                                                    # Data est update au sein de ce script
+        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {input.config}"),  #in1 : alignement mafft
+                                                                                                        #in2 : fichier où covAln output
+                                                                                                        #in3 : dictionnaire config
+                                                                                                        # Data est update au sein de ce script
         shell("prank -d={output.out_covAln} -o={output.out_codon}_{params.extension}.fas -codon -F"),
-        shell("python3 scripts/data_update_prank.py {output.out_codon}_{params.extension}.fas {output.data_update_mafft} {output.data_update_codon}") #update de data["aln"] pour qu'il contienne le chemin
-                                                                                                    #vers le fichier de sortie de prank.
+        shell("python3 scripts/data_update_alcodon.py {params.out_codon_param}_{params.extension}.fas {input.config} {extension}")  #update de config["data"]["aln"] pour qu'il contienne le chemin
+                                                                                                                                    #vers le fichier de sortie de prank.
+                                                                                                                                    #Passage de {extension} pour verbose.
 
 rule align_macse: 
     input:
-        dico_data = "results/data_getorf.pkl",
-        lgst_ORFs = "results/longestORFs.fasta"
+        config = "results/config_update.json",
+        lgst_ORFs = "results/{basename}_longestORFs.fasta"
     output:
-        out_codon = "results/ORFs_align_codon_{extension}.fas",
-        out_mafft = "results/ORFs_align_mafft.fasta",
-        out_covAln = "results/ORFs_align_mafft_clean.fasta",
-        data_update_mafft = "results/data_mafft.pkl",
-        data_update_codon = "results/data_prank.pkl"
+        out_codon = "results/{basename}_ORFs_alcodon_macse.fas",
+        out_mafft = "results/{basename}_ORFs_al_mafft.fasta",
+        out_covAln = "results/{basename}_ORFs_al_mafft_clean.fasta",
+        # data_update_mafft = "results/data_mafft.pkl",
+        # data_update_codon = "results/data_prank.pkl"
     params:
-        extension = data["codon_aligner"]
+        extension = config["codon_aligner"]                     # Seconde partie du nom de fichier de sortie
+        out_codon_param = "results/{basename}_ORFs_alcodon"     # Première partie du nom de fichier de sortie
     run:
         shell("mafft --auto --quiet {input.lgst_ORFs} > {output.out_mafft}"),
-        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {input.dico_data} {output.data_update_mafft}"), #in1 : alignement donné en output de mafft
-                                                                                                                                    #in2 : fichier où covAln output
-                                                                                                                                    #in3 : dictionnaire data
-                                                                                                                                    # Data est update au sein de ce script
+        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {input.config}"),  #in1 : alignement mafft
+                                                                                                        #in2 : fichier où covAln output
+                                                                                                        #in3 : dictionnaire config
+                                                                                                        # Data est update au sein de ce script
+
         shell("java -jar ../../macse_v2.06.jar -prog refineAlignment -align {output.out_covAln} -out_NT {output.out_codon}_{params.extension}.fas"),
-        shell("python3 scripts/data_update_prank.py {output.out_codon}_{params.extension}.fas {output.data_update_mafft} {output.data_update_codon}") #update de data["aln"] pour qu'il contienne le chemin
-                                                                                                    #vers le fichier de sortie de prank.
-'''
+        shell("python3 scripts/data_update_alcodon.py {params.out_codon_param}_{params.extension}.fas {input.config} {extension}")  #update de config["data"]["aln"] pour qu'il contienne le chemin
+                                                                                                                                    #vers le fichier de sortie de prank.
+                                                                                                                                    #Passage de {extension} pour verbose.
+
+"""
+Wildcards : queryName/basename, qui changera en fonction du premier fichier d'input.
+Ex : si le premier input est ex_CCDS.fasta, tous les fichiers d'output commenceront par ex_CCDS.
+Test avec {basename}
+"""

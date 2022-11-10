@@ -184,6 +184,7 @@ if __name__ == "__main__" :
 
 	json_dict["parameters"] = parameters_complete
 	json_dict["data"] = data_filled
+	json_dict["parameters"]["baseName"] = filename.split('.')[0]
 	json_dict_updated = json.dumps(json_dict)
 
 	shutil.copy(parameters_complete["infile"], f"results/{parameters_complete['step']}_{filename}")

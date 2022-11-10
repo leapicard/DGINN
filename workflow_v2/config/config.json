@@ -36,7 +36,8 @@
         "mixedlikelihood":"", 
         "opb":"false", 
         "gnh":"false",
-        "debug": "false"
+        "debug": "false",
+        "codon_aligner" : "macse"
     },
     
     "data": {}

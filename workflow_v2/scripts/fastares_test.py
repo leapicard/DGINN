@@ -4,7 +4,7 @@ from blast_test import parseBlast
 import logging, sys
 from Bio import Entrez
 from statistics import median
-import pickle
+import json
 
 """
 This file pools functions related to the creation and conversion of fasta format data.
@@ -137,7 +137,7 @@ def catFile(queryFile, dId2Seq, firstFasta):
 	return(firstFasta)
 	
 
-def fastaCreation(data, remote, apiKey, step, treerecs, outputfile):
+def fastaCreation(data_dict, remote, apiKey, step, treerecs, outputfile):
 	"""
 	Function handling the creation of fasta files in the pipeline.
 
@@ -148,7 +148,7 @@ def fastaCreation(data, remote, apiKey, step, treerecs, outputfile):
 	"""
 
 	if remote:
-		dId2Seq = remoteDl(data["lBlastRes"],data["queryName"], apiKey)
+		dId2Seq = remoteDl(data_dict["lBlastRes"],data_dict["queryName"], apiKey)
 	else: ### need to code this!!!!
 		logger = logging.getLogger("main.fasta")
 		logger.info("Local retrieval of information not yet implemented, exiting DGINN.")
@@ -159,31 +159,34 @@ def fastaCreation(data, remote, apiKey, step, treerecs, outputfile):
 	firstFasta = outputfile
 
 	if step == "blast":
-		firstFasta = catFile(data["queryFile"], dId2Seq, firstFasta)
+		firstFasta = catFile(data_dict["queryFile"], dId2Seq, firstFasta)
 	else:
 		with open(firstFasta, "w") as out:
 			out.write(dict2fasta(dId2Seq))
 			out.close()
 
-	data["seqFile"] = firstFasta
+	data_dict["seqFile"] = firstFasta
 
 	if treerecs:
-		sptree_tmp, treerecs = tree_test.treeCheck(data["sptree"], firstFasta, treerecs)
-		data["sptree"] = sptree_tmp
+		sptree_tmp, treerecs = tree_test.treeCheck(data_dict["sptree"], firstFasta, treerecs)
+		data_dict["sptree"] = sptree_tmp
 	if treerecs:
-		outCat, corSG = loadfile_test.filterData(data["sptree"], firstFasta, "results/")
-		data["seqFile"] = outCat
-		data["cor"] = corSG
+		outCat, corSG = loadfile_test.filterData(data_dict["sptree"], firstFasta, "results/")
+		data_dict["seqFile"] = outCat
+		data_dict["cor"] = corSG
 	
-	return data
+	return data_dict
 
 if __name__ == "__main__" :
-	with open(sys.argv[1], 'rb') as fichier:
-		params = pickle.load(fichier)
-	with open(sys.argv[2], 'rb') as fichier:
-		data = pickle.load(fichier)
 
-	data_update = fastaCreation(data, params["remote"], params["APIKey"], params["step"], params["duplication"],sys.argv[3])
+	with open(sys.argv[1], 'r') as config_in:
+		params_dict = json.loads(config_in.read())["parameters"]
+		data_dict = json.loads(config_in.read())["data"]
 
-	with open(sys.argv[4],'wb') as fichier_data:
-		pickle.dump(data_update,fichier_data,pickle.HIGHEST_PROTOCOL)
+
+	data_dict = fastaCreation(data_dict, params_dict["remote"], params_dict["APIKey"], params_dict["step"], params_dict["duplication"],sys.argv[2])
+
+	config_update = json.dumps({"parameters" : params_dict, "data" : data_dict})
+	
+	with open(sys.argv[1],'w') as config_out:
+		config_out.write(config_update)

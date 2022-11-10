@@ -1,12 +1,12 @@
 
 #coding: utf8
 import sys
-import logging, subprocess, shlex, os, ete3
-from Bio import SeqIO, AlignIO
+import logging, subprocess, shlex, os
+from Bio import SeqIO
 from collections import defaultdict, OrderedDict
 from itertools import chain
 from statistics import median, mean
-import pandas as pd
+import json
 
 import pickle
 import fastares_test
@@ -67,14 +67,22 @@ if __name__ == "__main__" :
 	"""
 
 
-	with open(sys.argv[3], 'rb') as fichier:
-		data = pickle.load(fichier)
+	with open(sys.argv[3], 'r') as config_in:
+		config_dict = json.loads(config_in.read())
 
-	data["aln"] = sys.argv[1]
-	fasCov, nbOut = covAln(aln = data["aln"], 
+	print(f"\nUpdating config after mafft alignment\n")
+
+	config_dict["data"]["aln"] = sys.argv[1] 										#!#
+	
+	print(f"\nRunning coverage check on file {sys.argv[1]}\n")
+
+	fasCov, nbOut = covAln(aln = config_dict["data"]["aln"], 						#!#
 							      cov = 50, 
-							      queryName = data["queryName"], 
+							      queryName = config_dict["data"]["queryName"],		#!# 
 							      o = sys.argv[2])
-    
-	with open(sys.argv[4],'wb') as fichier_data:
-		pickle.dump(data,fichier_data,pickle.HIGHEST_PROTOCOL) 
+
+	config_dict_updated = json.dumps(config_dict)
+
+	with open(sys.argv[3],'w') as config_out:
+		config_out.write(config_dict_updated)
+		
