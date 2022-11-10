@@ -1,4 +1,5 @@
 
+/* C'est le config de base avant qu'il soit modifié au cours du pipeline à copier/coller quand on relance*/
 {
     "parameters":
     {

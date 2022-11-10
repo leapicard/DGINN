@@ -4,8 +4,9 @@ from collections import defaultdict, OrderedDict
 from Bio.Blast import NCBIWWW, NCBIXML
 from Bio import SearchIO, SeqIO
 from time import sleep
-import pickle
+import json
 from AnalysisFunc import cmd
+import loadfile_test
 
 def parseBlast(blastRes):
 
@@ -21,7 +22,7 @@ def parseBlast(blastRes):
 	return(listAcc)
 
 
-def blast(queryFile, output_file, db, evalue, percId, cov, apiKey, remote, query):
+def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, query):
 	"""
 	Function running Blast on the provided gene list.
 	
@@ -36,7 +37,7 @@ def blast(queryFile, output_file, db, evalue, percId, cov, apiKey, remote, query
 	@return blastRes: Path to Blast results file
 	"""
 	# Blast results file
-	blastRes = output_file
+	blastRes = outDir+baseName+"_blastres.tsv"
 	logger = logging.getLogger("main.blast")
 	logger.info("Running Blast")
 
@@ -115,29 +116,30 @@ def setGenAttr(data,params):
 		return data,params
 
 if __name__ == "__main__" :
-	with open(sys.argv[1], 'rb') as fichier:
-		params = pickle.load(fichier)
-	with open(sys.argv[2], 'rb') as fichier:
-		data = pickle.load(fichier)
-	
-	o = "results/blastres.tsv"
-	
+	with open(sys.argv[1], 'r') as json_in :
+		json_dict = json.loads(json_in.read())
+	parameters = json_dict["parameters"]
+	data = json_dict["data"]
+
+	data["baseName"] = loadfile_test.baseNameInit(data["baseName"], data["queryFile"],data["aln"])
 	data["blastRes"] = blast(data["queryFile"], 
-			      o,
+			      data["o"],
+				  data["baseName"],
 			      data["db"], 
-			      params["evalue"], 
-			      params["percID"], 
-			      params["mincov"], 
-			      params["APIKey"], 
-			      params["remote"], 
-			      params["entryQuery"])
+			      parameters["evalue"], 
+			      parameters["percID"], 
+			      parameters["mincov"], 
+			      parameters["APIKey"], 
+			      parameters["remote"], 
+			      parameters["entryQuery"])
 
 	data["lBlastRes"] = parseBlast(data["blastRes"])
-	
-	data,params = setGenAttr(data,params)
+	data,params = setGenAttr(data,parameters)
+	json_dict["parameters"] = params
+	json_dict["data"] = data
 
-	with open(sys.argv[3],'wb') as fichier_data:
-		pickle.dump(data,fichier_data,pickle.HIGHEST_PROTOCOL)
-	with open(sys.argv[4],'wb') as fichier_data:
-		pickle.dump(params,fichier_data,pickle.HIGHEST_PROTOCOL)
-	
+	json_dict_updated = json.dumps(json_dict)
+
+	with open(sys.argv[1], 'w') as json_out :
+		json_out.write(json_dict_updated)
+		

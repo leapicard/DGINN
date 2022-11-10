@@ -4,26 +4,24 @@ min_version("7.15.2")
 configfile: "config/config.json"
 validate(config, "config/config.schema.yaml")
 
-
 rule init:
     input: 
         all_parameters = "config/config.json"
     output:
-        configUpdate = "results/config_update.json"
+        infile = config["data"]["o"]+config["parameters"]["step"]+"_"+[config["parameters"]["infile"]][0].split("/")[1]
     shell:
-        "python3 scripts/init_test.py {input.all_parameters} {output.configUpdate}"
+        "python3 scripts/init_test.py {input.all_parameters} {output.infile}"
 
-''''
 rule blast:
     input:
-        infile = "/results/{config['step']}_{sample}.fasta"
-        dico_all_parameters = "results/config_update.json"
+        infile = config["data"]["o"]+config["parameters"]["step"]+"_{samples}.fasta",
+        all_parameters = "config/config.json"
     output:
-
-
+        tsvfile = config["data"]["o"]+"{samples}_blastres.tsv"
     shell:
-        "python3 scripts/blast_test.py {input.dico_params} {input.dico_data} {output.dico_data_update} {output.dico_params_update}"
+        "python3 scripts/blast_test.py {input.all_parameters} {output.tsvfile}"
 
+'''
 
 rule extract:
     input: 

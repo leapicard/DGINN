@@ -15,7 +15,6 @@ def paramDef(params):
 	@param inf: path's file
 	@return defaultParam: dico of parameters
 	"""
-	filename = list(params["infile"].split(","))[0]
 	#If infile(s) given through command line, takes priority
 	params["infile"] = list(map(str.strip,params["infile"].split(",")))
 
@@ -99,10 +98,10 @@ def paramDef(params):
 			print("Infile and Blastdb are necessary.")
 			sys.exit()
 
-	return params, filename
+	return params
 
 
-def initLogger(args, debug, version):
+def initLogger(data, args, debug, version):
 	"""
 	Function initializing pipeline logger for optimal monitoring.
 
@@ -152,24 +151,24 @@ def initLogger(args, debug, version):
 	# Welcome message
 	logger.info("Starting {:s} (v{:s})".format(__file__, version))
 
-	mainData = {"queryFile": args["infile"],
-	"db": args["blastdb"],
-	"lBlastRes":[],
-	"sptree":args["sptree"],
-	"aln":args["alnfile"],
-	"tree":args["treefile"],
-	"queryName":args["queryName"]
-	}
-
+	data["queryFile"] = args["infile"]
+	data["o"] = args["outdir"]
+	data["db"] = args["blastdb"]
+	data["lBlastRes"] = []
+	data["sptree"] = args["sptree"]
+	data["aln"] = args["alnfile"]
+	data["tree"] = args["treefile"]
+	data["queryName"] = args["queryName"]
+	
 	if args["step"] == "duplication" and args["duplication"] == False:
 		args["duplication"] = True
 	elif args["step"] == "recombination" and args["recombination"] == False:
 		args["recombination"] = True
 
-	logger.info("Reading input file {:s}".format(mainData["queryFile"]))
+	logger.info("Reading input file {:s}".format(data["queryFile"]))
 	logger.info("Analysis will begin at the {:s} step".format(args["step"]))
 
-	return mainData
+	return data
 
 
 if __name__ == "__main__" :
@@ -178,15 +177,13 @@ if __name__ == "__main__" :
 	parameters = json_dict["parameters"]
 	data = json_dict["data"]
 
-	parameters_complete,filename = paramDef(parameters)
-	filename = filename.split("/")[1]
-	data_filled = initLogger(parameters_complete, parameters_complete["debug"], version)
-
+	parameters_complete = paramDef(parameters)
+	data_filled = initLogger(data, parameters_complete, parameters_complete["debug"], version)
 	json_dict["parameters"] = parameters_complete
 	json_dict["data"] = data_filled
 	json_dict_updated = json.dumps(json_dict)
 
-	shutil.copy(parameters_complete["infile"], f"results/{parameters_complete['step']}_{filename}")
-
-	with open(sys.argv[2], 'w') as json_out :
-   		json_out.write(json_dict_updated)
+	with open(sys.argv[1], 'w') as json_out :
+		json_out.write(json_dict_updated)
+	
+	res = shutil.copy(parameters_complete["infile"], sys.argv[2])
