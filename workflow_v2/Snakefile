@@ -3,27 +3,24 @@ min_version("7.15.2")
 
 configfile: "config/config.json"
 validate(config, "config/config.schema.yaml")
-config_file = "config/config/json"
-# Pb : config lu par SnakeMake est fixe. Il ne varie pas comme config_update.
+config_file = "config/config.json"
 
 rule init:
     input: 
         all_parameters = "config/config.json"
     output:
-        configUpdate = "results/config_update.json"
+        infile = config["data"]["o"]+config["parameters"]["step"]+"_"+[config["parameters"]["infile"]][0].split("/")[1]
     shell:
-        "python3 scripts/init_test.py {input.all_parameters} {output.configUpdate}"
-
+        "python3 scripts/init_test.py {input.all_parameters} {output.infile}"
 
 rule blast:
     input:
-        infile = "/results/blast_{config['']}.fasta"  ############ 
-        dico_all_parameters = "results/config_update.json"
+        infile = config["data"]["o"]+config["parameters"]["step"]+"_{samples}.fasta",
+        all_parameters = "config/config.json"
     output:
-        
-
+        tsvfile = config["data"]["o"]+"{samples}_blastres.tsv"
     shell:
-        "python3 scripts/blast_test.py {input.dico_params} {input.dico_data} {output.dico_data_update} {output.dico_params_update}"
+        "python3 scripts/blast_test.py {input.all_parameters} {output.tsvfile}"
 
     # penser à update step à chaque fois.
 rule extract:
@@ -37,7 +34,7 @@ rule extract:
 
 rule fasta_res:
     input: 
-        config = "results/config_update.json",
+        config = "results/config_update.json"
         # dico_data = "results/data_extract.pkl"
     output:
         # dico_data_update = "results/data_fastaRes.pkl",
@@ -50,7 +47,7 @@ rule get_orf:
         config = "results/config_update.json"
     output:
         res = "results/{basename}_allORFs.fasta",
-        res_longest= "results/{basename}_longestORFs.fasta",
+        res_longest= "results/{basename}_longestORFs.fasta"
         # data_update = "results/data_getorf.pkl"
     shell:
         "python3 scripts/orf_test.py {input.config} {output.res} {output.res_longest}"
@@ -66,11 +63,11 @@ rule align_prank:
     output:
         out_codon = "results/{basename}_ORFs_alcodon_prank.fas",
         out_mafft = "results/{basename}_ORFs_al_mafft.fasta",
-        out_covAln = "results/{basename}_ORFs_al_mafft_clean.fasta",
+        out_covAln = "results/{basename}_ORFs_al_mafft_clean.fasta"
         # data_update_mafft = "results/data_mafft.pkl",
         # data_update_codon = "results/data_prank.pkl"
     params:
-        extension = config["codon_aligner"]                     # Seconde partie du nom du fichier de sortie
+        extension = config["parameters"]["codon_aligner"],                     # Seconde partie du nom du fichier de sortie
         out_codon_param = "results/{basename}_ORFs_alcodon"     # Première partie du nom du fichier de sortie
     run:
         shell("mafft --auto --quiet {input.lgst_ORFs} > {output.out_mafft}"),
@@ -90,11 +87,11 @@ rule align_macse:
     output:
         out_codon = "results/{basename}_ORFs_alcodon_macse.fas",
         out_mafft = "results/{basename}_ORFs_al_mafft.fasta",
-        out_covAln = "results/{basename}_ORFs_al_mafft_clean.fasta",
+        out_covAln = "results/{basename}_ORFs_al_mafft_clean.fasta"
         # data_update_mafft = "results/data_mafft.pkl",
         # data_update_codon = "results/data_prank.pkl"
     params:
-        extension = config["codon_aligner"]                     # Seconde partie du nom de fichier de sortie
+        extension = config["parameters"]["codon_aligner"],                     # Seconde partie du nom de fichier de sortie
         out_codon_param = "results/{basename}_ORFs_alcodon"     # Première partie du nom de fichier de sortie
     run:
         shell("mafft --auto --quiet {input.lgst_ORFs} > {output.out_mafft}"),

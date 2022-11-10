@@ -63,9 +63,9 @@ properties:
         description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
         default: ""
       duplication:
-        type: string
+        type: boolean
         description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
-        default: f
+        default: False
       LBopt:
         type: string
         description: Path to the output directory (if indicated, will take priority over the parameters file)
@@ -75,21 +75,21 @@ properties:
         description: Path to the output directory (if indicated, will take priority over the parameters file)
         default: 8
       recombination:
-        type: string
+        type: boolean
         description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
-        default: f
+        default: False
       remote:
-        type: string
+        type: boolean
         description: Defines wether or ft to query NCBI apis remotly or locally
-        default: f
+        default: False
       step:
         type: string
         description: Step at which to enter the pipeline. Please refer to 3/ Entry steps for names and necessary files
         default: blast
       positiveSelection:
-        type: string
+        type: boolean
         description: Defines wether or ft to query NCBI apis remotly or locally
-        default: f
+        default: False
       alnfile:
         type: string
         description: Path to cluster hostfile if needed for mpi process
@@ -111,13 +111,13 @@ properties:
         description: Path to cluster hostfile if needed for mpi process
         default: 0.05
       busted:
-        type: string
+        type: boolean
         description: Defines wether or ft to query NCBI apis remotly or locally
-        default: f
+        default: False
       meme:
-        type: string
+        type: boolean
         description: Defines wether or ft to query NCBI apis remotly or locally
-        default: f
+        default: False
       models:
         type: string
         description: Path to cluster hostfile if needed for mpi process
@@ -135,24 +135,28 @@ properties:
         description: Path to cluster hostfile if needed for mpi process
         default: ""
       opb:
-        type: string
+        type: boolean
         description: Defines wether or ft to query NCBI apis remotly or locally
-        default: f
+        default: False
       gnh:
-        type: string
+        type: boolean
         description: Defines wether or ft to query NCBI apis remotly or locally
-        default: f
+        default: False
       hostfile:
         type: string
         description: Defines wether or ft to query NCBI apis remotly or locally
         default: ""
       debug:
-        type: string
+        type: boolean
         description: Defines wether or ft to query NCBI apis remotly or locally
-        default: f
+        default: False
+      codon_aligner:
+        type: string
+        description: Defines which codon aligner to use.
+        default: "macse"
     required:
       - infile 
-    additionalProperties: f
+    additionalProperties: False
   data: 
     type: object 
     properties:
@@ -162,6 +166,7 @@ properties:
       o:
         type: string
         description: Path to cluster hostfile if needed for mpi process
+        default: results/
       logger:
         type: string
         description: Path to cluster hostfile if needed for mpi process
