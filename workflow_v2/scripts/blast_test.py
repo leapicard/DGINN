@@ -117,11 +117,13 @@ def setGenAttr(data,params):
 
 if __name__ == "__main__" :
 	with open(sys.argv[1], 'r') as json_in :
-		json_dict = json.loads(json_in.read())
+		json_dict = json.load(json_in)
+
 	parameters = json_dict["parameters"]
 	data = json_dict["data"]
-
-	data["baseName"] = loadfile_test.baseNameInit(data["baseName"], data["queryFile"],data["aln"])
+	if parameters["step"] == "blast" :
+		data["baseName"] = loadfile_test.baseNameInit(data["baseName"], data["queryFile"],data["aln"])
+		
 	data["blastRes"] = blast(data["queryFile"], 
 			      data["o"],
 				  data["baseName"],
@@ -138,8 +140,8 @@ if __name__ == "__main__" :
 	json_dict["parameters"] = params
 	json_dict["data"] = data
 
-	json_dict_updated = json.dumps(json_dict)
+	#json_dict_updated = json.dumps(json_dict)
 
 	with open(sys.argv[1], 'w') as json_out :
-		json_out.write(json_dict_updated)
+		json.dump(json_dict, json_out)
 		

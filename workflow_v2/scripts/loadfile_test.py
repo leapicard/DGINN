@@ -1,4 +1,4 @@
-import tree_test
+import tree_test, FormatFunc, blast_test
 import os, sys, logging
 from Bio import SeqIO
 
@@ -40,3 +40,60 @@ def filterData(sptree, filePath, o):
 
 	return path, corsg
 
+def formatcheck_isFasta(targetFile):
+	"""
+	Check if provided file is a simple fasta and contain multiple sequences.
+	
+	@param targetFile: file to be tested
+	@return boolFile: boolean of answer
+	"""
+	
+	accns = list(SeqIO.parse(targetFile,'fasta'))
+	boolFile = any(accns)
+	
+	if len(accns) < 2:
+		boolFile = False
+	
+	return(boolFile)
+
+def accnEntry(data_dict):
+	"""
+	Function handling start of the pipeline at the Extract step.
+
+	@param Data: basicData object 
+	@return data: basicData object
+	"""
+	if FormatFunc.isBlastRes(data_dict["queryFile"]):
+		data_dict["blastRes"] = data_dict["queryFile"]
+		data_dict["lBlastRes"] = blast_test.parseBlast(data_dict["blastRes"])
+		data_dict["baseName"] = baseNameInit(data_dict["baseName"], 
+							data_dict["queryFile"], 
+							data_dict["aln"],
+							"accessions")
+	else:
+		logger = logging.getLogger("main.accessions")
+		logger.error("The provided file is not a tabular output of Blast+, exiting DGINN.")
+		sys.exit()
+
+	return data_dict
+
+# def orfEntry(data_dict):
+# 	"""
+# 	Function handling start of the pipeline at the orf step.
+
+# 	@param1 Data: basicData object
+# 	@return data: basicData object
+# 	"""
+# # Condition checking if queryFile is a fasta file r
+# 	if formatcheck_isFasta(data_dict["queryFile"]):
+# 		data_dict["seqFile"] = data_dict["queryFile"]
+# 		data_dict["baseName"] = baseNameInit(data_dict["baseName"], 
+# 					     data_dict["queryFile"], 
+# 					     data_dict["aln"],
+#                         "orf")
+# 	else:
+# 		logger = logging.getLogger("main.orf")
+# 		logger.error("The provided file is not a fasta of nucleotide sequences, exiting DGINN.")
+# 		sys.exit()
+	
+# 	return data_dict

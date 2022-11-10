@@ -9,11 +9,11 @@ arg3 = data dictionnary : pickle file containing data dictionnary path, after pr
 print(f"\nUpdating the config file after alignment using {sys.argv[3]}\n")
 
 with open(sys.argv[2], 'r') as config_in:
-    config_dict = json.loads(config_in.read())
+    config_dict = json.load(config_in)
 
 config_dict["data"]["aln"] = sys.argv[1]                #!#
 
-config_dict_updated = json.dumps(config_dict)
 
 with open(sys.argv[2],'w') as config_out:
-    config_out.write(config_dict_updated)
+    json.dump(config_dict, config_out)
+

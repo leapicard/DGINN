@@ -15,42 +15,47 @@ rule init:
 
 rule blast:
     input:
-        infile = config["data"]["o"]+config["parameters"]["step"]+"_{samples}.fasta",
-        all_parameters = "config/config.json"
+        infile = config["data"]["o"]+config["parameters"]["step"]+"_{samples}.fasta"
     output:
         tsvfile = config["data"]["o"]+"{samples}_blastres.tsv"
+    params:
+        all_parameters="config/config.json"
     shell:
-        "python3 scripts/blast_test.py {input.all_parameters} {output.tsvfile}"
+        "python3 scripts/blast_test.py {params.all_parameters} {output.tsvfile}"
 
-    # penser à update step à chaque fois.
 rule extract:
-    input: 
-        config = "results/config_update.json"
+    input:
+        blastres = config["data"]["o"]+"{samples}_blastres.tsv"
     output:
-        accns = "results/{basename}_accns.txt"
+        accns = "results/{samples}_accns.txt"
+    params:
+        config = "config/config.json"
     shell:
-        "python3 scripts/extract_test.py {input.config} {output.accns}"
+        "python3 scripts/extract_test.py {params.config} {input.blastres} {output.accns}"
 
 
 rule fasta_res:
     input: 
-        config = "results/config_update.json"
-        # dico_data = "results/data_extract.pkl"
+        accns = "results/{samples}_accns.txt"
     output:
-        # dico_data_update = "results/data_fastaRes.pkl",
-        seq = "results/{basename}_sequences.fasta"
+        seq = "results/{samples}_sequences.fasta"
+    params:
+        config = "config/config.json"
     shell:
-        "python3 scripts/fastares_test.py {input.config} {output.seq}"
+        "python3 scripts/fastares_test.py {params.config} {input.accns} {output.seq}"
 
 rule get_orf:
     input:
-        config = "results/config_update.json"
+        seqfile = "results/{samples}_sequences.fasta"
     output:
-        res = "results/{basename}_allORFs.fasta",
-        res_longest= "results/{basename}_longestORFs.fasta"
+        res = "results/{samples}_allORFs.fasta",
+        res_longest= "results/{samples}_longestORFs.fasta"
         # data_update = "results/data_getorf.pkl"
+    params:
+        config = "config/config.json",
+
     shell:
-        "python3 scripts/orf_test.py {input.config} {output.res} {output.res_longest}"
+        "python3 scripts/orf_test.py {params.config} {output.res} {output.res_longest}"
 
 # Pour l'instant, le choix de l'aligneur se fait en fonction du nom de fichier output :
 # Si le nom d'output est results/ORFs_align_codon_prank.fas, la règle align_prank devrait être lancée
@@ -58,50 +63,50 @@ rule get_orf:
 
 rule align_prank: 
     input:
-        config = "results/config_update.json",
-        lgst_ORFs = "results/{basename}_longestORFs.fasta"
+        lgst_ORFs = "results/{samples}_longestORFs.fasta"
     output:
-        out_codon = "results/{basename}_ORFs_alcodon_prank.fas",
-        out_mafft = "results/{basename}_ORFs_al_mafft.fasta",
-        out_covAln = "results/{basename}_ORFs_al_mafft_clean.fasta"
+        out_codon = "results/{samples}_ORFs_alcodon_prank.fas",
+        out_mafft = "results/{samples}_ORFs_al_mafft.fasta",
+        out_covAln = "results/{samples}_ORFs_al_mafft_clean.fasta"
         # data_update_mafft = "results/data_mafft.pkl",
         # data_update_codon = "results/data_prank.pkl"
     params:
         extension = config["parameters"]["codon_aligner"],                     # Seconde partie du nom du fichier de sortie
-        out_codon_param = "results/{basename}_ORFs_alcodon"     # Première partie du nom du fichier de sortie
+        out_codon_param = "results/{samples}_ORFs_alcodon",     # Première partie du nom du fichier de sortie
+        config = "config/config.json"
     run:
         shell("mafft --auto --quiet {input.lgst_ORFs} > {output.out_mafft}"),
-        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {input.config}"),  #in1 : alignement mafft
+        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {params.config}"),  #in1 : alignement mafft
                                                                                                         #in2 : fichier où covAln output
                                                                                                         #in3 : dictionnaire config
                                                                                                         # Data est update au sein de ce script
-        shell("prank -d={output.out_covAln} -o={output.out_codon}_{params.extension}.fas -codon -F"),
-        shell("python3 scripts/data_update_alcodon.py {params.out_codon_param}_{params.extension}.fas {input.config} {extension}")  #update de config["data"]["aln"] pour qu'il contienne le chemin
+        shell("prank -d={output.out_covAln} -o={params.out_codon_param}_{params.extension}.fas -codon -F"),
+        shell("python3 scripts/data_update_alcodon.py {params.out_codon_param}_{params.extension}.fas {params.config} {params.extension}")  #update de config["data"]["aln"] pour qu'il contienne le chemin
                                                                                                                                     #vers le fichier de sortie de prank.
                                                                                                                                     #Passage de {extension} pour verbose.
 
 rule align_macse: 
     input:
-        config = "results/config_update.json",
-        lgst_ORFs = "results/{basename}_longestORFs.fasta"
+        lgst_ORFs = "results/{samples}_longestORFs.fasta"
     output:
-        out_codon = "results/{basename}_ORFs_alcodon_macse.fas",
-        out_mafft = "results/{basename}_ORFs_al_mafft.fasta",
-        out_covAln = "results/{basename}_ORFs_al_mafft_clean.fasta"
+        out_codon = "results/{samples}_ORFs_alcodon_macse.fas",
+        out_mafft = "results/{samples}_ORFs_al_mafft.fasta",
+        out_covAln = "results/{samples}_ORFs_al_mafft_clean.fasta"
         # data_update_mafft = "results/data_mafft.pkl",
         # data_update_codon = "results/data_prank.pkl"
     params:
         extension = config["parameters"]["codon_aligner"],                     # Seconde partie du nom de fichier de sortie
-        out_codon_param = "results/{basename}_ORFs_alcodon"     # Première partie du nom de fichier de sortie
+        out_codon_param = "results/{samples}_ORFs_alcodon",     # Première partie du nom de fichier de sortie
+        config = "config/config.json"
     run:
         shell("mafft --auto --quiet {input.lgst_ORFs} > {output.out_mafft}"),
-        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {input.config}"),  #in1 : alignement mafft
+        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {params.config}"),  #in1 : alignement mafft
                                                                                                         #in2 : fichier où covAln output
                                                                                                         #in3 : dictionnaire config
                                                                                                         # Data est update au sein de ce script
 
-        shell("java -jar ../../macse_v2.06.jar -prog refineAlignment -align {output.out_covAln} -out_NT {output.out_codon}_{params.extension}.fas"),
-        shell("python3 scripts/data_update_alcodon.py {params.out_codon_param}_{params.extension}.fas {input.config} {extension}")  #update de config["data"]["aln"] pour qu'il contienne le chemin
+        shell("java -jar ../macse_v2.06.jar -prog refineAlignment -align {output.out_covAln} -out_NT {params.out_codon_param}_{params.extension}.fas"),
+        shell("python3 scripts/data_update_alcodon.py {params.out_codon_param}_{params.extension}.fas {params.config} {params.extension}")  #update de config["data"]["aln"] pour qu'il contienne le chemin
                                                                                                                                     #vers le fichier de sortie de prank.
                                                                                                                                     #Passage de {extension} pour verbose.
 

@@ -68,7 +68,7 @@ if __name__ == "__main__" :
 
 
 	with open(sys.argv[3], 'r') as config_in:
-		config_dict = json.loads(config_in.read())
+		config_dict = json.load(config_in)
 
 	print(f"\nUpdating config after mafft alignment\n")
 
@@ -81,8 +81,6 @@ if __name__ == "__main__" :
 							      queryName = config_dict["data"]["queryName"],		#!# 
 							      o = sys.argv[2])
 
-	config_dict_updated = json.dumps(config_dict)
 
 	with open(sys.argv[3],'w') as config_out:
-		config_out.write(config_dict_updated)
-		
+		json.dump(config_dict, config_out)

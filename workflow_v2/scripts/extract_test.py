@@ -2,6 +2,7 @@ from blast_test import parseBlast
 import logging
 import json
 import sys
+import loadfile_test
 
 """This file pools the necessary functions to treat the input file of genes and their CCDS accessions."""
 
@@ -29,12 +30,14 @@ def makeAccnsFile(lBlastRes, output_file):
 if __name__ == "__main__" :
 
 	with open(sys.argv[1], 'r') as config_in:
-		config_dict = json.loads(config_in)
+		config_dict = json.load(config_in)
 	
-	accnFile = makeAccnsFile(config_dict["data"]["lBlastRes"], sys.argv[2])		#!#
+	if config_dict["parameters"]["step"] == "accessions" :
+		config_dict["data"] = loadfile_test.accnEntry(config_dict["data"])
+
+	accnFile = makeAccnsFile(config_dict["data"]["lBlastRes"], sys.argv[3])		#!#
 	config_dict["data"]["accnFile"] = accnFile
 
-	config_dict_update = json.dumps(config_dict)
-
 	with open(sys.argv[1],'w') as config_out:
-		config_out.write(config_dict_update)
+		json.dump(config_dict, config_out)
+		

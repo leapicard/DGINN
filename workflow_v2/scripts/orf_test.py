@@ -6,7 +6,7 @@ from itertools import chain
 from statistics import median, mean
 import pandas as pd
 import json
-import fastares_test
+import fastares_test, loadfile_test
 
 
 def cmd(commandLine, choice, verbose = False):
@@ -101,7 +101,7 @@ def getORFs(catFile, queryName, outORFraw):
 	return(outORF)
 
 
-def orfFinder(config_dict):
+def orfFinder(data_dict):
 	"""
 	Procedure which launch the ORF step
 
@@ -109,24 +109,25 @@ def orfFinder(config_dict):
 	@param2 logger: Logging object
 	"""
 
-	ORFile = getORFs(config_dict["seqFile"],
-					 config_dict["queryName"], 
+	ORFile = getORFs(data_dict["seqFile"],
+					 data_dict["queryName"], 
 					 sys.argv[2])
-	config_dict["ORFs"] = ORFile
-	return config_dict
+	data_dict["ORFs"] = ORFile
+	return data_dict
 
     
 
 if __name__ == "__main__" :
 
 	with open(sys.argv[1], 'r') as config_in:
-		config_dict = json.loads(config_in)
+		config_dict = json.load(config_in)
 
+	#config_dict = loadfile_test.orfEntry(config_dict["data"])
 	config_dict["data"] = orfFinder(config_dict["data"]) #!#
     
-	config_dict_updated = json.dumps(config_dict)
 
 	with open(sys.argv[1],'w') as config_out:
-		config_out.write(config_dict_updated)
+		json.dump(config_dict, config_out)
+		
 		
     

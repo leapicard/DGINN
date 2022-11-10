@@ -1,6 +1,6 @@
 import os
 import loadfile_test, tree_test
-from blast_test import parseBlast
+
 import logging, sys
 from Bio import Entrez
 from statistics import median
@@ -180,13 +180,16 @@ def fastaCreation(data_dict, remote, apiKey, step, treerecs, outputfile):
 if __name__ == "__main__" :
 
 	with open(sys.argv[1], 'r') as config_in:
-		params_dict = json.loads(config_in.read())["parameters"]
-		data_dict = json.loads(config_in.read())["data"]
+		config_dict = json.load(config_in)
 
+	data_dict = config_dict["data"]
+	params_dict = config_dict["parameters"]
+	data_dict = fastaCreation(data_dict, params_dict["remote"], params_dict["APIKey"], params_dict["step"], params_dict["duplication"],sys.argv[3])
 
-	data_dict = fastaCreation(data_dict, params_dict["remote"], params_dict["APIKey"], params_dict["step"], params_dict["duplication"],sys.argv[2])
-
-	config_update = json.dumps({"parameters" : params_dict, "data" : data_dict})
+	config_dict["data"] = data_dict
+	config_dict["parameters"] = params_dict
+	
 	
 	with open(sys.argv[1],'w') as config_out:
-		config_out.write(config_update)
+		json.dump(config_dict, config_out)
+		
