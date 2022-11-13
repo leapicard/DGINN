@@ -165,6 +165,16 @@ def initLogger(data, args, debug, version):
 	elif args["step"] == "recombination" and args["recombination"] == False:
 		args["recombination"] = True
 
+	firstStep = ""
+	if args["step"] in ["blast", "accessions", "fasta"]:
+		firstStep = "orf"
+	elif args["step"] in ["recombination", "positiveSelection"]:
+		firstStep = ""
+	else:
+		firstStep = args["step"]
+
+	data["firstStep"] = firstStep
+
 	logger.info("Reading input file {:s}".format(data["queryFile"]))
 	logger.info("Analysis will begin at the {:s} step".format(args["step"]))
 
@@ -181,7 +191,6 @@ if __name__ == "__main__" :
 	data_filled = initLogger(data, parameters_complete, parameters_complete["debug"], version)
 	json_dict["parameters"] = parameters_complete
 	json_dict["data"] = data_filled
-	# json_dict["parameters"]["baseName"] = filename.split('.')[0]
 	json_dict_updated = json.dumps(json_dict)
 
 	with open(sys.argv[1], 'w') as json_out :

@@ -168,3 +168,6 @@ def treeCheck(treePath, alnf, optionTree):
 				treePath = ""
 
 	return treePath, optionTree
+
+
+

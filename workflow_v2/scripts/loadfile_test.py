@@ -77,23 +77,58 @@ def accnEntry(data_dict):
 
 	return data_dict
 
-# def orfEntry(data_dict):
-# 	"""
-# 	Function handling start of the pipeline at the orf step.
+def phymlRecEntry(data, step = "tree"):
+	"""
+	Function handling start of the pipeline at the phyml step.
 
-# 	@param1 Data: basicData object
-# 	@return data: basicData object
-# 	"""
-# # Condition checking if queryFile is a fasta file r
-# 	if formatcheck_isFasta(data_dict["queryFile"]):
-# 		data_dict["seqFile"] = data_dict["queryFile"]
-# 		data_dict["baseName"] = baseNameInit(data_dict["baseName"], 
-# 					     data_dict["queryFile"], 
-# 					     data_dict["aln"],
-#                         "orf")
-# 	else:
-# 		logger = logging.getLogger("main.orf")
-# 		logger.error("The provided file is not a fasta of nucleotide sequences, exiting DGINN.")
-# 		sys.exit()
-	
-# 	return data_dict
+	@param1 Data: basicData object
+	@param2 treeOption: Boolean
+	@return Data: basicData object
+	"""
+
+	if FormatFunc.isAln(data["queryFile"]):
+		data["aln"] = data["queryFile"]
+		data["ORFs"] = data["queryFile"]
+		data["baseName"] = baseNameInit(data["baseName"], 
+					     data["queryFile"], 
+					     data["aln"], 
+					     step)
+		try:
+			with open(data["aln"]) as orf:
+				data["geneName"] = orf.readline().split("_")[1]
+				orf.close()
+		except IndexError:
+			with open(data["aln"]) as orf:
+				data["geneName"] = orf.readline().strip()
+				orf.close()
+                  
+	else:
+		logger=logging.getLogger(".".join(["main",step]))
+		logger.error("Provided file is not a multiple sequence alignment, terminating DGINN.")
+		sys.exit()
+		
+	return data
+
+def spTreeCheck(data, firstStep, treeOption):
+	if not hasattr(data, 'cor') and treeOption:
+		if firstStep == "orf":
+			aln=data["seqFile"]
+		elif firstStep == "alignment":
+			aln=data["ORFs"]
+		elif firstStep == "tree" or firstStep=="duplication":
+			aln=data["aln"]
+
+		if not os.path.exists(data["sptree"]):
+			data["sptree"], treeOption = tree_test.treeCheck(data["sptree"], aln, treeOption)
+
+		if data["sptree"]!="":
+			aln2, corSG = filterData(data["sptree"], aln, data["o"])
+
+		if firstStep == "orf":
+			data["seqFile"]=aln2
+		elif firstStep == "alignment":
+			data["ORFs"]=aln2
+		elif firstStep == "tree" or firstStep=="duplication":
+			data["aln"]=aln2
+			
+		setattr(data, "cor", corSG)

@@ -108,10 +108,14 @@ rule align_macse:
         shell("java -jar ../macse_v2.06.jar -prog refineAlignment -align {output.out_covAln} -out_NT {params.out_codon_param}_{params.extension}.fas"),
         shell("python3 scripts/data_update_alcodon.py {params.out_codon_param}_{params.extension}.fas {params.config} {params.extension}")  #update de config["data"]["aln"] pour qu'il contienne le chemin
                                                                                                                                     #vers le fichier de sortie de prank.
-                                                                                                                                    #Passage de {extension} pour verbose.
-
-"""
-Wildcards : queryName/basename, qui changera en fonction du premier fichier d'input.
-Ex : si le premier input est ex_CCDS.fasta, tous les fichiers d'output commenceront par ex_CCDS.
-Test avec {basename}
-"""
+                                         
+rule tree:
+    input:
+        infile = config["data"]["o"]+"tree_{samples}.fasta"
+    params:
+       phymlOpt = parameters["phymlOpt"],
+       all_parameters = "config/config.json"
+    output:
+        phymlfile = config["data"]["o"]+config["data"]["aln"].split("/")[-1].split(".")[0]+".phylip"+"_phyml_tree.txt"
+    shell:
+        "python3 scripts/analysis_test.py {params.phymlOpt} {params.all_parameters}"
