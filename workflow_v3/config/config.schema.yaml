@@ -1,0 +1,218 @@
+$schema: http://json-schema.org/draft-07/schema#
+description: snakemake configuration file
+required:
+- parameters
+- data
+properties:
+  parameters: 
+    type: object 
+    properties:
+      infile:
+        type: string
+        description: Path or list of paths (absolute or relative) to the files needed to start the pipeline. Please refer to **3/ Entry steps** for necessary files
+      queryName:
+        type: string
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: ""
+      queryFile:
+        type: string
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: ""
+      blastdb:
+        type: string
+        description: Blast DataBase to query
+        default : nr
+      outdir:
+        type: string
+        description: Path to the output directory (if indicated, will take priority over the parameters file)
+        default: results/
+      logfile:
+        type: string
+        description: Path to the output directory (if indicated, will take priority over the parameters file)
+        default: ""
+      evalue:
+        type: number
+        description: Path to the output directory (if indicated, will take priority over the parameters file)
+        default: 0.003
+      mincov:
+        type: integer
+        description: Path to the output directory (if indicated, will take priority over the parameters file)
+        default: 50
+      percID:
+        type: integer
+        description: Path to the output directory (if indicated, will take priority over the parameters file)
+        default: 70
+      maxLen:
+        type: string
+        description: Path to the output directory (if indicated, will take priority over the parameters file)
+        default: cutoff
+      entryQuery:
+        type: string
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: ""
+      APIKey:
+        type: string
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: ""
+      phymlOpt:
+        type: string
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: ""
+      sptree:
+        type: string
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: ""
+      duplication:
+        type: boolean
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: False
+      LBopt:
+        type: string
+        description: Path to the output directory (if indicated, will take priority over the parameters file)
+        default: cutoff
+      nbspecies:
+        type: integer
+        description: Path to the output directory (if indicated, will take priority over the parameters file)
+        default: 8
+      recombination:
+        type: boolean
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: False
+      remote:
+        type: boolean
+        description: Defines wether or ft to query NCBI apis remotly or locally
+        default: False
+      step:
+        type: string
+        description: Step at which to enter the pipeline. Please refer to 3/ Entry steps for names and necessary files
+        default: blast
+      positiveSelection:
+        type: boolean
+        description: Defines wether or ft to query NCBI apis remotly or locally
+        default: False
+      alnfile:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      treefile:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      alnformat:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: Fasta
+      basename:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      hyphySeuil:
+        type: number
+        description: Path to cluster hostfile if needed for mpi process
+        default: 0.05
+      busted:
+        type: boolean
+        description: Defines wether or ft to query NCBI apis remotly or locally
+        default: False
+      meme:
+        type: boolean
+        description: Defines wether or ft to query NCBI apis remotly or locally
+        default: False
+      models:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      paml:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      bppml:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      mixedlikelihood:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      opb:
+        type: boolean
+        description: Defines wether or ft to query NCBI apis remotly or locally
+        default: False
+      gnh:
+        type: boolean
+        description: Defines wether or ft to query NCBI apis remotly or locally
+        default: False
+      hostfile:
+        type: string
+        description: Defines wether or ft to query NCBI apis remotly or locally
+        default: ""
+      debug:
+        type: boolean
+        description: Defines wether or ft to query NCBI apis remotly or locally
+        default: False
+      codon_aligner:
+        type: string
+        description: Defines which codon aligner to use.
+        default: "macse"
+    required:
+      - infile 
+    additionalProperties: False
+  data: 
+    type: object 
+    properties:
+      queryFile:
+        type: string
+        description: Path or list of paths (absolute or relative) to the files needed to start the pipeline. Please refer to **3/ Entry steps** for necessary files
+      o:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: results/
+      logger:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+      db:
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+      geneName: 
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      sequence: 
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      blastRes: 
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      lBlastRes: 
+        type: array
+        description: Path to cluster hostfile if needed for mpi process
+      sptree: 
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+      ORFs: 
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+        default: ""
+      aln: 
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+      tree: 
+        type: string
+        description: Path to cluster hostfile if needed for mpi process
+      queryName:
+        type: string
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: ""
+      alnFormat:
+        type: string
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: Format
+      baseName:
+        type: string
+        description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
+        default: ""
+    additionalProperties: True
+
+
