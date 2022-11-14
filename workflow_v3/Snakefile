@@ -92,7 +92,7 @@ rule align_macse:
         out_codon = "results/{samples}_ORFs_alcodon_macse.fas", #ajouter tree dans le nom
         out_mafft = "results/{samples}_ORFs_al_mafft.fasta",
         out_covAln = "results/{samples}_ORFs_al_mafft_clean.fasta",
-        out_clusterIso = "results/{samples}_ORFs_al_mafft_clustiso.fasta"
+        out_clusterIso = "results/{samples}_ORFs_alcodon_clustiso.fasta" # Output final, à utiliser dans la suite 
         # data_update_mafft = "results/data_mafft.pkl",
         # data_update_codon = "results/data_prank.pkl"
     params:
@@ -113,7 +113,7 @@ rule align_macse:
 
 rule tree:
     input:
-        infile = "results/ex_CCDS_ORFs_alcodon_macse.fas" #ajouter tree dans le nom
+        infile = "results/ex_CCDS_ORFs_alcodon_clustiso.fasta" #ajouter tree dans le nom
     params:
         fonction = "phyMLTree",
         config = "config/config.json"
@@ -125,7 +125,7 @@ rule tree:
 
 rule duplication:
     input:
-        infile = "results/ex_CCDS_ORFs_alcodon_macse.fas", #ajouter duplication dans le nom
+        infile = "results/ex_CCDS_ORFs_alcodon_clustiso.fasta", #ajouter duplication dans le nom
         infile_tree = config["data"]["dAlTree"][config["data"]["aln"]]
     params:
         fonction = "checkPhyMLTree",
