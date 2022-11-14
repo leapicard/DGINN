@@ -1,6 +1,6 @@
 
  oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
-                                  ---  PhyML 3.3.20211231  ---                                             
+                                  ---  PhyML 3.3.3:3.3.20211231-1  ---                                             
                               http://www.atgc-montpellier.fr/phyml                                          
                              Copyright CNRS - Universite Montpellier                                 
  oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
@@ -10,20 +10,20 @@
 . Initial tree: 			BioNJ
 . Model of nucleotides substitution: 	HKY85
 . Number of taxa: 			52
-. Log-likelihood: 			-5922.93594
-. Unconstrained log-likelihood: 	-5338.53525
-. Composite log-likelihood: 		-87035.47890
-. Parsimony: 				823
-. Tree size: 				0.95586
+. Log-likelihood: 			-5994.67196
+. Unconstrained log-likelihood: 	-5361.56939
+. Composite log-likelihood: 		-87250.38141
+. Parsimony: 				833
+. Tree size: 				0.97327
 . Discrete gamma model: 		Yes
   - Number of classes: 			4
-  - Gamma shape parameter: 		0.718
-  - Relative rate in class 1: 		0.07796 [freq=0.250000] 		
-  - Relative rate in class 2: 		0.37173 [freq=0.250000] 		
-  - Relative rate in class 3: 		0.93123 [freq=0.250000] 		
-  - Relative rate in class 4: 		2.61908 [freq=0.250000] 		
-. Proportion of invariant: 		0.181
-. Transition/transversion ratio: 	3.801954
+  - Gamma shape parameter: 		0.751
+  - Relative rate in class 1: 		0.08509 [freq=0.250000] 		
+  - Relative rate in class 2: 		0.38662 [freq=0.250000] 		
+  - Relative rate in class 3: 		0.94239 [freq=0.250000] 		
+  - Relative rate in class 4: 		2.58590 [freq=0.250000] 		
+. Proportion of invariant: 		0.185
+. Transition/transversion ratio: 	3.419513
 . Nucleotides frequencies:
   - f(A)=  0.27877
   - f(C)=  0.20081
@@ -31,10 +31,10 @@
   - f(T)=  0.24036. aLRT branch supports (cubic approximation, mixture of Chi2s distribution)
 
 . Run ID:				none
-. Random seed:				1668351333
+. Random seed:				1668441633
 . Subtree patterns aliasing:		no
-. Version:				3.3.20211231
-. Time used:				0h0m29s (29 seconds)
+. Version:				3.3.3:3.3.20211231-1
+. Time used:				0h0m16s (16 seconds)
 
  oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
  Suggested citations:
