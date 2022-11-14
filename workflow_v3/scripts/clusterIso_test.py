@@ -1,6 +1,6 @@
 import logging, fastares_test
 from Bio import SeqIO
-import json
+import json, sys
 
 def isoformAln(aln, o):
         """Function to cluster isoforms according to the alignment. Return the
@@ -36,7 +36,7 @@ overall coverage of these isoforms.
                         dRem[fasta.id]=str(fasta.seq)
 
         
-        outCov = o+aln.split("/")[-1].split(".")[0]+"_clustiso.fasta"
+        outCov = o
         clustok=False #flag to check if a cluster has occured
         for sp,dtagseq in dId2Seq.items():
                 lclust=[list(dtagseq)] #list of clusters of tags to be split
@@ -77,5 +77,12 @@ overall coverage of these isoforms.
                 return(aln)
 
 if __name__ == "__main__" :
+        
+        with open(sys.argv[1], 'r') as config_in :
+                config_dict = json.load(config_in)
+                
 
-    with open()
+        config_dict["data"]["aln"] = isoformAln(config_dict["data"]["aln"], sys.argv[2])
+
+        with open(sys.argv[1], 'w') as config_out :
+                json.dump(config_dict, config_out)

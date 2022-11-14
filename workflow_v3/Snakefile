@@ -91,7 +91,8 @@ rule align_macse:
     output:
         out_codon = "results/{samples}_ORFs_alcodon_macse.fas", #ajouter tree dans le nom
         out_mafft = "results/{samples}_ORFs_al_mafft.fasta",
-        out_covAln = "results/{samples}_ORFs_al_mafft_clean.fasta"
+        out_covAln = "results/{samples}_ORFs_al_mafft_clean.fasta",
+        out_clusterIso = "results/{samples}_ORFs_al_mafft_clustiso.fasta"
         # data_update_mafft = "results/data_mafft.pkl",
         # data_update_codon = "results/data_prank.pkl"
     params:
@@ -107,7 +108,7 @@ rule align_macse:
 
         shell("java -jar ../macse_v2.06.jar -prog refineAlignment -align {output.out_covAln} -out_NT {params.out_codon_param}_{params.extension}.fas"),
         shell("python3 scripts/data_update_alcodon.py {params.out_codon_param}_{params.extension}.fas {params.config} {params.extension}")  #update de config["data"]["aln"] pour qu'il contienne le chemin
-                                                                                                                                    #vers le fichier de sortie de prank.
+        shell("python3 scripts/clusterIso_test.py {params.config} {output.out_clusterIso}")                                                 #vers le fichier de sortie de prank.
 #manque des conditions d'entrée cf DGINN.py 
 
 rule tree:
