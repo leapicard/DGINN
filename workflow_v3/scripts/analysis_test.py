@@ -288,6 +288,189 @@ def checkPhyMLTree(data, dAlnTree, nbSp, LBopt, step="duplication"):
 	else:
 		return(dAlnTree)
 
+def runGARD(aln, o, hostFile, logger):
+	"""
+	Function creating the batch file to run GARD (Kosakovsky Pond et al., 2006).
+	
+	@param1 aln: Path
+	@param2 o: Ouput directory
+	@return gardRes: Path to GARD output file
+	"""
+
+	gardRes = o+aln.split("/")[-1].split(".")[0]+".gard"
+	gardJson = o+aln.split("/")[-1]+".GARD.json"
+	outGard = gardRes+"_out"
+	errGard = gardRes+"_err"
+	
+	#for hyphy 2.5
+	if hostFile == "":
+		cmd = "mpirun -np 4 HYPHYMPI GARD --alignment {:s} --output {:s} --output-lf {:s}".format(aln, gardJson, gardRes)
+	else:
+		cmd = "mpirun -np 4 -hostfile {:s} HYPHYMPI GARD --alignment {:s} --output {:s} --output-lf {:s}".format(hostFile, aln, gardJson, gardRes)
+          
+	lCmd = shlex.split(cmd)
+	with open(outGard, "w") as o, open(errGard, "w") as e:
+		runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
+		o.close()
+		e.close()
+	logger.debug(cmd)
+	logger.info(gardJson)
+	return(gardJson)
+
+
+
+def procGARD(gardRes, aln):
+	"""
+	Function creating the batch file to run GARD processor for KH test (Kosakovsky Pond et al., 2006).
+	
+	@param1 gardRes: Path to GARD output file
+	@param2 aln: Path to alignment file
+	@return otGardProc: Path to GARDprocessor output file
+	"""
+	batchFile = gardRes.split(".")[0]+"_gardprocessor.bf"
+	splitsFile = gardRes+"_splits"
+	outGardProc = gardRes+"_outproc"
+	errGardProc = gardRes+"_errproc"
+	logger = logging.getLogger("main.recombination")
+	
+	with open(batchFile, "w") as bf:
+		bf.write("inputRedirect = {};\n")
+		bf.write("inputRedirect[\"01\"] = \"{:s}\";\n".format(aln))
+		bf.write("inputRedirect[\"02\"] = \"{:s}\";\n".format(splitsFile))
+		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"GARDProcessor.bf\", inputRedirect);\n".format())
+	#logger.debug("Batch file: {:s}".format(batchFile))
+	
+	cmd = "hyphy {:s}".format(batchFile)
+	logger.info(cmd)
+	logger.info(os.system(cmd))
+	logger.info("====================")
+	lCmd = shlex.split(cmd)
+	with open(outGardProc, "w") as o, open(errGardProc, "w") as e:
+		runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
+		o.close()
+		e.close()
+	return(outGardProc)
+
+def parseGard(kh, aln, o, logger):
+	"""
+	Function returning the cut fragments following GARD analysis and identification of significant breakpoints.
+
+	@param1 kh: Path to GARD.json output file
+	@param2 aln: Path to alignment file
+	@param3 pvalue: Float
+	@param4 o: Path to output directory
+	@return lOutFrag: List of Path (Fragments in fasta files)
+	"""
+	lBP = []
+	f = open(kh, "r")
+	lLine = f.readline()
+	while lLine:
+		if lLine.find("\"breakpoints\"")!=-1:
+			lLine = f.readline()
+			lLine=lLine[lLine.find("[")+1:lLine.find("]")]
+			lBP=list(map(int, lLine.split(",")))
+			break
+		lLine = f.readline()
+	f.close()
+	index = 0
+	
+	#If there are breakpoints, add it in lBP
+	if len(lBP) > 0:
+		logger.info("There are {:d} significant breakpoints in alignement {:s} at positions {}".format(len(lBP), aln, lBP))
+	else:
+		logger.info("There are no significant breakpoints in alignement {:s}.".format(aln))
+		return []
+              
+	#If there're breakpoint(s), cut sequence in subsequences according to breakpoints
+	if len(lBP) > 0:
+		dFname2Fseq = {}
+		for fasta in SeqIO.parse(open(aln),'fasta'):
+			dFname2Fseq[fasta.id] = str(fasta.seq)
+		
+		#Creation of a dico where atgc in sequence has been replace by 1 and - by 0
+		lSeqBin = []
+		lNameGene = []
+		for fastaSeq in dFname2Fseq:
+			lSeqBin.append(dFname2Fseq[fastaSeq].lower().replace("a", "1").replace("t", "1").replace("c", "1").replace("g", "1").replace("-", "0"))
+			lNameGene.append(fastaSeq)
+
+		#looking for a multiple of 3 (number of letter) (subsequence ends on or after the breakpoint)
+		nbSeq = len(lNameGene)
+		lenSeq = len(lSeqBin[0])
+		lPos = [0]
+		lBPprec = [0 for i in range(len(lSeqBin))]
+		lFrag = []
+		for bp in lBP:
+			while bp%3 != 0:
+				bp += 1
+			lPos.append(bp)
+			lFrag += [ dFname2Fseq[lNameGene[j]][lPos[-2]:lPos[-1]] for j in range(nbSeq) ]
+		
+		#Adding subsequences that start at the last breakpoint to the end
+		lFrag += [dFname2Fseq[lNameGene[i]][lPos[-1]:] for i in range(nbSeq)]
+
+		lBP = lPos+[lenSeq]
+		lOutFrag = []
+		index = 0
+		for x in range(1,len(lBP)):
+			dFrag = {}
+			if lBP[x-1] == 0:
+				extension = "_{:d}_{:d}".format(lBP[x-1], lBP[x])
+			else:
+				extension = "_{:d}_{:d}".format(lBP[x-1]-1, lBP[x])
+
+			outFrag = o+aln.split("/")[-1].split(".")[0]+"_frag"+extension+".best.fas"
+			for name in lNameGene:
+				dFrag[name] = lFrag[index]
+				index += 1
+			with open(outFrag, "w") as outF:
+				outF.write(fastares_test.dict2fasta(dFrag))
+				logger.info("\tNew alignment: %s"%{outFrag})
+				outF.close()
+				lOutFrag.append(outFrag)
+
+		return lOutFrag
+	else:
+		return []
+
+def gardRecomb(data, dAT, hostFile):
+	"""
+	Procedure which execute gard functions on each alignment given.
+
+	@param1 data: basicData object
+	@param2 pvalue: threshold value
+	@param3 step: String
+	@param4 logger: Logging object
+	"""
+	#try:
+	logger=logging.getLogger("main.recombination")
+	data["lGard"] = []
+	nb = 1
+	dFrag = {}
+	for aln in dAT:
+		logger.info("Running GARD on {:s}".format(aln))
+		gardRes = runGARD(aln, 
+			    data["o"], 
+			    hostFile, 
+			    data["logger"])
+			
+		logger.info("Checked for recombination using HYPHY GARD.")
+				
+			
+		parsedFragments = parseGard(gardRes, aln, data["o"], logger)
+
+		logger.info("Parsed GARD results.")
+		if len(parsedFragments) > 0:
+			for frag in parsedFragments:
+				logger.info("Running Phyml on fragment: {:s}".format(frag))
+				fragTree = runPhyML(frag, "",  data["o"])
+				dFrag[frag] = fragTree+"_phyml_tree.txt"
+		else:
+			logger.info("No fragments of recombination identified.")
+	      
+		dAT = dFrag
+		return(dAT)
+	
 
 
 if __name__ == "__main__" :	
@@ -298,7 +481,9 @@ if __name__ == "__main__" :
 	parameters = config_dict["parameters"]
 	data = config_dict["data"]
 	data["firstStep"] = "orf" # a enlever après 
-	
+	parameters["hostfile"] = "" # a enlever après 
+	data["logger"] = logging.getLogger("main")
+
 	if sys.argv[2] == "phyMLTree":
 
 		if parameters["step"] == "tree":
@@ -312,8 +497,8 @@ if __name__ == "__main__" :
 		dAlTree = phyMLTree(data, parameters["phymlOpt"])
 		data["dAlTree"] = dAlTree
 
-	elif sys.argv[2] == "checkPhyMLTree":
 
+	elif sys.argv[2] == "checkPhyMLTree":
 		if parameters["duplication"]:
 			if parameters["step"] == "duplication":
 				data, data["dAlTree"] = loadfile_test.duplPSEntry(data)
@@ -328,6 +513,16 @@ if __name__ == "__main__" :
 			dAlTree = checkPhyMLTree(data, data["dAlTree"], parameters["nbspecies"], parameters["LBopt"])
 			dAlTree = tree_test.treeTreatment(data, data["dAlTree"], parameters["nbspecies"], parameters["phymlOpt"])
 			data["dAlTree"] = dAlTree
+
+
+	elif sys.argv[2] == "gardRecomb":
+		if parameters["recombination"] :
+			if parameters["step"] == "recombination":
+				data = loadfile_test.phymlRecEntry(data, "main.recombination")
+				data["dAlTree"][data["aln"]] = ""
+
+		data["dAlTree"] = gardRecomb(data, data["dAlTree"], parameters["hostfile"])
+
 
 	config_dict["parameters"] = parameters
 	config_dict["data"] = data

@@ -103,7 +103,7 @@ def phymlRecEntry(data, step = "tree"):
 				orf.close()
                   
 	else:
-		logger=logging.getLogger(".".join(["main",step]))
+		logger = logging.getLogger(".".join(["main",step]))
 		logger.error("Provided file is not a multiple sequence alignment, terminating DGINN.")
 		sys.exit()
 		

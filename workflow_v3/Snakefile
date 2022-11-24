@@ -135,3 +135,16 @@ rule duplication:
         output_svg = config["data"]["dAlTree"][config["data"]["aln"]]+"_recs.svg"
     shell:
         "python3 scripts/analysis_test.py {params.config} {params.fonction}"
+
+rule recombination:
+    input:
+        config = "config/config.json"
+    params:
+        fonction = "gardRecomb",
+        config = "config/config.json"
+    output:
+    	gardRes =  config["data"]["o"]+config["data"]["aln"].split("/")[-1].split(".")[0]+".gard",
+	    gardJson = config["data"]["o"]+config["data"]["aln"].split("/")[-1]+".GARD.json"
+    shell:
+        "python3 scripts/analysis_test.py {params.config} {params.fonction}"
+""

@@ -213,6 +213,9 @@ properties:
         type: string
         description: Full identifier of the query in the format SpeciesName_GeneName_GeneID (if indicated, will take priority over the parameters file)
         default: ""
+      firstStep:
+        type: string 
+        description: Entry step of the pipeline. Choose between blast, extraction, fasta, orf, alignement, tree, duplication, recombination, positiveSelection.
     additionalProperties: True
 
 
