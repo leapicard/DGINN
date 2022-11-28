@@ -14,7 +14,7 @@
         "mincov": 50, 
         "percID": 70,
         "maxLen": "cutoff",
-        "entryQuery": "", 
+        "entryQuery": "Primates[Organism]", 
         "remote": true, 
         "APIKey": "",
         "phymlOpt": "",
