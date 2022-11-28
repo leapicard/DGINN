@@ -1,4 +1,4 @@
-import tree_test, FormatFunc, blast_test
+import tree, FormatFunc, Blast
 import os, sys, logging
 from Bio import SeqIO
 
@@ -34,9 +34,9 @@ def filterData(sptree, filePath, o):
 	@return path: Path of a file
 	"""
 	
-	corsg = tree_test.assocFile(sptree, filePath, o)
+	corsg = tree.assocFile(sptree, filePath, o)
 
-	path = tree_test.supData(filePath, corsg, o)
+	path = tree.supData(filePath, corsg, o)
 
 	return path, corsg
 
@@ -65,7 +65,7 @@ def accnEntry(data_dict):
 	"""
 	if FormatFunc.isBlastRes(data_dict["queryFile"]):
 		data_dict["blastRes"] = data_dict["queryFile"]
-		data_dict["lBlastRes"] = blast_test.parseBlast(data_dict["blastRes"])
+		data_dict["lBlastRes"] = Blast.parseBlast(data_dict["blastRes"])
 		data_dict["baseName"] = baseNameInit(data_dict["baseName"], 
 							data_dict["queryFile"], 
 							data_dict["aln"],
@@ -119,7 +119,7 @@ def spTreeCheck(data, firstStep, treeOption):
 			aln=data["aln"]
 
 		if not os.path.exists(data["sptree"]):
-			data["sptree"], treeOption = tree_test.treeCheck(data["sptree"], aln, treeOption)
+			data["sptree"], treeOption = tree.treeCheck(data["sptree"], aln, treeOption)
 
 		if data["sptree"]!="":
 			aln2, corSG = filterData(data["sptree"], aln, data["o"])

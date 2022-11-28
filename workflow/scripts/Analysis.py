@@ -6,7 +6,7 @@ from itertools import chain
 from statistics import median, mean
 import pandas as pd
 import json
-import fastares_test, loadfile_test, tree_test
+import fastaRes, loadFile, tree
 
 
 ######Functions=============================================================================================================
@@ -95,10 +95,10 @@ def getORFs(catFile, queryName, geneDir):
 	
 	outORF = sys.argv[4]
 	
-	a = fastares_test.dict2fasta(dId2Longest)
+	a = fastaRes.dict2fasta(dId2Longest)
 
 	with open(outORF, "w") as outO:
-		outO.write(fastares_test.dict2fasta(dId2Longest))
+		outO.write(fastaRes.dict2fasta(dId2Longest))
 		outO.close()
 
 	logger.info("Extracted longest ORFs: {:s}".format(outORF))
@@ -246,7 +246,7 @@ def cutLongBranches(aln, dAlnTree, nbSp, LBOpt, logger):
 			
 			if len(dNewAln) > nbSp - 1:
 				with open(newAln, "w") as fasta:
-					fasta.write(fastares_test.dict2fasta(dNewAln))
+					fasta.write(fastaRes.dict2fasta(dNewAln))
 					fasta.close()		  
 				dAlnTree[newAln] = ""
 			else:
@@ -256,7 +256,7 @@ def cutLongBranches(aln, dAlnTree, nbSp, LBOpt, logger):
 
 		if len(dID2Seq) > nbSp - 1:
 			with open(alnLeft, "w") as fasta:
-				fasta.write(fastares_test.dict2fasta(dID2Seq))
+				fasta.write(fastaRes.dict2fasta(dID2Seq))
 				logger.info("\tNew alignment:%s"%{alnLeft})
 				fasta.close()	  
 			dAlnTree[alnLeft] = ""
@@ -424,7 +424,7 @@ def parseGard(kh, aln, o, logger):
 				dFrag[name] = lFrag[index]
 				index += 1
 			with open(outFrag, "w") as outF:
-				outF.write(fastares_test.dict2fasta(dFrag))
+				outF.write(fastaRes.dict2fasta(dFrag))
 				logger.info("\tNew alignment: %s"%{outFrag})
 				outF.close()
 				lOutFrag.append(outFrag)
@@ -487,10 +487,10 @@ if __name__ == "__main__" :
 	if sys.argv[2] == "phyMLTree":
 
 		if parameters["step"] == "tree":
-			data = loadfile_test.phymlRecEntry(data)
+			data = loadFile.phymlRecEntry(data)
 
 			if "tree" == data["firstStep"]:
-				loadfile_test.spTreeCheck(data, 
+				loadFile.spTreeCheck(data, 
 							data["firstStep"], 
 							parameters["duplication"])
 
@@ -501,24 +501,24 @@ if __name__ == "__main__" :
 	elif sys.argv[2] == "checkPhyMLTree":
 		if parameters["duplication"]:
 			if parameters["step"] == "duplication":
-				data, data["dAlTree"] = loadfile_test.duplPSEntry(data)
+				data, data["dAlTree"] = loadFile.duplPSEntry(data)
 
 				if data["firstStep"] == "duplication":
 					dTree = data["dAlTree"].pop(data["aln"])
-					loadfile_test.spTreeCheck(data, 
+					loadFile.spTreeCheck(data, 
 								data["firstStep"], 
 								parameters["duplication"])
 					data["dAlTree"][data["aln"]] = dTree
 							
 			dAlTree = checkPhyMLTree(data, data["dAlTree"], parameters["nbspecies"], parameters["LBopt"])
-			dAlTree = tree_test.treeTreatment(data, data["dAlTree"], parameters["nbspecies"], parameters["phymlOpt"])
+			dAlTree = tree.treeTreatment(data, data["dAlTree"], parameters["nbspecies"], parameters["phymlOpt"])
 			data["dAlTree"] = dAlTree
 
 
 	elif sys.argv[2] == "gardRecomb":
 		if parameters["recombination"] :
 			if parameters["step"] == "recombination":
-				data = loadfile_test.phymlRecEntry(data, "main.recombination")
+				data = loadFile.phymlRecEntry(data, "main.recombination")
 				data["dAlTree"][data["aln"]] = ""
 
 			data["dAlTree"] = gardRecomb(data, data["dAlTree"], parameters["hostfile"])

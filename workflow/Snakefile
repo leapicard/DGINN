@@ -10,7 +10,7 @@ rule init:
     output:
         infile = config["data"]["o"]+config["parameters"]["step"]+"_"+[config["parameters"]["infile"]][0].split("/")[1]
     shell:
-        "python3 scripts/init_test.py {input.config} {output.infile}"
+        "python3 scripts/Init.py {input.config} {output.infile}"
 
 
 rule blast:
@@ -21,7 +21,7 @@ rule blast:
     params:
         config = "config/config.json"
     shell:
-        "python3 scripts/blast_test.py {params.config} {output.tsvfile}"
+        "python3 scripts/Blast.py {params.config} {output.tsvfile}"
 
 
 rule extract:
@@ -32,7 +32,7 @@ rule extract:
     params:
         config = "config/config.json"
     shell:
-        "python3 scripts/extract_test.py {params.config} {input.blastres} {output.accns}"
+        "python3 scripts/Extract.py {params.config} {input.blastres} {output.accns}"
 
 
 rule fasta_res:
@@ -43,9 +43,9 @@ rule fasta_res:
     params:
         config = "config/config.json"
     shell:
-        "python3 scripts/fastares_test.py {params.config} {input.accns} {output.seq}"
+        "python3 scripts/fastaRes.py {params.config} {input.accns} {output.seq}"
 
-"""
+
 
 rule get_orf:
     input:
@@ -56,9 +56,9 @@ rule get_orf:
     params:
         config = "config/config.json",
     shell:
-        "python3 scripts/orf_test.py {params.config} {output.res} {output.res_longest}"
+        "python3 scripts/ORF.py {params.config} {output.res} {output.res_longest}"
 
-
+"""
 rule align_prank: 
     input:
         lgst_ORFs = "results/{samples}_longestORFs.fasta"
@@ -74,7 +74,7 @@ rule align_prank:
         config = "config/config.json"
     run:
         shell("mafft --auto --quiet {input.lgst_ORFs} > {output.out_mafft}"),
-        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {params.config}"),  #in1 : alignement mafft
+        shell("python3 scripts/covAln.py {output.out_mafft} {output.out_covAln} {params.config}"),  #in1 : alignement mafft
                                                                                                         #in2 : fichier où covAln output
                                                                                                         #in3 : dictionnaire config
                                                                                                         # Data est update au sein de ce script
@@ -84,7 +84,7 @@ rule align_prank:
                                                                                                                                     #Passage de {extension} pour verbose.
 
 """
-
+# rule align : inclure toutes les commandes communes (mafft), avec un fichier de sortie qui dépend du choix d'aligneur dans config.json.
 rule align_macse: 
     input:
         lgst_ORFs = "results/{samples}_longestORFs.fasta"
@@ -101,14 +101,14 @@ rule align_macse:
         config = "config/config.json"
     run:
         shell("mafft --auto --quiet {input.lgst_ORFs} > {output.out_mafft}"),
-        shell("python3 scripts/covAln_test.py {output.out_mafft} {output.out_covAln} {params.config}"),  #in1 : alignement mafft
+        shell("python3 scripts/covAln.py {output.out_mafft} {output.out_covAln} {params.config}"),  #in1 : alignement mafft
                                                                                                         #in2 : fichier où covAln output
                                                                                                         #in3 : dictionnaire config
                                                                                                         # Data est update au sein de ce script
 
         shell("java -jar ../macse_v2.06.jar -prog refineAlignment -align {output.out_covAln} -out_NT {params.out_codon_param}_{params.extension}.fas"),
-        shell("python3 scripts/data_update_alcodon.py {params.out_codon_param}_{params.extension}.fas {params.config} {params.extension}")  #update de config["data"]["aln"] pour qu'il contienne le chemin
-        shell("python3 scripts/clusterIso_test.py {params.config} {output.out_clusterIso}")                                                 #vers le fichier de sortie de prank.
+        shell("python3 scripts/config_update_alcodon.py {params.out_codon_param}_{params.extension}.fas {params.config} {params.extension}")  #update de config["data"]["aln"] pour qu'il contienne le chemin
+        shell("python3 scripts/clusterIso.py {params.config} {output.out_clusterIso}")                                                 #vers le fichier de sortie de prank.
 #manque des conditions d'entrée cf DGINN.py 
 
 rule tree:
@@ -120,7 +120,7 @@ rule tree:
     output:
         phymlfile = config["data"]["o"]+config["data"]["aln"].split("/")[-1].split(".")[0]+".phylip_phyml_tree.txt"
     shell:
-        "python3 scripts/analysis_test.py {params.config} {params.fonction}"
+        "python3 scripts/Analysis.py {params.config} {params.fonction}"
 
 
 rule duplication:
@@ -134,7 +134,7 @@ rule duplication:
         output_nhx = config["data"]["dAlTree"][config["data"]["aln"]]+"_recs.nhx",
         output_svg = config["data"]["dAlTree"][config["data"]["aln"]]+"_recs.svg"
     shell:
-        "python3 scripts/analysis_test.py {params.config} {params.fonction}"
+        "python3 scripts/Analysis.py {params.config} {params.fonction}"
 
 
 rule recombination:
@@ -147,7 +147,7 @@ rule recombination:
     	gardRes =  config["data"]["o"]+config["data"]["aln"].split("/")[-1].split(".")[0]+".gard",
 	    gardJson = config["data"]["o"]+config["data"]["aln"].split("/")[-1]+".GARD.json"
     shell:
-        "python3 scripts/analysis_test.py {params.config} {params.fonction}"
+        "python3 scripts/Analysis.py {params.config} {params.fonction}"
 
 rule positive_selection:
     input:
@@ -155,4 +155,4 @@ rule positive_selection:
     output:
 	    pos_res = config["data"]["o"]+"files_list.txt"
     shell:
-        "python3 scripts/posSel_test.py {input.config}"
+        "python3 scripts/posSel.py {input.config}"

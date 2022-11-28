@@ -6,7 +6,7 @@ from itertools import chain
 from statistics import median, mean
 import pandas as pd
 import json
-import fastares_test, loadfile_test
+import fastaRes, loadFile
 
 
 def cmd(commandLine, choice, verbose = False):
@@ -91,9 +91,9 @@ def getORFs(catFile, queryName, outORFraw):
 	logger.info("Deleted {} sequences as duplicates".format(n))
 	
 	outORF = sys.argv[3]
-	#print(fastares_test.dict2fasta(dId2Longest))
+	#print(fastaRes.dict2fasta(dId2Longest))
 	with open(outORF, "w") as outO:
-		outO.write(fastares_test.dict2fasta(dId2Longest))
+		outO.write(fastaRes.dict2fasta(dId2Longest))
 		outO.close()
 	  
 	logger.info("Extracted longest ORFs: {:s}".format(outORF))
@@ -127,10 +127,10 @@ if __name__ == "__main__" :
 	data["firstStep"] = "orf" # a enlever après 
 
 	if parameters["step"] == "orf":
-		data = loadfile_test.orfEntry(data)
+		data = loadFile.orfEntry(data)
 
 	if data["firstStep"] == "orf":
-		loadfile_test.spTreeCheck(data, data["firstStep"], parameters["duplication"])
+		loadFile.spTreeCheck(data, data["firstStep"], parameters["duplication"])
 
 	data = orfFinder(data) 
 

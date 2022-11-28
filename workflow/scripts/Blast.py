@@ -6,7 +6,7 @@ from Bio import SearchIO, SeqIO
 from time import sleep
 import json
 from AnalysisFunc import cmd
-import loadfile_test
+import loadFile
 
 def parseBlast(blastRes):
 
@@ -122,7 +122,7 @@ if __name__ == "__main__" :
 	parameters = json_dict["parameters"]
 	data = json_dict["data"]
 	if parameters["step"] == "blast" :
-		data["baseName"] = loadfile_test.baseNameInit(data["baseName"], data["queryFile"],data["aln"])
+		data["baseName"] = loadFile.baseNameInit(data["baseName"], data["queryFile"],data["aln"])
 		
 	data["blastRes"] = blast(data["queryFile"], 
 			      data["o"],

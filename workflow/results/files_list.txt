@@ -1,1 +1,0 @@
-results/ex_CCDS_ORFs_alcodon_macse.fas	results/ex_CCDS_ORFs_alcodon_macse.phylip_phyml_tree.txt	results/positive_selection_results_202211271417/

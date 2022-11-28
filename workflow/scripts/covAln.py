@@ -7,7 +7,7 @@ from collections import defaultdict, OrderedDict
 from itertools import chain
 from statistics import median, mean
 import json
-import fastares_test
+import fastaRes
 
 def covAln(aln, cov, queryName, o):
 	"""
@@ -42,7 +42,7 @@ def covAln(aln, cov, queryName, o):
 		nbOut = len(dId2Seq) - len(dKeep)
 		
 		with open(outCov, "w") as outC:
-			outC.write(fastares_test.dict2fasta(dKeep))
+			outC.write(fastaRes.dict2fasta(dKeep))
 			outC.close()
 		logger.info("Discarded {:d} sequences".format(nbOut))
 	

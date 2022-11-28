@@ -1,7 +1,7 @@
 import sys
 import logging, os
 import ete3
-import fastares_test, analysis_test
+import fastaRes, Analysis
 from Bio import SeqIO
 from collections import defaultdict
 
@@ -90,7 +90,7 @@ def supData(filePath, corFile, dirName):
 
 	out = dirName+filePath.replace(".fasta", "_filtered.fasta").split("/")[-1]
 	with open(out, "w") as newVer:
-		newVer.write(fastares_test.dict2fasta(newDico))
+		newVer.write(fastaRes.dict2fasta(newDico))
 		newVer.close()
 	return out
 
@@ -310,7 +310,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 							
 							# create new file of orthologous sequences
 							with open(outFile, "w") as fasta:
-								fasta.write(fastares_test.dict2fasta(dOrtho2Seq))
+								fasta.write(fastaRes.dict2fasta(dOrtho2Seq))
 								fasta.close()						
 							# remove the node from the tree
 							removed = gp.detach()
@@ -331,7 +331,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 				nDuplSign += 1
 
 				with open(outFile, "w") as fasta:
-					fasta.write(fastares_test.dict2fasta(dRemain))
+					fasta.write(fastaRes.dict2fasta(dRemain))
 					fasta.close()
 				lOut.append(outFile)
 			else:

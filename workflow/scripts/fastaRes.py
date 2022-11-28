@@ -1,5 +1,5 @@
 import os
-import loadfile_test, tree_test
+import loadFile, tree
 
 import logging, sys
 from Bio import Entrez
@@ -168,10 +168,10 @@ def fastaCreation(data_dict, remote, apiKey, step, treerecs, outputfile):
 	data_dict["seqFile"] = firstFasta
 
 	if treerecs:
-		sptree_tmp, treerecs = tree_test.treeCheck(data_dict["sptree"], firstFasta, treerecs)
+		sptree_tmp, treerecs = tree.treeCheck(data_dict["sptree"], firstFasta, treerecs)
 		data_dict["sptree"] = sptree_tmp
 	if treerecs:
-		outCat, corSG = loadfile_test.filterData(data_dict["sptree"], firstFasta, "results/")
+		outCat, corSG = loadFile.filterData(data_dict["sptree"], firstFasta, "results/")
 		data_dict["seqFile"] = outCat
 		data_dict["cor"] = corSG
 	
@@ -186,7 +186,7 @@ if __name__ == "__main__" :
 	params_dict = config_dict["parameters"]
 
 	if params_dict["step"] == "fasta":
-		data_dict = loadfile_test.getSeqEntry(data_dict)
+		data_dict = loadFile.getSeqEntry(data_dict)
 	data_dict = fastaCreation(data_dict, params_dict["remote"], params_dict["APIKey"], params_dict["step"], params_dict["duplication"],sys.argv[3])
 
 	config_dict["data"] = data_dict
