@@ -1,3 +1,0 @@
-NameErrorin line 5 of /Users/Genna/DGINN2/workflow_v2/Snakefile:
-name 'validate' is not defined
-  File "/Users/Genna/DGINN2/workflow_v2/Snakefile", line 5, in <module>
