@@ -1,6 +1,0 @@
-Building DAG of jobs...
-MissingInputException in rule init  in line 7 of /home/jerem/Documents/master/projet/DGINN_2/Files/Snakefile:
-Missing input files for rule init:
-    output: results/data.pkl, results/params.pkl
-    affected files:
-        

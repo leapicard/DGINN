@@ -1,3 +1,0 @@
-WorkflowError in line 4 of /home/jerem/Documents/master/projet/DGINN_2/Files/Snakefile:
-Workflow defines configfile config.yaml but it is not present or accessible.
-  File "/home/jerem/Documents/master/projet/DGINN_2/Files/Snakefile", line 4, in <module>
