@@ -136,6 +136,7 @@ rule duplication:
     shell:
         "python3 scripts/analysis_test.py {params.config} {params.fonction}"
 
+
 rule recombination:
     input:
         config = "config/config.json"
@@ -147,4 +148,11 @@ rule recombination:
 	    gardJson = config["data"]["o"]+config["data"]["aln"].split("/")[-1]+".GARD.json"
     shell:
         "python3 scripts/analysis_test.py {params.config} {params.fonction}"
-""
+
+rule positive_selection:
+    input:
+        config = "config/config.json"
+    output:
+	    pos_res = config["data"]["o"]+"files_list.txt"
+    shell:
+        "python3 scripts/posSel_test.py {input.config}"

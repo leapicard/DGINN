@@ -452,7 +452,7 @@ def gardRecomb(data, dAT, hostFile):
 		gardRes = runGARD(aln, 
 			    data["o"], 
 			    hostFile, 
-			    data["logger"])
+			    log)
 			
 		logger.info("Checked for recombination using HYPHY GARD.")
 				
@@ -482,7 +482,7 @@ if __name__ == "__main__" :
 	data = config_dict["data"]
 	data["firstStep"] = "orf" # a enlever après 
 	parameters["hostfile"] = "" # a enlever après 
-	data["logger"] = logging.getLogger("main")
+	log = logging.getLogger("main")
 
 	if sys.argv[2] == "phyMLTree":
 
@@ -521,7 +521,7 @@ if __name__ == "__main__" :
 				data = loadfile_test.phymlRecEntry(data, "main.recombination")
 				data["dAlTree"][data["aln"]] = ""
 
-		data["dAlTree"] = gardRecomb(data, data["dAlTree"], parameters["hostfile"])
+			data["dAlTree"] = gardRecomb(data, data["dAlTree"], parameters["hostfile"])
 
 
 	config_dict["parameters"] = parameters

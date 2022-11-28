@@ -175,3 +175,11 @@ def duplPSEntry(Data, step = "duplication"):
 		sys.exit()
 
 	return Data, dico
+
+
+def pspEntry(Data, parameters):  
+	Data, dico = duplPSEntry(Data, "positiveSelection")
+	
+	Data["alnFormat"] = parameters["alnformat"].title()
+
+	return Data, dico

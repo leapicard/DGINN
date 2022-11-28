@@ -1,0 +1,18 @@
+[MacBook-Air-GG.local:81584] OPAL ERROR: Unreachable in file pmix3x_client.c at line 112
+[MacBook-Air-GG.local:81585] OPAL ERROR: Unreachable in file pmix3x_client.c at line 112
+*** An error occurred in MPI_Init
+*** on a NULL communicator
+*** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+***    and potentially your MPI job)
+[MacBook-Air-GG.local:81584] Local abort before MPI_INIT completed completed successfully, but am not able to aggregate error messages, and not able to guarantee that all other processes were killed!
+*** An error occurred in MPI_Init
+[MacBook-Air-GG.local:81586] OPAL ERROR: Unreachable in file pmix3x_client.c at line 112
+*** An error occurred in MPI_Init
+*** on a NULL communicator
+*** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+***    and potentially your MPI job)
+*** on a NULL communicator
+*** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+***    and potentially your MPI job)
+[MacBook-Air-GG.local:81586] Local abort before MPI_INIT completed completed successfully, but am not able to aggregate error messages, and not able to guarantee that all other processes were killed!
+[MacBook-Air-GG.local:81585] Local abort before MPI_INIT completed completed successfully, but am not able to aggregate error messages, and not able to guarantee that all other processes were killed!
