@@ -25,19 +25,19 @@ def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 
 	return dCtrls, lModels
 
-def supBoot(outDir, baseName, treeFile, logger):
+def supBoot(outDir, baseName, treeFile):
 	# Suppress bootstrap numbers from treeFile (necessary for HYPHY)
 	cladoFile = outDir+baseName+"_clado.tree"
 	t = ete3.Tree(treeFile)
 	t.write(format=9, outfile=cladoFile)
 	return cladoFile
 
-def nbNode(treeFile, logger):
+def nbNode(treeFile):
 	# count number of nodes in tree file
 	with open(treeFile, "r") as tree:
 		data = tree.read()
 		nodes = str(data.count("(")+data.count(")"))
-		logger.info("There are {:s} nodes in the provided tree.".format(nodes))
+		#logger.info("There are {:s} nodes in the provided tree.".format(nodes))
 		tree.close()
 	return nodes
 

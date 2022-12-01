@@ -128,12 +128,14 @@ def initLogger(data, args, debug, version):
 			
 	# create logger
 	#logging.basicConfig(level=logging.INFO)
-	logger = logging.getLogger("main")
-	logger.setLevel(logging.INFO)
+	#logger = logging.getLogger("main")
+	#logger.setLevel(logging.INFO)
 	# create file handler which logs even debug messages
-	fh = logging.FileHandler(args["logfile"])
+	#fh = logging.FileHandler(args["logfile"])
 	# create console handler with a higher log level
-	ch = logging.StreamHandler()
+	#ch = logging.StreamHandler()
+
+	"""	
 	if debug:
 		logger.setLevel(logging.DEBUG)
 		ch.setLevel(logging.DEBUG)
@@ -149,7 +151,7 @@ def initLogger(data, args, debug, version):
 	logger.addHandler(fh)
 	logger.addHandler(ch)
 	# Welcome message
-	logger.info("Starting {:s} (v{:s})".format(__file__, version))
+	logger.info("Starting {:s} (v{:s})".format(__file__, version))"""
 
 	data["queryFile"] = args["infile"]
 	data["o"] = args["outdir"]
@@ -175,8 +177,8 @@ def initLogger(data, args, debug, version):
 
 	data["firstStep"] = firstStep
 
-	logger.info("Reading input file {:s}".format(data["queryFile"]))
-	logger.info("Analysis will begin at the {:s} step".format(args["step"]))
+	"""logger.info("Reading input file {:s}".format(data["queryFile"]))
+	logger.info("Analysis will begin at the {:s} step".format(args["step"]))"""
 
 	return data
 

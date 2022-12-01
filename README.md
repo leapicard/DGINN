@@ -27,7 +27,29 @@ The docker is available for both the paper version and the current version of DG
 Any questions or suggestions about the program can be addressed to lea.picard [at] ens-lyon.fr,
 laurent.gueguen [at] univ-lyon1.fr or lucie.etienne [at] ens-lyon.fr.
 
+# SNAKEMAKE USE :
+You can launch the pipeline from any step, if you use the name format : \<anyname>.\<extension>
+
+See 3/ Entry steps to find the right extension for your step.
+
+You will also need to specify the name of your file in the config file
+
+As well as the starting step's name.
+```
+"infile" : "<anyname>.<extension>"
+"step" : "startingstep"
+```
+
+startingstep can take one of these values :
+
+- "blast"
+- "accessions"
+- "fasta"
+- "orf"
+- "align"
+- "tree"
 # Overview
+
 
 ![Diagram of DGINN main steps](https://github.com/leapicard/DGINN/blob/master/etc/pipeline_diagram.pdf)
 

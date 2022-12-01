@@ -16,15 +16,15 @@ def makeAccnsFile(lBlastRes, output_file):
 	@return outBlastn: Path to the accessions file
 	"""
 
-	logger = logging.getLogger("main.accessions")
+	#logger = logging.getLogger("main.accessions")
 	geneAllAccns = "\n".join(set(lBlastRes))
 	
-	logger.debug("All Accns: " + ",".join(set(lBlastRes)))
+	#logger.debug("All Accns: " + ",".join(set(lBlastRes)))
 
 	with open(output_file, "w") as out:
 		out.write(geneAllAccns)
 		out.close()	
-	logger.info("Wrote all accessions to {:s}".format(output_file))
+	#logger.info("Wrote all accessions to {:s}".format(output_file))
 	return(output_file)
 
 

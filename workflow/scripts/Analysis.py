@@ -44,9 +44,9 @@ def getORFs(catFile, queryName, geneDir):
 	"""
 
 	outORFraw = geneDir
-	logger = logging.getLogger("main.orf")
+	#logger = logging.getLogger("main.orf")
 	
-	logger.debug("getorf -sequence {:s} -outseq {:s} -table 0 -find 3 -noreverse".format(catFile, outORFraw))
+	##logger.debug("getorf -sequence {:s} -outseq {:s} -table 0 -find 3 -noreverse".format(catFile, outORFraw))
 	cmd("getorf -sequence {:s} -outseq {:s} -table 0 -find 3 -noreverse".format(catFile, outORFraw), False)
 	
 	dId2ORFs = defaultdict(list)
@@ -89,9 +89,9 @@ def getORFs(catFile, queryName, geneDir):
 		for i in dupl:
 			dId2Longest.pop(i, None)
 			n += 1
-			logger.debug("Deleted sequence {:s} (duplicate)".format(i))
+			#logger.debug("Deleted sequence {:s} (duplicate)".format(i))
 		
-	logger.info("Deleted {} sequences as duplicates".format(n))
+	#logger.info("Deleted {} sequences as duplicates".format(n))
 	
 	outORF = sys.argv[4]
 	
@@ -101,7 +101,7 @@ def getORFs(catFile, queryName, geneDir):
 		outO.write(fastaRes.dict2fasta(dId2Longest))
 		outO.close()
 
-	logger.info("Extracted longest ORFs: {:s}".format(outORF))
+	#logger.info("Extracted longest ORFs: {:s}".format(outORF))
 	return(outORF)
 	
 
@@ -157,13 +157,13 @@ def runPhyML(aln, phymlOpt, geneDir):
 	if phymlOpt != "":
 		try:
 			opt=phymlOpt.split("ALN ")[1]
-			logger.debug("phyml -i {:s} {}".format(outPhy, opt))
+			#logger.debug("phyml -i {:s} {}".format(outPhy, opt))
 			cmd("phyml -i {:s} {}".format(outPhy, opt), False)
 		except:
-			logger.info("PhyML couldn't run with the provided info {}, running with default options.".format(phymlOpt))
+			#logger.info("PhyML couldn't run with the provided info {}, running with default options.".format(phymlOpt))
 			cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
 	else:
-		logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
+		#logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
 		cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
 		
 	os.chdir(origin)
@@ -181,10 +181,10 @@ def phyMLTree(data,phymlOpt):
 
 	logger = logging.getLogger("main.tree")
 	dAlnTree = {}
-	logger.info("Running PhyML to produce gene phylogenetic tree")
+	#logger.info("Running PhyML to produce gene phylogenetic tree")
 	TreesFile = runPhyML(data["aln"], phymlOpt, data["o"])
 	data["tree"] = TreesFile+"_phyml_tree.txt"
-	logger.info("Reconstructed tree using PhyML: {:s}".format(data["tree"]))
+	#logger.info("Reconstructed tree using PhyML: {:s}".format(data["tree"]))
 	dAlnTree[data["aln"]] = data["tree"]
 	return dAlnTree
     
@@ -197,7 +197,7 @@ def cutLongBranches(aln, dAlnTree, nbSp, LBOpt, logger):
 	@param3 logger: Logging object
 	@return dAlnTree: Updated dictionary of alignments and their corresponding trees
 	"""
-	logger.info("Looking for long branches.")
+	#logger.info("Looking for long branches.")
 	loadTree = ete3.Tree(dAlnTree[aln])
 	dist = [leaf.dist for leaf in loadTree.traverse()]
 	#longDist = 500
@@ -222,12 +222,12 @@ def cutLongBranches(aln, dAlnTree, nbSp, LBOpt, logger):
 		lDist = Q3 + (factor * IQR)
 		longDist = lDist[0]
 	
-	logger.info("Long branches will be evaluated through the {} method (factor {})".format(LBOpt, factor))
+	#logger.info("Long branches will be evaluated through the {} method (factor {})".format(LBOpt, factor))
 	nbSp = int(nbSp)	
 	matches = [leaf for leaf in loadTree.traverse() if leaf.dist>longDist]
 
 	if len(matches) > 0:
-		logger.info("{} long branches found, separating alignments.".format(len(matches)))
+		#logger.info("{} long branches found, separating alignments.".format(len(matches)))
 		
 		seqs = SeqIO.parse(open(aln),'fasta')
 		dID2Seq = {gene.id: gene.seq for gene in seqs}
@@ -250,23 +250,26 @@ def cutLongBranches(aln, dAlnTree, nbSp, LBOpt, logger):
 					fasta.close()		  
 				dAlnTree[newAln] = ""
 			else:
-				logger.info("Sequences {} will not be considered for downstream analyses as they do not compose a large enough group.".format(dNewAln.keys()))
+				pass
+				#logger.info("Sequences {} will not be considered for downstream analyses as they do not compose a large enough group.".format(dNewAln.keys()))
 			
 		alnLeft = aln.split(".")[0]+"_part"+str(len(matches)+1)+".fasta"
 
 		if len(dID2Seq) > nbSp - 1:
 			with open(alnLeft, "w") as fasta:
 				fasta.write(fastaRes.dict2fasta(dID2Seq))
-				logger.info("\tNew alignment:%s"%{alnLeft})
+				#logger.info("\tNew alignment:%s"%{alnLeft})
 				fasta.close()	  
 			dAlnTree[alnLeft] = ""
 		else:
-			logger.info("Sequences in {} will not be considered for downstream analyses as they do not compose a large enough group.".format(dID2Seq.keys()))
+			pass
+			#logger.info("Sequences in {} will not be considered for downstream analyses as they do not compose a large enough group.".format(dID2Seq.keys()))
 			
 		dAlnTree.pop(aln, None)
 		
 	else:
-		logger.info("No long branches found.")
+		pass
+		#logger.info("No long branches found.")
 		
 	return(dAlnTree)
 
@@ -277,7 +280,7 @@ def checkPhyMLTree(data, dAlnTree, nbSp, LBopt, step="duplication"):
 	
 	for aln in dAlnTree:
 		if dAlnTree[aln] == "":
-			logger.info("Reconstructing alignments and phylogenies following long branch parsing.")
+			#logger.info("Reconstructing alignments and phylogenies following long branch parsing.")
 			#aln = runPrank(aln, data["o"]) #pb à régler 
 			tree = runPhyML(aln, LBopt, data["o"])
 			dAlnTree2[aln] = tree+"_phyml_tree.txt"
@@ -313,8 +316,8 @@ def runGARD(aln, o, hostFile, logger):
 		runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
 		o.close()
 		e.close()
-	logger.debug(cmd)
-	logger.info(gardJson)
+	#logger.debug(cmd)
+	#logger.info(gardJson)
 	return(gardJson)
 
 
@@ -338,12 +341,12 @@ def procGARD(gardRes, aln):
 		bf.write("inputRedirect[\"01\"] = \"{:s}\";\n".format(aln))
 		bf.write("inputRedirect[\"02\"] = \"{:s}\";\n".format(splitsFile))
 		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"GARDProcessor.bf\", inputRedirect);\n".format())
-	#logger.debug("Batch file: {:s}".format(batchFile))
+	##logger.debug("Batch file: {:s}".format(batchFile))
 	
 	cmd = "hyphy {:s}".format(batchFile)
-	logger.info(cmd)
-	logger.info(os.system(cmd))
-	logger.info("====================")
+	#logger.info(cmd)
+	#logger.info(os.system(cmd))
+	#logger.info("====================")
 	lCmd = shlex.split(cmd)
 	with open(outGardProc, "w") as o, open(errGardProc, "w") as e:
 		runGARD = subprocess.run(lCmd, shell=False, check=True, stdout=o, stderr=e)
@@ -376,9 +379,11 @@ def parseGard(kh, aln, o, logger):
 	
 	#If there are breakpoints, add it in lBP
 	if len(lBP) > 0:
-		logger.info("There are {:d} significant breakpoints in alignement {:s} at positions {}".format(len(lBP), aln, lBP))
+		pass
+		#logger.info("There are {:d} significant breakpoints in alignement {:s} at positions {}".format(len(lBP), aln, lBP))
 	else:
-		logger.info("There are no significant breakpoints in alignement {:s}.".format(aln))
+		
+		#logger.info("There are no significant breakpoints in alignement {:s}.".format(aln))
 		return []
               
 	#If there're breakpoint(s), cut sequence in subsequences according to breakpoints
@@ -425,7 +430,7 @@ def parseGard(kh, aln, o, logger):
 				index += 1
 			with open(outFrag, "w") as outF:
 				outF.write(fastaRes.dict2fasta(dFrag))
-				logger.info("\tNew alignment: %s"%{outFrag})
+				#logger.info("\tNew alignment: %s"%{outFrag})
 				outF.close()
 				lOutFrag.append(outFrag)
 
@@ -448,25 +453,26 @@ def gardRecomb(data, dAT, hostFile):
 	nb = 1
 	dFrag = {}
 	for aln in dAT:
-		logger.info("Running GARD on {:s}".format(aln))
+		#logger.info("Running GARD on {:s}".format(aln))
 		gardRes = runGARD(aln, 
 			    data["o"], 
 			    hostFile, 
 			    log)
 			
-		logger.info("Checked for recombination using HYPHY GARD.")
+		#logger.info("Checked for recombination using HYPHY GARD.")
 				
 			
 		parsedFragments = parseGard(gardRes, aln, data["o"], logger)
 
-		logger.info("Parsed GARD results.")
+		#logger.info("Parsed GARD results.")
 		if len(parsedFragments) > 0:
 			for frag in parsedFragments:
-				logger.info("Running Phyml on fragment: {:s}".format(frag))
+				#logger.info("Running Phyml on fragment: {:s}".format(frag))
 				fragTree = runPhyML(frag, "",  data["o"])
 				dFrag[frag] = fragTree+"_phyml_tree.txt"
 		else:
-			logger.info("No fragments of recombination identified.")
+			pass
+			#logger.info("No fragments of recombination identified.")
 	      
 		dAT = dFrag
 		return(dAT)

@@ -2,7 +2,7 @@ import sys, os, logging, subprocess
 import PSPFunc
 from ete3 import EvolTree
 
-def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, baseName, logger):	
+def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, baseName):	
 	# outDir=os.getcwd()+"/"  # used to debug
 	logger.info(os.getcwd())
 	### SITE ANALYSIS: BIO++
@@ -12,13 +12,13 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 	dallMod={"M0":0,"M1":1,"M2":2,"M7":3,"M8a":4,"M8":5,"M10":4,"DFP07_0":1,"DFP07":2}
 	for k in ["C","G"]:
                 dlModels[k].sort(key = lambda x : dallMod[x])
-
+  """
 	logger.info("Bio++ Site Analysis")
 	if len(dlModels["C"])!=0:
 	        logger.info("Models to be run with Constant rate: {:s}".format(", ".join(model for model in dlModels["C"])))
 	if len(dlModels["G"])!=0:
 	        logger.info("Models to be run with Gamma rate: {:s}".format(", ".join(model for model in dlModels["G"])))
-	logger.info("Bppml parameter file: {:s}".format(bppFile))
+	logger.info("Bppml parameter file: {:s}".format(bppFile))"""
 	
 	## Bppml
 	""" 
@@ -294,13 +294,13 @@ def setIgnoreParams(model, prevmodel, lModels, logger):
   return lignore
 
 
-def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
+def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName):
 
       lModels = [m if (m[-2:]=="_C" or m.find("_G")!=-1) else m+"_C" for m in lModels] #constant distrib only available
       dlModels = {"C":[m[:-2] for m in lModels if m[-2:]=="_C"]}  #constant distrib
 #      dlModels["G"] = [m[:m.rfind("_")] for m in lModels if m[-2:]!="_C"]  #gamma distrib
       tree = EvolTree(treeFile)
-      logger.info("PAML codeml")
+      #logger.info("PAML codeml")
       tree.link_to_alignment(alnFile, "Fasta")
       dLogLlh = {}		# dictionary(model:logllh)
       os.mkdir(outDir+"paml_site/")
@@ -311,12 +311,12 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
        tree.workdir = outpaml
        for model in lModels:
         if model in ["M0","M1","M2","M7","M8","M8a"]:
-          logger.info("Running {:s}".format(model+"_"+k))
+          #logger.info("Running {:s}".format(model+"_"+k))
           tree.run_model(model,ncatG=4)
           lgl=pamlGetLogL(outpaml+model+"/")
           if lgl!=None:
                   dLogLlh[k][model]=lgl
-          logger.info("Log Likelihood = {}".format(dLogLlh[k].get(model,None)))
+          #logger.info("Log Likelihood = {}".format(dLogLlh[k].get(model,None)))
 
        for k,lModels in dlModels.items():
          if not k in dLogLlh.keys():
@@ -324,28 +324,28 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName, logger):
          if "M1"  in lModels and "M2" in lModels:
                        if "M1"  in dLogLlh[k] and "M2" in dLogLlh[k]:
                         LR12, p12 = PSPFunc.LRT(dLogLlh[k]["M1"], dLogLlh[k]["M2"], 2)
-                        logger.info("LRT of M1_%s vs M2_%s: %f"%(k,k,p12))
+                        #logger.info("LRT of M1_%s vs M2_%s: %f"%(k,k,p12))
                        else:
-                        logger.info("Possible failed optimization, likelihoods of M1_%s and M2_%s have not been computed."%(k,k))
+                        #logger.info("Possible failed optimization, likelihoods of M1_%s and M2_%s have not been computed."%(k,k))
        	 if "M7"  in lModels and "M8" in lModels:
                      if "M7"  in dLogLlh[k] and "M8" in dLogLlh[k]:
                         LR78, p78 = PSPFunc.LRT(dLogLlh[k]["M7"], dLogLlh[k]["M8"], 2)
-                        logger.info("LRT of M7_%s vs M8_%s: %f"%(k,k,p78))
+                        #logger.info("LRT of M7_%s vs M8_%s: %f"%(k,k,p78))
                      else:
-                        logger.info("Possible failed optimization, likelihoods of M7_%s and M8_%s have not been computed."%(k,k))
+                        #logger.info("Possible failed optimization, likelihoods of M7_%s and M8_%s have not been computed."%(k,k))
        	 if "M7"  in lModels and "M10" in lModels:
                      if "M7"  in dLogLlh[k] and "M10" in dLogLlh[k]:
                         LR710, p710 = PSPFunc.LRT(dLogLlh[k]["M7"], dLogLlh[k]["M10"], 3)
-                        logger.info("LRT of M7_%s vs M10_%s: %f"%(k,k,p710))
+                        #logger.info("LRT of M7_%s vs M10_%s: %f"%(k,k,p710))
                      else:
-                        logger.info("Possible failed optimization, likelihoods of M7_%s and M10_%s have not been computed."%(k,k))
+                        #logger.info("Possible failed optimization, likelihoods of M7_%s and M10_%s have not been computed."%(k,k))
        	 if "M8" in lModels and "M8a" in lModels:
                      if "M8"  in dLogLlh[k] and "M8a" in dLogLlh[k]:
                         LR88a, p88a = PSPFunc.LRT(dLogLlh[k]["M8a"], dLogLlh[k]["M8"], 1)
                         ts88a = 0.5*p88a + 0.5
-                        logger.info("LRT of M8_%s vs M8a_%s: %f (Treshold: %f)"%(k, k, p88a, ts88a))
+                        #logger.info("LRT of M8_%s vs M8a_%s: %f (Treshold: %f)"%(k, k, p88a, ts88a))
                      else:
-                        logger.info("Possible failed optimization, likelihoods of M8_%s and M8a_%s have not been computed."%(k,k))
+                        #logger.info("Possible failed optimization, likelihoods of M8_%s and M8a_%s have not been computed."%(k,k))
 
 
 def pamlGetLogL(pamldir):

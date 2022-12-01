@@ -12,7 +12,7 @@ def pspAnalysis(data, parms, aln, tree):
 
         @return Output directory name
 	"""
-	logger=logging.getLogger("main.positiveSelection")
+	#logger=logging.getLogger("main.positiveSelection")
 	dCtrls, lModels = PSPFunc.getParams(parms["models"], 
 					    parms["paml"], 
 					    parms["bppml"], 
@@ -27,19 +27,22 @@ def pspAnalysis(data, parms, aln, tree):
 	if not os.path.exists(outDir):
 		os.makedirs(outDir)
 	
-	cladoFile =  PSPFunc.supBoot(outDir, data["baseName"], tree, logger)
+	# cladoFile =  PSPFunc.supBoot(outDir, data["baseName"], tree, logger)<-- Old line, to uncomment if logger is back
+	cladoFile =  PSPFunc.supBoot(outDir, data["baseName"], tree)
 					
 	### Terminal output for user
+	"""	
 	logger.info("Output directory: {:s}".format(outDir))
 	logger.info("Alignement: {:s}".format(aln))
 	logger.info("Alignement is in {:s} format.".format(data["alnFormat"]))
-	logger.info("Tree: {:s}".format(tree))
+	logger.info("Tree: {:s}".format(tree))"""
 
 	### Run the different analysis as determined by control file
+	"""
 	logger.info("Starting positive selection analyses.")
 	logger.info("POSITIVE SELECTION ANALYSIS: ")
-	logger.info("Analysis to be run:")
-
+	logger.info("Analysis to be run:")"""
+	"""
 	dAnalysis = {"paml": "Site (codeml)", 
 		     "BUSTED":"Whole-Gene", 
 		     "bppml":"Site (Bio++ - Optimization)", 
@@ -48,10 +51,11 @@ def pspAnalysis(data, parms, aln, tree):
 		     "GNH":"Branch-site on positively selected branches", 
 		     "MEME":"Branch-site"}
 	for key in dCtrls.keys():
-		logger.info(dAnalysis[key])
+		logger.info(dAnalysis[key])"""
 	
 	if "BUSTED" in dCtrls:
-		GeneAnalysis.hyphyBusted(aln, cladoFile, outDir, data["baseName"], logger)			
+		#GeneAnalysis.hyphyBusted(aln, cladoFile, outDir, data["baseName"], logger) <-- Old line, to uncomment if logger is back
+		GeneAnalysis.hyphyBusted(aln, cladoFile, outDir, data["baseName"])			
 		"""try:		
 			GeneAnalysis.hyphyBusted(aln, cladoFile, outDir, data.baseName, logger)
 		except Exception:
@@ -59,13 +63,14 @@ def pspAnalysis(data, parms, aln, tree):
 
 	if "MEME" in dCtrls:
 		try:
+			# BranchAnalysis.memeBranchSite(aln, cladoFile, outDir, data["baseName"], logger)<-- Old line, to uncomment if logger is back
 			BranchAnalysis.memeBranchSite(aln, 
 						      cladoFile, 
 						      outDir, 
-						      data["baseName"], 
-						      logger)
+						      data["baseName"])
 		except Exception:
-			logger.error("MEME encountered an unexpected error, skipping.")
+			pass
+			#logger.error("MEME encountered an unexpected error, skipping.")
 			
 	if "bppml" in dCtrls:
 #	  try:
@@ -78,8 +83,7 @@ def pspAnalysis(data, parms, aln, tree):
 			         tree, 
 			         lModels, 
 			         outDir, 
-			         data["baseName"], 
-			         logger)
+			         data["baseName"])
 #	  except Exception:
 #	    logger.error("Bio++ Site encountered an unexpected error, skipping.")
 	
@@ -91,14 +95,13 @@ def pspAnalysis(data, parms, aln, tree):
 							  data["baseName"], 
 							  aln, 
 							  data["alnFormat"], 
-							  tree, 
-							  logger)	
+							  tree)	
 		# except Exception:
 		# 	logger.error("Bio++ Branch Analysis encountered an unexpected error, skipping.")
 	
 	if "OPB" and "GNH" in dCtrls and len(lPSNodes) > 1:
 #		try:
-			BranchAnalysis.bppBranchSite(dCtrls["GNH"], lPSNodes, outDir, data["baseName"], aln, data["alnFormat"], tree, logger)
+			BranchAnalysis.bppBranchSite(dCtrls["GNH"], lPSNodes, outDir, data["baseName"], aln, data["alnFormat"], tree)
 		# except Exception:
 		# 	logger.error("Bio++ Pseudo Branch-Site Analysis encountered an unexpected error, skipping.")
 	
@@ -108,14 +111,13 @@ def pspAnalysis(data, parms, aln, tree):
 				      lModels, 
 				      dCtrls["paml"], 
 				      outDir, 
-				      data["baseName"], 
-				      logger)
+				      data["baseName"])
 		"""try:
 			SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
 		except Exception:
 			logger.info("PAML (codeml) Site encountered an unexpected error, skipping.")"""
 
-	logger.info("Finished positive selection analyses.")
+	#logger.info("Finished positive selection analyses.")
 	return(outDir)
 
 if __name__ == "__main__" :	

@@ -220,6 +220,11 @@ properties:
       firstStep:
         type: string 
         description: Entry step of the pipeline. Choose between blast, extraction, fasta, orf, alignement, tree, duplication, recombination, positiveSelection.
+        default: "blast"
+      dAlTree:
+        type: object
+        default: {}
+        description: Contains the correspondance between an alignment and its resulting species tree.
     additionalProperties: True
 
 

@@ -5,11 +5,11 @@ from shutil import copyfile
 from SiteAnalysis import getNewParfromOptim, setIgnoreParams
 import PSPFunc
 
-def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
+def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile):
 	### BRANCH ANALYSIS: BIO++ ONE PER BRANCH
 	
-	logger.info("One Per Branch (BIO++)")
-	logger.info("OPB parameter file: {:s}".format(OPBFile))
+	#logger.info("One Per Branch (BIO++)")
+	#logger.info("OPB parameter file: {:s}".format(OPBFile))
 	
 	outOPB = outDir+"bpp_branch/"
 	if not os.path.exists(outOPB):
@@ -33,7 +33,7 @@ def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 		   "param": OPBFile,
                    "process1":"OnePerBranch(model=1, tree=1, rate=1, root_freq=1, shared_parameters=(*kappa, *Full.theta*))"}
 	# running bppml
-	logger.info("Running Branch optimization")
+	#logger.info("Running Branch optimization")
 
         ### look for previous M0 optim
 	outSite = outDir+"bpp_site/"
@@ -41,20 +41,20 @@ def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 
 	lModels=["M0", "M2"]
 	dPrevModelLog = {model:outSiteFileName+"_optimization_"+model for model in lModels}
-	prevmodel, dnewpar = getNewParfromOptim(model, lModels, dPrevModelLog, logger)
+	prevmodel, dnewpar = getNewParfromOptim(model, lModels, dPrevModelLog) # prevmodel, dnewpar = getNewParfromOptim(model, lModels, dPrevModelLog, logger)
 	lignore=[]
 	if prevmodel!="":        
 	  fnew=open(outBackup,"w")
 	  for k,v in dnewpar.items():
 	     fnew.write(k+"="+v.strip()+"\n")
 	  fnew.close()
-	lignore= setIgnoreParams(model, prevmodel, lModels, logger)
+	lignore= setIgnoreParams(model, prevmodel, lModels) #lignore= setIgnoreParams(model, prevmodel, lModels, logger)
         
 	dBppCmd["IGNORE"]=",".join(lignore)
          
 	# join each couple of the cmd dictionary so that it reads "k1 = v1" "k2 = v2" etc...
 	argsOPB = "bppml \""+"\" \"".join([k+"="+v for k, v in dBppCmd.items()])+"\""
-	logger.debug(argsOPB)
+	#logger.debug(argsOPB)
 	runOPB = cmd(argsOPB, False)
 
         # test each branch
@@ -113,11 +113,11 @@ def bppBranch(OPBFile, outDir, baseName, alnFile, alnFormat, treeFile, logger):
 	  LR, p = PSPFunc.LRT(valM2,valM1,2)
 	  fresbranch.write("%d\t%f\t%f\t%f\t%f\t%f\t%f\n"%(idi,dparam["YNGP_M2.omega2_%d"%mod],(1-dparam["YNGP_M2.theta2_%d"%mod]) * (1-dparam["YNGP_M2.theta1_%d"%mod]),valM2,valM1,LR,p))
 	  if p<0.05:
-	    logger.info("Node {:d} is interesting (w = {:f})".format(idi, dparam["YNGP_M2.omega2_%d"%mod]))
+	    #logger.info("Node {:d} is interesting (w = {:f})".format(idi, dparam["YNGP_M2.omega2_%d"%mod]))
 	fresbranch.close()
 	return(outParams)
 
-def parseNodes(outParams, logger):
+def parseNodes(outParams):
 	# parse branches under positive selection
 	lPSNodes = []
 	lNSNodes = []
@@ -130,22 +130,22 @@ def parseNodes(outParams, logger):
 				node = int(line[0][5:])-1
 				
 				if w > 1:
-					logger.info("Node {:d} is interesting (w = {:f})".format(node, w))
+					#logger.info("Node {:d} is interesting (w = {:f})".format(node, w))
 					lPSNodes.append(node)
 				else:
 					lNSNodes.append(node)
 		op.close()
-	logger.info("Nodes under positive selection {}".format(lPSNodes))
-	logger.info("Nodes under neutral or negative selection {}".format(lNSNodes))
+	#logger.info("Nodes under positive selection {}".format(lPSNodes))
+	#logger.info("Nodes under neutral or negative selection {}".format(lNSNodes))
 
 	return lPSNodes
 
-def bppBranchSite(GNHFile, lPSNodes, outDir, baseName, alnFile, alnFormat, treeFile, logger):
+def bppBranchSite(GNHFile, lPSNodes, outDir, baseName, alnFile, alnFormat, treeFile):
 
 	### PSEUDO BRANCH-SITE ANALYSIS: BIO++ GENERAL NON HOMOLOGOUS
 	
-	logger.info("General Non Homogenous on branches with w > 1 (BIO++)")
-	logger.info("GNH parameter file: {:s}".format(GNHFile))
+	#logger.info("General Non Homogenous on branches with w > 1 (BIO++)")
+	#logger.info("GNH parameter file: {:s}".format(GNHFile))
 	
 	for node in lPSNodes:
 		outGNH = outDir+"bpp_gnh/"
@@ -168,19 +168,19 @@ def bppBranchSite(GNHFile, lPSNodes, outDir, baseName, alnFile, alnFormat, treeF
 				   "param":GNHFile}
 			
 		# running bppml
-		logger.info("Running Pseudo Branch-Site optimization")
+		#logger.info("Running Pseudo Branch-Site optimization")
 		
 		# join each couple of the cmd dictionary so that it reads "k1 = v1" "k2 = v2" etc...
 		argsGNH = 'bppml "'+'" "'.join([k+"="+v for k, v in dBppCmd.items()])+'"'
-		logger.debug(argsGNH)
+		#logger.debug(argsGNH)
 		runGNH = cmd(argsGNH, False)
 
 
-def memeBranchSite(aln, cladoFile, outDir, baseName, logger):
+def memeBranchSite(aln, cladoFile, outDir, baseName):
 
 	### BRANCH-SITE ANALYSIS: HYPHY MEME
 	
-	logger.info("Episodic selection (MEME, HYPHY)")
+	#logger.info("Episodic selection (MEME, HYPHY)")
 	
 	outBSA = outDir+"meme/"
 	if not os.path.exists(outBSA):
@@ -194,7 +194,7 @@ def memeBranchSite(aln, cladoFile, outDir, baseName, logger):
 	lopt = " ".join([k + " " + v for k,v in dopt.items()])
         
 	# run MEME
-	logger.info("hyphy meme "+ lopt)
+	#logger.info("hyphy meme "+ lopt)
 
 	fout = open(outBSA+baseName+"_meme.out","w")
 	runMeme = subprocess.Popen("hyphy meme "+ lopt, shell = True, stdout = fout, bufsize=0).wait()

@@ -41,9 +41,9 @@ def getORFs(catFile, queryName, outORFraw):
 	@return outORF: Path to the file containing the longest ORFs
 	"""
 
-	logger = logging.getLogger("main.orf")
+	#logger = logging.getLogger("main.orf")
 	
-	logger.debug("getorf -sequence {:s} -outseq {:s} -table 0 -find 3 -noreverse".format(catFile, outORFraw))
+	#logger.debug("getorf -sequence {:s} -outseq {:s} -table 0 -find 3 -noreverse".format(catFile, outORFraw))
 	cmd("getorf -sequence {:s} -outseq {:s} -table 0 -find 3 -noreverse".format(catFile, outORFraw), False)
 	
 	dId2ORFs = defaultdict(list)
@@ -86,9 +86,9 @@ def getORFs(catFile, queryName, outORFraw):
 		for i in dupl:
 			dId2Longest.pop(i, None)
 			n += 1
-			logger.debug("Deleted sequence {:s} (duplicate)".format(i))
+			#logger.debug("Deleted sequence {:s} (duplicate)".format(i))
 		
-	logger.info("Deleted {} sequences as duplicates".format(n))
+	#logger.info("Deleted {} sequences as duplicates".format(n))
 	
 	outORF = sys.argv[3]
 	#print(fastaRes.dict2fasta(dId2Longest))
@@ -96,7 +96,7 @@ def getORFs(catFile, queryName, outORFraw):
 		outO.write(fastaRes.dict2fasta(dId2Longest))
 		outO.close()
 	  
-	logger.info("Extracted longest ORFs: {:s}".format(outORF))
+	#logger.info("Extracted longest ORFs: {:s}".format(outORF))
 
 	return(outORF)
 

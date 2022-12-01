@@ -23,7 +23,7 @@
         "nbspecies": 8, 
         "recombination": false, 
         "positiveSelection": false,
-        "hyphySeuil": 0.05, 
+        "hyphySeuil": 0.05,
         "busted": false, 
         "meme": false,
         "models": "M0, M1, M2",
@@ -38,7 +38,7 @@
         "basename": "", 
         "debug": false,
         "codon_aligner" : ["macse"],
-        "align_nt" : true
+        "align_nt" : false
     },
     
     "data": {
@@ -55,6 +55,7 @@
         "tree": "",
         "queryName": "",
         "alnFormat": "",
-        "baseName": ""
+        "baseName": "",
+        "dAlTree": {}
     }
 }

@@ -21,10 +21,10 @@ def covAln(aln, cov, queryName, o):
 	"""
 	
 	dId2Seq = {fasta.id:str(fasta.seq) for fasta in SeqIO.parse(open(aln),'fasta')}
-	logger = logging.getLogger("main.alignment")
+	#logger = logging.getLogger("main.alignment")
 	
 	if queryName in dId2Seq:
-		logger.info("Discarding sequences with less than {:d}% coverage of query.".format(cov))
+		#logger.info("Discarding sequences with less than {:d}% coverage of query.".format(cov))
 		outCov = o
 		
 		nbOut = 0
@@ -44,12 +44,12 @@ def covAln(aln, cov, queryName, o):
 		with open(outCov, "w") as outC:
 			outC.write(fastaRes.dict2fasta(dKeep))
 			outC.close()
-		logger.info("Discarded {:d} sequences".format(nbOut))
+		#logger.info("Discarded {:d} sequences".format(nbOut))
 	
 		return(outCov, nbOut)
 	
 	else:
-		logger.warning("Provided query name not found in the alignment, skipping coverage check.")
+		#logger.warning("Provided query name not found in the alignment, skipping coverage check.")
 		return(aln, 0)
 
 

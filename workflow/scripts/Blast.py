@@ -37,9 +37,10 @@ def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, 
 	@return blastRes: Path to Blast results file
 	"""
 	# Blast results file
-	blastRes = outDir+baseName+"_blastres.tsv"
+	blastRes = outDir+"accessions_input_"+baseName+".tsv"
+	"""	
 	logger = logging.getLogger("main.blast")
-	logger.info("Running Blast")
+	logger.info("Running Blast")"""
 
 	if remote:
 		
@@ -92,13 +93,14 @@ def blast(queryFile, outDir, baseName, db, evalue, percId, cov, apiKey, remote, 
 																	   percId, 
 																	   cov)
 		cmd(cmdBlast, False)
+	"""
 		logger.debug("Blast command: {:s}".format(cmdBlast))
-
+	
 	if os.path.exists(blastRes) and os.stat(blastRes).st_size > 0:								
 		logger.info("Blast results written to: {:s}, {} sequences retrieved.".format(blastRes, nbSeq))
 	else:
 		logger.error("Blast didn't run, exiting DGINN.")
-		sys.exit()
+		sys.exit()"""
 	
 	return(blastRes)
 

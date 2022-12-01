@@ -1,1 +1,61 @@
-{"parameters": {"infile": "/home/jerem/Documents/master/projet/DGINN_dev/workflow/data/ex_CCDS.fasta", "queryName": "homSap_RSAD2_CCDS1656", "queryFile": "/home/jerem/Documents/master/projet/DGINN_dev/workflow/data/ex_CCDS.fasta", "outdir": "results/", "logfile": "/home/jerem/Documents/master/projet/DGINN_dev/workflow/data/ex_CCDS_DGINN_202211281552.log", "step": "blast", "blastdb": "nr", "evalue": 0.001, "mincov": 50, "percID": 70, "maxLen": "cutoff", "entryQuery": "Primates[Organism]", "remote": true, "APIKey": "", "phymlOpt": "", "sptree": "data/ex_spTree.tree", "duplication": true, "LBopt": "cutoff", "nbspecies": 8, "recombination": false, "positiveSelection": false, "hyphySeuil": 0.05, "busted": false, "meme": false, "models": "M0, M1, M2", "paml": "", "bppml": "", "mixedlikelihood": "", "opb": false, "gnh": false, "alnfile": "", "treefile": "", "alnformat": "Fasta", "basename": "", "debug": false}, "data": {"queryFile": "/home/jerem/Documents/master/projet/DGINN_dev/workflow/data/ex_CCDS.fasta", "o": "results/", "db": "nr", "geneName": "", "sequence": "", "blastRes": "results/ex_CCDS_blastres.tsv", "lBlastRes": ["NM_080657.5", "AF442151.1", "AK312670.1", "BC017969.1", "JQ437822.1", "AF026941.1", "XM_003812050.3", "JQ437821.1", "JQ437823.1", "CR858150.1", "XM_003276541.3", "JQ437825.1", "XM_032172132.1", "XM_010359224.2", "XM_017896627.1", "MW981598.1", "XM_011749452.2", "XM_050754703.1", "XM_025354794.1", "XM_005576618.3", "JQ437830.1", "XM_011993644.1", "JQ437829.1", "XM_033176640.1", "JQ437832.1", "JQ437831.1", "JQ437828.1", "JQ437826.1", "JQ437824.1", "XM_007971580.2", "XM_012063960.1", "XM_011960946.1", "JQ437827.1", "XM_023198869.3", "JQ437833.1", "JQ437834.1", "XM_012441946.2", "XM_003927233.3", "JQ437836.1", "XM_017541999.2", "JQ437837.1", "XR_004273743.1", "XM_032294225.1", "JQ437835.1", "XM_002758049.4", "XM_033176641.1", "XM_023198876.1", "XM_012639946.1", "NM_001410702.1", "XM_016942853.2", "XM_034952547.1", "XM_009441955.3", "XM_008964447.2", "XM_016942850.2", "XM_019020595.1", "AK300085.1", "XM_008051837.2", "XM_009237560.2", "XM_011749454.1", "XM_011749453.1", "XM_045369851.1", "XM_003803558.3", "XM_012763351.2", "XM_023198882.1", "XM_012441947.1", "XM_032294226.1"], "sptree": "data/ex_spTree.tree", "ORFs": "results/ex_CCDS_longestORFs.fasta", "aln": "results/ex_CCDS_ORFs_al_mafft.fasta", "tree": "", "queryName": "homSap_RSAD2_CCDS1656", "alnFormat": "", "baseName": "ex_CCDS", "firstStep": "orf", "accnFile": "results/ex_CCDS_accns.txt", "seqFile": "results/ex_CCDS_sequences_filtered.fasta", "cor": "results/ex_CCDS_sequences_Species2Genes.txt"}}
+
+{
+    "parameters":
+    {
+        "infile": "data/ex_CCDS.fasta",
+        "queryName": "", 
+        "queryFile": "", 
+        "outdir": "results/", 
+        "logfile": "", 
+        "step": "blast",
+        "blastdb": "nr", 
+        "evalue": 1e-3, 
+        "mincov": 50, 
+        "percID": 70,
+        "maxLen": "cutoff",
+        "entryQuery": "Primates[Organism]", 
+        "remote": true, 
+        "APIKey": "",
+        "phymlOpt": "",
+        "sptree":"data/ex_spTree.tree",
+        "duplication": true, 
+        "LBopt": "cutoff",
+        "nbspecies": 8, 
+        "recombination": false, 
+        "positiveSelection": false,
+        "hyphySeuil": 0.05,
+        "busted": false, 
+        "meme": false,
+        "models": "M0, M1, M2",
+        "paml": "",
+        "bppml": "", 
+        "mixedlikelihood": "", 
+        "opb": false, 
+        "gnh": false,
+        "alnfile": "", 
+        "treefile": "", 
+        "alnformat": "Fasta", 
+        "basename": "", 
+        "debug": false,
+        "codon_aligner" : ["macse"],
+        "align_nt" : false
+    },
+    
+    "data": {
+        "queryFile": "",
+        "o": "results/", 
+        "db": "",
+        "geneName": "",
+        "sequence": "",
+        "blastRes": "",
+        "lBlastRes": [],
+        "sptree": "",
+        "ORFs": "",
+        "aln": "",
+        "tree": "",
+        "queryName": "",
+        "alnFormat": "",
+        "baseName": "",
+        "dAlTree": {}
+    }
+}

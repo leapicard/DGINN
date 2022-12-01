@@ -372,7 +372,7 @@ def resolve_polytomy(node, gtree, o):
     val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX".format(gf, 
 								     spf, 
 								     "tmp")
-    analysis_test.cmd(val, False)#, True)
+    Analysis.cmd(val, False)#, True)
 
     fnt=open(os.path.join("tmp","eval_poly_gene_%d_recs.nhx"%(len(lspt))),"r")
     lc=fnt.readline()
@@ -464,7 +464,7 @@ def runTreerecs(pathGtree, pathSptree, cor, o):
 								       pathSptree2, 
 								       o)
 	
-  analysis_test.cmd(val, False)
+  Analysis.cmd(val, False)
 
   return recTree
 
@@ -499,8 +499,8 @@ def treeTreatment(data, dAlnTree, nbSp, phymlOpt):
 		
 	if len(lFastaFile) > 0:
 		for orthoGp in data["duplication"]:
-			#aln = analysis_test.runPrank(orthoGp, data.geneName, data.o) #à remettre
-			tree = analysis_test.runPhyML(aln, phymlOpt, data["o"])
+			#aln = Analysis.runPrank(orthoGp, data.geneName, data.o) #à remettre
+			tree = Analysis.runPhyML(aln, phymlOpt, data["o"])
 			#dAlnTree2[aln] = tree+"_phyml_tree.txt" #à remettre
 	logger.info(str(dAlnTree2))
 	if len(dAlnTree2)!=0:

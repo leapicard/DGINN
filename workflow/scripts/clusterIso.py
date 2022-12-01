@@ -16,8 +16,8 @@ overall coverage of these isoforms.
 
         """
 
-        logger = logging.getLogger("main.alignment")
-        logger.info("Clustering isoforms.")
+        #logger = logging.getLogger("main.alignment")
+        #logger.info("Clustering isoforms.")
 
         dRem={} #for remaining sequences
         dId2Seq={} #for remaining sequences
@@ -63,7 +63,7 @@ overall coverage of these isoforms.
                         else:
                                 clustok=True
                                 ntag=clust[-1]+"_clust"
-                                logger.info("Clustered sequences " + sp+"_" + (", %s_"%(sp)).join(clust) + " into %s_"%(sp)+ntag)
+                                #logger.info("Clustered sequences " + sp+"_" + (", %s_"%(sp)).join(clust) + " into %s_"%(sp)+ntag)
                                 nseq="".join([max([dtagseq[tag][pos] for tag in clust]) for pos in range(laln)])
                                 dRem[sp+"_"+ntag]=nseq
 
@@ -77,12 +77,12 @@ overall coverage of these isoforms.
                 return(aln)
 
 if __name__ == "__main__" :
-        
+
         with open(sys.argv[1], 'r') as config_in :
                 config_dict = json.load(config_in)
                 
-
-        config_dict["data"]["aln"] = isoformAln(config_dict["data"]["aln"], sys.argv[2])
+        aln = sys.argv[3]
+        config_dict["data"]["aln"] = isoformAln(aln, sys.argv[2])
 
         with open(sys.argv[1], 'w') as config_out :
                 json.dump(config_dict, config_out, indent="")

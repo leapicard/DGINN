@@ -41,7 +41,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	@return1 outCat: Path to the file containing the sequences and the new IDs
 	@return2 corSG: Path
 	"""
-	logger = logging.getLogger("main.accessions")
+	#logger = logging.getLogger("main.accessions")
 	dSpecies = {}
 	dId2Seq = {}
 	lTax = []
@@ -87,13 +87,13 @@ def remoteDl(lBlastRes, queryName, apiKey):
 			
 	handle.close()
 	nbSp = len(set(lTax))
-	logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases ({} different species represented in the retrieved sequences).".format(nbSp))
+	#logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases ({} different species represented in the retrieved sequences).".format(nbSp))
 	
 	return(dId2Seq)
 
 
 def sizeCheck(dId2Seq):
-	logger = logging.getLogger("main.accessions")
+	#logger = logging.getLogger("main.accessions")
 
 	dId2Len = {Id:len(seq) for Id, seq in dId2Seq.items()}
 	m = median(dId2Len.values())
@@ -104,7 +104,7 @@ def sizeCheck(dId2Seq):
 			if v > 2*m:
 				try:
 					del dId2Seq[k]
-					logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
+					#logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
 					n += 1
 				except KeyError:
 					pass
@@ -112,18 +112,18 @@ def sizeCheck(dId2Seq):
 			if v > 3*m or v > 20000:
 				try:
 					del dId2Seq[k]
-					logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
+					#logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
 					n += 1
 				except KeyError:
 					pass
 	
-	logger.info("Deleted {} sequences due to excessive length.".format(n))
+	#logger.info("Deleted {} sequences due to excessive length.".format(n))
 
 	return(dId2Seq)
 	
 
 def catFile(queryFile, dId2Seq, firstFasta):
-	logger = logging.getLogger("main")
+	#logger = logging.getLogger("main")
 
 	with open(queryFile, "r") as query:
 		lquery = query.readlines()
@@ -150,8 +150,8 @@ def fastaCreation(data_dict, remote, apiKey, step, treerecs, outputfile):
 	if remote:
 		dId2Seq = remoteDl(data_dict["lBlastRes"],data_dict["queryName"], apiKey)
 	else: ### need to code this!!!!
-		logger = logging.getLogger("main.fasta")
-		logger.info("Local retrieval of information not yet implemented, exiting DGINN.")
+		#logger = logging.getLogger("main.fasta")
+		#logger.info("Local retrieval of information not yet implemented, exiting DGINN.")
 		sys.exit()
 	
 	dId2Seq = sizeCheck(dId2Seq)
