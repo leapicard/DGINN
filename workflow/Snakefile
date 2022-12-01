@@ -3,12 +3,12 @@ min_version("7.15.2")
 
 configfile: "config/config.json"
 validate(config, "config/config.schema.yaml")
-
+dir = config["data"]["o"]
 rule init:
     input: 
         config = "config/config.json"
     output:
-        infile = config["data"]["o"]+config["parameters"]["step"]+"_input_"+[config["parameters"]["infile"]][0].split("/")[1]
+        infile = dir+config["parameters"]["step"]+"_input_"+[config["parameters"]["infile"]][0].split("/")[1]
 
     message: "Initializing pipeline, starting at step "+config["parameters"]["step"]+"."
     shell:
@@ -17,9 +17,9 @@ rule init:
 
 rule blast:
     input:
-        infile = config["data"]["o"]+"blast_input_{samples}.fasta"
+        infile = dir+"blast_input_{samples}.fasta"
     output:
-        tsvfile = config["data"]["o"]+"accessions_input_{samples}.tsv"
+        tsvfile = dir+"accessions_input_{samples}.tsv"
     params:
         config = "config/config.json"
 
@@ -30,9 +30,9 @@ rule blast:
 
 rule extract:
     input:
-        blastres = config["data"]["o"]+"accessions_input_{samples}.tsv" # à remplacer par config["data"]["o"]+"{samples}.tsv" car tous les fichiers d'entrée n'auront pas '_blastres'
+        blastres = dir+"accessions_input_{samples}.tsv" # à remplacer par config["data"]["o"]+"{samples}.tsv" car tous les fichiers d'entrée n'auront pas '_blastres'
     output:
-        accns = config["data"]["o"]+"fasta_input_{samples}.txt" #à modifier quand samples aura changé 
+        accns = dir+"fasta_input_{samples}.txt" #à modifier quand samples aura changé 
     params:
         config = "config/config.json"
 
@@ -43,9 +43,9 @@ rule extract:
 
 rule fasta_res:
     input: 
-        accns = config["data"]["o"]+"fasta_input_{samples}.txt" #pareil que pour input extract 
+        accns = dir+"fasta_input_{samples}.txt" #pareil que pour input extract 
     output:
-        seq = config["data"]["o"]+"orf_input_{samples}.fasta"
+        seq = dir+"orf_input_{samples}.fasta"
     params:
         config = "config/config.json"
 
@@ -57,10 +57,10 @@ rule fasta_res:
 
 rule get_orf:
     input:
-        seqfile = config["data"]["o"]+"orf_input_{samples}.fasta" #pareil que pour input extract 
+        seqfile = dir+"orf_input_{samples}.fasta" #pareil que pour input extract 
     output:
-        res = config["data"]["o"]+"{samples}_allORFs.fasta",
-        res_longest = config["data"]["o"]+"align_input_{samples}.fasta"
+        res = dir+"{samples}_allORFs.fasta",
+        res_longest = dir+"align_input_{samples}.fasta"
     params:
         config = "config/config.json"
 
@@ -70,12 +70,12 @@ rule get_orf:
 
 rule align_mafft:
     input:
-        lgst_ORFs = config["data"]["o"]+"align_input_{samples}.fasta"
+        lgst_ORFs = dir+"align_input_{samples}.fasta"
     output:
-        out_covAln = config["data"]["o"]+"{samples}_mafft.fasta"
+        out_covAln = dir+"{samples}_mafft.fasta"
     params:
         config = "config/config.json",
-        out_mafft = config["data"]["o"]+"{samples}_ORFs_al_mafft.fasta"
+        out_mafft = dir+"{samples}_ORFs_al_mafft.fasta"
 
     message: "Starting mafft nucleotide alignment. Aligning sequences from file {input.lgst_ORFs}, writing alignment in file {output.out_covAln}"
     run:
@@ -99,13 +99,13 @@ rule align_mafft:
 
 rule first_align_codon:
     input:
-        in_alcodon = config["data"]["o"]+"{samples}_mafft.fasta" if config["parameters"]["align_nt"] else config["data"]["o"]+"align_input_{samples}.fasta"
+        in_alcodon = dir+"{samples}_mafft.fasta" if config["parameters"]["align_nt"] else dir+"align_input_{samples}.fasta"
     output:
-        out_clusterIso = config["data"]["o"]+"{samples}_clustiso_first.fasta" if len(config["parameters"]["codon_aligner"]) == 2 else config["data"]["o"]+"{samples}_clustiso.fasta"
+        out_clusterIso = dir+"{samples}_clustiso_first.fasta" if len(config["parameters"]["codon_aligner"]) == 2 else dir+"{samples}_clustiso.fasta"
     params:
         config = "config/config.json",
         extension = config["parameters"]["codon_aligner"][0],
-        out_codon_param = config["data"]["o"]+"{samples}_alcodon",
+        out_codon_param = dir+"{samples}_alcodon",
         macse_param = "-prog refineAlignment -align" if config["parameters"]["align_nt"] else "-prog alignSequences -seq"
 
     message: "Starting first codon alignment with "+config["parameters"]["codon_aligner"][0]+" from file {input.in_alcodon}, writing results in file {output.out_clusterIso}" if len(config["parameters"]["codon_aligner"]) == 2 \
@@ -124,13 +124,13 @@ rule first_align_codon:
 
 rule second_align_codon:
     input:
-        in_alcodon_2 = config["data"]["o"]+"{samples}_clustiso_first.fasta" if len(config["parameters"]["codon_aligner"]) == 2 else config["data"]["o"]+"{samples}_clustiso.fasta"
+        in_alcodon_2 = dir+"{samples}_clustiso_first.fasta" if len(config["parameters"]["codon_aligner"]) == 2 else dir+"{samples}_clustiso.fasta"
     output:
-        out_clusterIso_2 = config["data"]["o"]+"tree_input_{samples}.fasta"
+        out_clusterIso_2 = dir+"tree_input_{samples}.fasta"
     params:
         config = "config/config.json",
         extension = config["parameters"]["codon_aligner"][1] if len(config["parameters"]["codon_aligner"]) == 2 else config["parameters"]["codon_aligner"][0],
-        out_codon_param = config["data"]["o"]+"{samples}_alcodon",
+        out_codon_param = dir+"{samples}_alcodon",
         macse_param = "-prog refineAlignment -align" if config["parameters"]["align_nt"] else "-prog alignSequences -seq"
 
     message: "Starting second codon alignment with "+config["parameters"]["codon_aligner"][1]+" from file {input.in_alcodon_2}, writing results in file {output.out_clusterIso_2}"\
@@ -159,26 +159,26 @@ rule second_align_codon:
 # Rules using analysis.py :
 rule tree:
     input:
-        infile = config["data"]["o"]+"tree_input_{samples}.fasta" #ajouter tree dans le nom
+        infile = dir+"tree_input_{samples}.fasta" #ajouter tree dans le nom
     params:
         fonction = "phyMLTree",
         config = "config/config.json"
     output:
-        phymlfile = config["data"]["o"]+config["data"]["aln"].split("/")[-1].split(".")[0]+".phylip_phyml_tree.txt"
+        phymlfile = dir+config["data"]["aln"].split("/")[-1].split(".")[0]+".phylip_phyml_tree.txt"
     shell:
         "python3 scripts/Analysis.py {params.config} {params.fonction}"
 
 
 rule duplication:
     input:
-        infile = config["data"]["o"]+"ex_CCDS_ORFs_alcodon_clustiso.fasta", #ajouter duplication dans le nom
-        infile_tree = config["data"]["dAlTree"][config["data"]["aln"]] if len(config["data"]["dAlTree"]) >0 else config["data"]["o"]+config["data"]["aln"].split("/")[-1].split(".")[0]+".phylip_phyml_tree.txt"
+        infile = dir+"ex_CCDS_ORFs_alcodon_clustiso.fasta", #ajouter duplication dans le nom
+        infile_tree = config["data"]["dAlTree"][config["data"]["aln"]] if len(config["data"]["dAlTree"]) >0 else dir+config["data"]["aln"].split("/")[-1].split(".")[0]+".phylip_phyml_tree.txt"
     params:
         fonction = "checkPhyMLTree",
         config = "config/config.json"
     output:
-        output_nhx = config["data"]["dAlTree"][config["data"]["aln"]]+"_recs.nhx" if len(config["data"]["dAlTree"]) > 0 else config["data"]["o"]+config["data"]["aln"].split("/")[-1].split(".")[0]+"_recs.nhx",
-        output_svg = config["data"]["dAlTree"][config["data"]["aln"]]+"_recs.svg" if len(config["data"]["dAlTree"]) > 0 else config["data"]["o"]+config["data"]["aln"].split("/")[-1].split(".")[0]+"_recs.svg"
+        output_nhx = config["data"]["dAlTree"][config["data"]["aln"]]+"_recs.nhx" if len(config["data"]["dAlTree"]) > 0 else dir+config["data"]["aln"].split("/")[-1].split(".")[0]+"_recs.nhx",
+        output_svg = config["data"]["dAlTree"][config["data"]["aln"]]+"_recs.svg" if len(config["data"]["dAlTree"]) > 0 else dir+config["data"]["aln"].split("/")[-1].split(".")[0]+"_recs.svg"
     shell:
         "python3 scripts/Analysis.py {params.config} {params.fonction}"
 
@@ -190,8 +190,8 @@ rule recombination:
         fonction = "gardRecomb",
         config = "config/config.json"
     output:
-    	gardRes =  config["data"]["o"]+config["data"]["aln"].split("/")[-1].split(".")[0]+".gard",
-	    gardJson = config["data"]["o"]+config["data"]["aln"].split("/")[-1]+".GARD.json"
+    	gardRes =  dir+config["data"]["aln"].split("/")[-1].split(".")[0]+".gard",
+	    gardJson = dir+config["data"]["aln"].split("/")[-1]+".GARD.json"
     shell:
         "python3 scripts/Analysis.py {params.config} {params.fonction}"
 
@@ -199,6 +199,6 @@ rule positive_selection:
     input:
         config = "config/config.json"
     output:
-	    pos_res = config["data"]["o"]+"files_list.txt"
+	    pos_res = dir+"files_list.txt"
     shell:
         "python3 scripts/posSel.py {input.config}"
