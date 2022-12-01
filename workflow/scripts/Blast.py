@@ -143,5 +143,5 @@ if __name__ == "__main__" :
 	#json_dict_updated = json.dumps(json_dict)
 
 	with open(sys.argv[1], 'w') as json_out :
-		json.dump(json_dict, json_out)
+		json.dump(json_dict, json_out, indent="")
 		

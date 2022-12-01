@@ -151,9 +151,13 @@ properties:
         description: Defines wether or ft to query NCBI apis remotly or locally
         default: False
       codon_aligner:
-        type: string
+        type: array
         description: Defines which codon aligner to use.
-        default: "macse"
+        default: ["macse"]
+      align_nt :
+        type : boolean
+        description : Defines wether or not to use mafft nucleotide alignment before the codon aligner
+        default : true
     required:
       - infile 
     additionalProperties: False

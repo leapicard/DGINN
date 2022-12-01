@@ -1,4 +1,4 @@
-import loadfile_test, PSPFunc, GeneAnalysis, SiteAnalysis, BranchAnalysis, os
+import loadFile, PSPFunc, GeneAnalysis, SiteAnalysis, BranchAnalysis, os
 from time import localtime, strftime
 import logging
 import json
@@ -127,7 +127,7 @@ if __name__ == "__main__" :
     
     if parameters["positiveSelection"] :  
         if parameters["step"] == "positiveSelection":
-            data, data["dAlTree"] = loadfile_test.pspEntry(data, parameters)
+            data, data["dAlTree"] = loadFile.pspEntry(data, parameters)
     
         listArgsPosSel =  []
         fAT = open(data["o"]+"files_list.txt", "w")
@@ -144,4 +144,4 @@ if __name__ == "__main__" :
     config_dict["data"] = data
 
     with open(sys.argv[1],'w') as config_out:
-	    json.dump(config_dict, config_out)
+	    json.dump(config_dict, config_out, indent="")

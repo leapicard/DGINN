@@ -191,9 +191,9 @@ if __name__ == "__main__" :
 	data_filled = initLogger(data, parameters_complete, parameters_complete["debug"], version)
 	json_dict["parameters"] = parameters_complete
 	json_dict["data"] = data_filled
-	json_dict_updated = json.dumps(json_dict)
+	#json_dict_updated = json.dumps(json_dict)
 
 	with open(sys.argv[1], 'w') as json_out :
-		json_out.write(json_dict_updated)
+		json.dump(json_dict, json_out, indent="")
 	
 	res = shutil.copy(parameters_complete["infile"], sys.argv[2])

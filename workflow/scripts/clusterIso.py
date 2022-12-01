@@ -1,4 +1,4 @@
-import logging, fastares_test
+import logging, fastaRes
 from Bio import SeqIO
 import json, sys
 
@@ -69,7 +69,7 @@ overall coverage of these isoforms.
 
         if clustok:
             with open(outCov, "w") as outC:
-                outC.write(fastares_test.dict2fasta(dRem))
+                outC.write(fastaRes.dict2fasta(dRem))
                 outC.close()
 	
                 return(outCov)
@@ -85,4 +85,4 @@ if __name__ == "__main__" :
         config_dict["data"]["aln"] = isoformAln(config_dict["data"]["aln"], sys.argv[2])
 
         with open(sys.argv[1], 'w') as config_out :
-                json.dump(config_dict, config_out)
+                json.dump(config_dict, config_out, indent="")

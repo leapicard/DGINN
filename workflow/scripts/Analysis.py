@@ -528,6 +528,6 @@ if __name__ == "__main__" :
 	config_dict["data"] = data
 
 	with open(sys.argv[1],'w') as config_out:
-		json.dump(config_dict, config_out)
+		json.dump(config_dict, config_out, indent="")
 
 

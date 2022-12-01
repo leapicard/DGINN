@@ -15,5 +15,5 @@ config_dict["data"]["aln"] = sys.argv[1]                #!#
 
 
 with open(sys.argv[2],'w') as config_out:
-    json.dump(config_dict, config_out)
+    json.dump(config_dict, config_out, indent="")
 

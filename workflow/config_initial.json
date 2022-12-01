@@ -1,5 +1,4 @@
 
-/* C'est le config de base avant qu'il soit modifié au cours du pipeline à copier/coller quand on relance*/
 {
     "parameters":
     {
@@ -37,7 +36,9 @@
         "treefile": "", 
         "alnformat": "Fasta", 
         "basename": "", 
-        "debug": false
+        "debug": false,
+        "codon_aligner" : ["macse"],
+        "align_nt" : true
     },
     
     "data": {

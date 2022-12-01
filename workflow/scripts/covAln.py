@@ -77,4 +77,4 @@ if __name__ == "__main__" :
 
 
 	with open(sys.argv[3],'w') as config_out:
-		json.dump(config_dict, config_out)
+		json.dump(config_dict, config_out, indent="")
