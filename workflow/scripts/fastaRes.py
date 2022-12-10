@@ -76,9 +76,9 @@ def remoteDl(lBlastRes, queryName, apiKey):
 					
 		if "." in name or "-" in name or name == "":
 			try:
-                                name = "pot"+queryName.split("_")[1]
+				name = "pot"+queryName.split("_")[1]
 			except IndexError:
-                                name = "pot"
+				name = "pot"
 		if tax == "synCon" or 'GBSeq_sequence' not in record.keys():
 			continue
 		else:
@@ -87,6 +87,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 			
 	handle.close()
 	nbSp = len(set(lTax))
+	print(f"Remote option on, downloaded gene IDs and sequences from NCBI databases ({nbSp} different species represented in the retrieved sequences).\n")
 	#logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases ({} different species represented in the retrieved sequences).".format(nbSp))
 	
 	return(dId2Seq)
@@ -116,7 +117,7 @@ def sizeCheck(dId2Seq):
 					n += 1
 				except KeyError:
 					pass
-	
+	print(f"Deleted {n} sequences due to excessive length\n")
 	#logger.info("Deleted {} sequences due to excessive length.".format(n))
 
 	return(dId2Seq)

@@ -22,7 +22,7 @@ RUN apt-get -y install build-essential \
 ## Install most recent version of cMake
 ## RUN git clone https://github.com/Kitware/CMake && cd CMake && ./bootstrap && make && make install
 
-RUN apt-get -y install build-essential cmake
+RUN apt-get -y install cmake
 
 
 #################
@@ -31,6 +31,7 @@ FROM base as prank
 WORKDIR /opt
 
 RUN git clone https://github.com/ariloytynoja/prank-msa.git && cd prank-msa/src && make
+
 
 
 #################
@@ -46,8 +47,9 @@ RUN apt-get -y install phyml
 ## Install Treerecs
 FROM base as treerecs
 WORKDIR /opt
+RUN apt-get install -y python3-dev
 
-RUN git  clone https://gitlab.inria.fr/Phylophile/Treerecs && cd Treerecs && cmake -DCMAKE_BUILD_TYPE=MinSizeRel . && make && make install
+RUN git clone https://gitlab.inria.fr/Phylophile/Treerecs.git && cd Treerecs && cmake -DCMAKE_BUILD_TYPE=Release . && make && make install
 
 
 #################
@@ -124,7 +126,6 @@ WORKDIR /opt/
 
 ## Install python3, necessary packages and DGINN
 RUN apt-get install -y python3-pip
-
 RUN pip3 install --upgrade numpy \
 	scipy \
 	pandas \
@@ -138,9 +139,17 @@ RUN pip3 install biopython
 
 RUN pip3 install --upgrade ete3
 
-RUN git clone https://github.com/lgueguen/DGINN && cd DGINN && chmod +x DGINN.py
+RUN git clone https://github.com/gennaBnh/DGINN && cd DGINN
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
+
+## Install macse
+FROM base as java
+WORKDIR /opt/DGINN/workflow/
+
+RUN apt-get  clean && apt-get update -y && apt-get install default-jdk
+RUN wget https://bioweb.supagro.inra.fr/macse/releases/macse_v2.06.jar
+
 
 
 ## All softwares
@@ -178,6 +187,8 @@ COPY --from=paml /opt/paml/src/codeml /usr/local/bin/
 
 RUN apt-get install -y python3-biopython
 
+RUN apt-get update -y && \
+    apt-get install -y snakemake
+
 #WORKDIR ~/
-ENTRYPOINT ["DGINN.py"]
-CMD ["-h"]
+ENTRYPOINT [ "snakemake" ]

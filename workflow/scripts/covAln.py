@@ -24,6 +24,7 @@ def covAln(aln, cov, queryName, o):
 	#logger = logging.getLogger("main.alignment")
 	
 	if queryName in dId2Seq:
+		print(f"Discarding sequences with less than {cov} coverage of query.\n")
 		#logger.info("Discarding sequences with less than {:d}% coverage of query.".format(cov))
 		outCov = o
 		
@@ -44,6 +45,7 @@ def covAln(aln, cov, queryName, o):
 		with open(outCov, "w") as outC:
 			outC.write(fastaRes.dict2fasta(dKeep))
 			outC.close()
+		print(f"Discarded {nbOut} sequences\n")
 		#logger.info("Discarded {:d} sequences".format(nbOut))
 	
 		return(outCov, nbOut)

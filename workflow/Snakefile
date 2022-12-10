@@ -1,16 +1,20 @@
 from snakemake.utils import min_version, validate
+
 min_version("7.15.2")
 
+container: "docker://laugueguen/dginn"
 configfile: "config/config.json"
 validate(config, "config/config.schema.yaml")
+
 dir = config["data"]["o"]
+
 rule init:
     input: 
         config = "config/config.json"
     output:
         infile = dir+config["parameters"]["step"]+"_input_"+[config["parameters"]["infile"]][0].split("/")[1]
 
-    message: "Initializing pipeline, starting at step "+config["parameters"]["step"]+"."
+    message: "\nInitializing pipeline, starting at step "+config["parameters"]["step"]+"."
     shell:
         "python3 scripts/Init.py {input.config} {output.infile}"
 
@@ -23,7 +27,7 @@ rule blast:
     params:
         config = "config/config.json"
 
-    message: "Starting BLAST alignment on file {input.infile}, writing output in file {output.tsvfile}"
+    message: "\nStarting BLAST alignment on file {input.infile}, writing output in file {output.tsvfile}" # Print in Blast.py to show how many homologous sequences were found.
     shell:
         "python3 scripts/Blast.py {params.config} {output.tsvfile}"
 
@@ -32,11 +36,11 @@ rule extract:
     input:
         blastres = dir+"accessions_input_{samples}.tsv" # à remplacer par config["data"]["o"]+"{samples}.tsv" car tous les fichiers d'entrée n'auront pas '_blastres'
     output:
-        accns = dir+"fasta_input_{samples}.txt" #à modifier quand samples aura changé 
+        accns = dir+"fasta_input_{samples}.txt" # à modifier quand samples aura changé 
     params:
         config = "config/config.json"
 
-    message: "Starting Accessions search from file {input.blastres}, writing accessions in file {output.accns}"
+    message: "\nStarting Accessions search from file {input.blastres}, writing accessions in file {output.accns}"
     shell:
         "python3 scripts/Extract.py {params.config} {input.blastres} {output.accns}"
 
@@ -49,7 +53,7 @@ rule fasta_res:
     params:
         config = "config/config.json"
 
-    message: "Starting the retreival of FASTA sequences from accessions file {input.accns}, writing sequences in file {output.seq}"
+    message: "\nStarting the retreival of FASTA sequences from accessions file {input.accns}, writing sequences in file {output.seq}"
     shell:
         "python3 scripts/fastaRes.py {params.config} {input.accns} {output.seq}"
 
@@ -64,7 +68,7 @@ rule get_orf:
     params:
         config = "config/config.json"
 
-    message: "Starting ORFs search in FASTA sequences from file {input.seqfile}, writing longest ORFs found in file {output.res_longest}"
+    message: "\nStarting ORFs search in FASTA sequences from file {input.seqfile}.\nWriting longest ORFs found in file {output.res_longest}"
     shell:
         "python3 scripts/ORF.py {params.config} {output.res} {output.res_longest}"
 
@@ -77,7 +81,7 @@ rule align_mafft:
         config = "config/config.json",
         out_mafft = dir+"{samples}_ORFs_al_mafft.fasta"
 
-    message: "Starting mafft nucleotide alignment. Aligning sequences from file {input.lgst_ORFs}, writing alignment in file {output.out_covAln}"
+    message: "\nStarting mafft nucleotide alignment. Aligning sequences from file {input.lgst_ORFs}, writing alignment in file {output.out_covAln}"
     run:
         shell("mafft --auto --quiet {input.lgst_ORFs} > {params.out_mafft}"),
         shell("python3 scripts/covAln.py {params.out_mafft} {output.out_covAln} {params.config}")
@@ -108,11 +112,11 @@ rule first_align_codon:
         out_codon_param = dir+"{samples}_alcodon",
         macse_param = "-prog refineAlignment -align" if config["parameters"]["align_nt"] else "-prog alignSequences -seq"
 
-    message: "Starting first codon alignment with "+config["parameters"]["codon_aligner"][0]+" from file {input.in_alcodon}, writing results in file {output.out_clusterIso}" if len(config["parameters"]["codon_aligner"]) == 2 \
-    else "Starting codon alignment with "+config["parameters"]["codon_aligner"][0]+" from file {input.in_alcodon}, writing results in file {output.out_clusterIso}"
+    message: "\nStarting first codon alignment with "+config["parameters"]["codon_aligner"][0]+" from file {input.in_alcodon}, writing results in file {output.out_clusterIso}" if len(config["parameters"]["codon_aligner"]) == 2 \
+    else "\nStarting codon alignment with "+config["parameters"]["codon_aligner"][0]+" from file {input.in_alcodon}, writing results in file {output.out_clusterIso}"
     run:
         if config["parameters"]["codon_aligner"][0] == "prank" :
-            shell("prank -d={input.in_alcodon} -o={params.out_codon_param}_{params.extension}.fas -codon -F"),236
+            shell("prank -d={input.in_alcodon} -o={params.out_codon_param}_{params.extension}.fas -codon -F"),
             shell("python3 scripts/clusterIso.py {params.config} {output.out_clusterIso} {params.out_codon_param}_{params.extension}.fas")
 
         elif config["parameters"]["codon_aligner"][0] == "macse" :
@@ -133,8 +137,8 @@ rule second_align_codon:
         out_codon_param = dir+"{samples}_alcodon",
         macse_param = "-prog refineAlignment -align" if config["parameters"]["align_nt"] else "-prog alignSequences -seq"
 
-    message: "Starting second codon alignment with "+config["parameters"]["codon_aligner"][1]+" from file {input.in_alcodon_2}, writing results in file {output.out_clusterIso_2}"\
-    if len(config["parameters"]["codon_aligner"]) == 2 else "Alignment {input.in_alcodon_2} renamed : {output.out_clusterIso_2}"
+    message: "\nStarting second codon alignment with "+config["parameters"]["codon_aligner"][1]+" from file {input.in_alcodon_2}, writing results in file {output.out_clusterIso_2}"\
+    if len(config["parameters"]["codon_aligner"]) == 2 else "\nAlignment {input.in_alcodon_2} renamed : {output.out_clusterIso_2}"
 
 
     run:

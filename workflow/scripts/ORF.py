@@ -87,7 +87,7 @@ def getORFs(catFile, queryName, outORFraw):
 			dId2Longest.pop(i, None)
 			n += 1
 			#logger.debug("Deleted sequence {:s} (duplicate)".format(i))
-		
+	print(f"Deleted {n} sequences as duplicates\n")
 	#logger.info("Deleted {} sequences as duplicates".format(n))
 	
 	outORF = sys.argv[3]
@@ -95,7 +95,7 @@ def getORFs(catFile, queryName, outORFraw):
 	with open(outORF, "w") as outO:
 		outO.write(fastaRes.dict2fasta(dId2Longest))
 		outO.close()
-	  
+	
 	#logger.info("Extracted longest ORFs: {:s}".format(outORF))
 
 	return(outORF)
