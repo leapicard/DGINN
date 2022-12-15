@@ -108,7 +108,7 @@ RUN git clone https://github.com/veg/hyphy.git && cd hyphy && cmake . && make MP
 ## Install paml
 FROM base as paml
 WORKDIR /opt
-RUN git clone https://github.com/binlu1981/paml && cd paml && cd src && make
+RUN git clone https://github.com/abacus-gene/paml && cd paml && cd src && make
 
 
 #################
@@ -139,7 +139,7 @@ RUN pip3 install biopython
 
 RUN pip3 install --upgrade ete3
 
-RUN git clone https://github.com/gennaBnh/DGINN && cd DGINN
+RUN git clone https://github.com/gennaBnh/DGINN && cd DGINN && git checkout inDev2
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
 
@@ -147,8 +147,8 @@ ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
 FROM base as java
 WORKDIR /opt/DGINN/workflow/
 
-RUN apt-get  clean && apt-get update -y && apt-get install default-jdk
-RUN wget https://bioweb.supagro.inra.fr/macse/releases/macse_v2.06.jar
+RUN apt-get clean && apt-get update -y && apt-get install -y default-jdk
+#RUN wget https://bioweb.supagro.inra.fr/macse/releases/macse_v2.06.jar
 
 
 
@@ -190,5 +190,5 @@ RUN apt-get install -y python3-biopython
 RUN apt-get update -y && \
     apt-get install -y snakemake
 
-#WORKDIR ~/
+WORKDIR /opt/DGINN/workflow/
 ENTRYPOINT [ "snakemake" ]
