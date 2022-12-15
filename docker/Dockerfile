@@ -20,9 +20,9 @@ RUN apt-get -y install build-essential \
         libeigen3-dev
         
 ## Install most recent version of cMake
-## RUN git clone https://github.com/Kitware/CMake && cd CMake && ./bootstrap && make && make install
+RUN git clone https://github.com/Kitware/CMake && cd CMake && ./bootstrap && make && make install
 
-RUN apt-get -y install cmake
+#RUN apt-get -y install cmake
 
 
 #################
@@ -49,7 +49,7 @@ FROM base as treerecs
 WORKDIR /opt
 RUN apt-get install -y python3-dev
 
-RUN git clone https://gitlab.inria.fr/Phylophile/Treerecs.git && cd Treerecs && cmake -DCMAKE_BUILD_TYPE=Release . && make && make install
+RUN git clone https://gitlab.inria.fr/Phylophile/Treerecs.git && cd Treerecs/tests/ && git rm -r -f gtest && git submodule add https://github.com/google/googletest.git gtest && cd .. && cmake -DCMAKE_BUILD_TYPE=MinSizeRel . && make && make install
 
 
 #################
