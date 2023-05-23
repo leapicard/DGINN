@@ -35,7 +35,7 @@ def main(argv):
   
   lf = [x for x in glob.glob("*.log") if x.find("_DGINN")!=-1]
   lf.sort(key = lambda t: -os.stat(t).st_mtime) ## sort to get most recent ones
-  
+
   llog=[]
   lpref=[]
 
@@ -47,8 +47,9 @@ def main(argv):
       fin=open(f,"r")
       for l in fin.readlines():
         if l.find("positiveSel")!=-1 and (l.find("Output dir")!=-1 or l.find("Alignement:")!=-1):
-          lpref.append(pref)
-          llog.append(f)
+          if flag==0:
+            lpref.append(pref)
+            llog.append(f)
           flag=1
         if l.find("Finished DGINN")!=-1:
           if flag:
@@ -56,20 +57,19 @@ def main(argv):
       fin.close()
       print("-~+"[flag] + " " + pref)
       
-  
   fout=open(output,"w")
   for log in llog:
     fin=open(log,"r")
-    flag=True
+    flag=0
     for l in fin.readlines():
       if l.find("positiveSel")!=-1 and (l.find("Output dir")!=-1 or l.find("Alignement:")!=-1):
         ll=l.split()
-        if flag:
+        if flag==0:
           fout.write(ll[-1]+"\t")
-          flag=False
-        else:
+          flag=1
+        elif flag==1:
           fout.write(ll[-1]+"\n")
-          flag=True
+          flag=2
   
     fin.close()
     
