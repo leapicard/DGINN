@@ -47,7 +47,7 @@ RUN apt-get -y install phyml
 FROM base as treerecs
 WORKDIR /opt
 
-RUN git  clone https://gitlab.inria.fr/Phylophile/Treerecs && cd Treerecs && cmake -DCMAKE_BUILD_TYPE=MinSizeRel . && make && make install
+RUN git  clone  --recurse-submodules https://gitlab.inria.fr/Phylophile/Treerecs && cd Treerecs && cmake -DCMAKE_BUILD_TYPE=MinSizeRel . && make && make install
 
 
 #################
@@ -106,7 +106,7 @@ RUN git clone https://github.com/veg/hyphy.git && cd hyphy && cmake . && make MP
 ## Install paml
 FROM base as paml
 WORKDIR /opt
-RUN git clone https://github.com/binlu1981/paml && cd paml && cd src && make
+RUN git clone  https://github.com/abacus-gene/paml && cd paml && cd src && make
 
 
 #################
