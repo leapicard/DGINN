@@ -125,11 +125,15 @@ def warningCheck(targetFile):
 	@param targetFile: file to be tested
 	@return boolFile: boolean of answer
 	"""
-	
 	accns = list(SeqIO.parse(targetFile,'fasta'))
 	boolFile = any(accns)
-	
 	if len(accns) < 8:
 		boolFile = False
-	
-	return(boolFile)	
+	return(boolFile)
+
+def isFastaforBlast(targetFile):
+	file = list(SeqIO.parse(targetFile,'fasta'))
+	if len(file) == 1:
+		return True
+
+

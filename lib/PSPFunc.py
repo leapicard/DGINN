@@ -1,6 +1,5 @@
 from scipy import stats
-from collections import OrderedDict
-import sys, re, os, logging, ete3
+import re, ete3
 
 def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 	# Check analyses to be run and where the parameters file are
@@ -25,19 +24,44 @@ def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 
 	return dCtrls, lModels
 
-def supBoot(outDir, baseName, treeFile, logger):
+def getParams2(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
+	# Check analyses to be run and where the parameters file are
+
+	dCtrls = {}
+	lModels = []
+	if models != "":
+		if bppml not in ["", "False", False] and mixed not in ["", "False", False]:
+			dCtrls["bppml"] = bppml
+			dCtrls["mixedlikelihood"] = mixed
+		if paml not in ["", "False", False]:
+			dCtrls["paml"] = paml
+		lModels = re.compile("\s*,\s*").split(models)
+		print(lModels )
+	if opb != "" and opb != False:
+		dCtrls["opb"] = opb
+	if gnh != "" and gnh != False:
+		dCtrls["gnh"] = gnh
+	if Busted:
+		dCtrls["busted"] = ""
+	if Meme:
+		dCtrls["meme"] = ""
+
+	return dCtrls, lModels
+
+
+def supBoot(outDir, baseName, treeFile):
 	# Suppress bootstrap numbers from treeFile (necessary for HYPHY)
 	cladoFile = outDir+baseName+"_clado.tree"
 	t = ete3.Tree(treeFile)
 	t.write(format=9, outfile=cladoFile)
 	return cladoFile
 
-def nbNode(treeFile, logger):
+def nbNode(treeFile):
 	# count number of nodes in tree file
 	with open(treeFile, "r") as tree:
 		data = tree.read()
 		nodes = str(data.count("(")+data.count(")"))
-		logger.info("There are {:s} nodes in the provided tree.".format(nodes))
+		print("There are {:s} nodes in the provided tree.".format(nodes))
 		tree.close()
 	return nodes
 

@@ -5,20 +5,15 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get  clean && apt-get update && apt-get install -y apt-utils
 
+RUN apt-get -y install default-jdk default-jre
+
 RUN TZ="Europe/Paris" apt-get -y install tzdata
 
-RUN apt-get -y install build-essential \
-	git \
-	emboss \
-	doxygen \
-	pkg-config \
-	automake \
-	openssl \
-	libssl-dev \
-	openmpi-bin \
-	libopenmpi-dev \
-        libeigen3-dev
-        
+RUN apt-get -y install build-essential git emboss doxygen  pkg-config  automake  openssl  libssl-dev  openmpi-bin  libopenmpi-dev  libeigen3-dev
+
+
+
+
 ## Install most recent version of cMake
 ## RUN git clone https://github.com/Kitware/CMake && cd CMake && ./bootstrap && make && make install
 
@@ -116,6 +111,15 @@ FROM base as mafft
 RUN apt-get clean  && apt-get update && apt-get install -y mafft
 
 
+#################
+## Install MACSE
+FROM base as macse
+WORKDIR /opt
+
+RUN apt-get install wget
+RUN wget https://www.agap-ge2pop.org/wp-content/uploads/macse/releases/macse_v2.07.jar
+
+
 ####################
 ## Install all
 FROM base
@@ -158,6 +162,7 @@ ENV PATH /opt/mafft/bin/:/opt/mafft/lib/:$PATH
 # RUN echo $PATH
 #
 
+COPY --from=macse /opt/macse_v2.07.jar /opt/macse.jar
 
 COPY --from=phyml /usr/lib/phyml/bin/phyml /opt/bin/phyml
 
