@@ -1,0 +1,7 @@
+__pycache__
+examples/*.log
+examples/*results*
+examples/bug_*
+*_sandbox
+build-temp-*
+*.sif
