@@ -145,18 +145,20 @@ def catFile(queryFile, dId2Seq, firstFasta):
     return firstFasta
 
 
-def fastaCreation(data, remote, apiKey, maxLen, step, treerecs):
+def fastaCreation(data, remote, APIKey, maxLen, step, duplication):
     """
     Function handling the creation of fasta files in the pipeline.
 
     @param1 data: basicdata object
     @param2 remote: Boolean (online database or not)
-    @param3 apiKey: Key for the API of NCBI
+    @param3 APIKey: Key for the API of NCBI
     @param4 treerecs: Booleans
     """
 
+    treerecs = duplication
+
     if remote:
-        dId2Seq = remoteDl(data.lBlastRes, data.queryName, apiKey)
+        dId2Seq = remoteDl(data.lBlastRes, data.queryName, APIKey)
     else:  ### need to code this!!!!
         logger = logging.getLogger("main.fasta")
         logger.info(
@@ -166,15 +168,12 @@ def fastaCreation(data, remote, apiKey, maxLen, step, treerecs):
 
     dId2Seq = sizeCheck(dId2Seq, maxLen)
 
-    firstFasta = (
-        data.o + data.accnFile.replace("_accns.txt", "_sequences.fasta").split("/")[-1]
-    )
+    firstFasta = data.o + "sequences.fasta"
     if step == "blast":
         firstFasta = catFile(data.queryFile, dId2Seq, firstFasta)
     else:
         with open(firstFasta, "w") as out:
             out.write(dict2fasta(dId2Seq))
-            out.close()
     setattr(data, "seqFile", firstFasta)
 
     if treerecs:
