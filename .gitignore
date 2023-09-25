@@ -5,3 +5,8 @@ examples/bug_*
 *_sandbox
 build-temp-*
 *.sif
+/dginn_snakemake
+config.yaml
+.snakemake
+results*/
+examples/param_*
