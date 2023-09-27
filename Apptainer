@@ -5,7 +5,7 @@ From: mambaorg/micromamba:latest
     environment.yml /opt
     etc/ /opt
     lib/ /opt
-    DGINN.py /opt
+    Snakefile /opt
 
 %post
     micromamba install --yes --name base -c conda-forge python=3.10
@@ -13,4 +13,5 @@ From: mambaorg/micromamba:latest
     micromamba clean --all --yes
 
 %runscript
-    micromamba run -n base python /opt/DGINN.py $@
+#!/bin/bash
+eval "$(micromamba shell hook --shell bash)" && micromamba activate && snakemake $@
