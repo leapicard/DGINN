@@ -14,6 +14,6 @@ ENV HOME=/home/mambauser
 RUN chmod 777 $HOME
 
 WORKDIR /opt/local/
-ENTRYPOINT ["micromamba", "run", "-n", "base", "python", "/opt/DGINN.py"]
-CMD ["-h"]
+ENTRYPOINT ["micromamba", "run", "-n", "base", "snakemake"]
+
 
