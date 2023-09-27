@@ -15,7 +15,7 @@ class Steps:
         data_file: str = None,
         query_file: str = None,
         log_file: str = None,
-        debug: bool = False,
+        config: str = None,
     ) -> None:
         """
         Steps class constructor.
@@ -29,11 +29,11 @@ class Steps:
         """
         # Get step and debug command line arguments values
         self.step = step
-        self.debug = debug
+        self.debug = config["debug"]
 
         # Read parameters from config.yaml
         self.parameters = Init.paramDef(
-            self.step, "config.yaml", inf="", queryName="", outdir=""
+            self.step, config, inf="", queryName="", outdir=""
         )
 
         # Init data object if None
@@ -69,3 +69,13 @@ class Steps:
         """
         with open(filename, "wb") as f:
             pickle.dump(self.Data, f)
+
+    def serialize_dAlTree(self, filename: str) -> None:
+        """
+        Serialize self.dAlTree to a file with pickle
+
+        Args:
+            filename (str): file name to dump data to.
+        """
+        with open(filename, "wb") as f:
+            pickle.dump(self.dAlTree, f)

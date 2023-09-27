@@ -14,7 +14,7 @@ if __name__ == "__main__":
         data_file=snakemake.input[0],
         query_file=snakemake.input[1],
         log_file=snakemake.log[0],
-        debug=snakemake.config["debug"],
+        config=snakemake.config,
     )
 
     # Run step

@@ -98,18 +98,13 @@ def parameterCommandLine(version, __file__):
     return parser
 
 
-def paramDef(step, params, inf, queryName, outdir):
+def paramDef(step, dParams, inf, queryName, outdir):
     """
     Check the parameters in the file.
 
     @param inf: path's file
     @return defaultParam: dico of parameters
     """
-
-    params = params.strip()
-    if not os.path.exists(params):
-        print("The provided parameter file does not exist, try again.")
-        sys.exit()
 
     # Parsing
     lParams = [
@@ -147,20 +142,9 @@ def paramDef(step, params, inf, queryName, outdir):
         "debug",
     ]
 
-    with open(params, mode="r", encoding="utf-8") as content:
-        dParams = {}
-        for line in content:
-            if line.startswith("#"):
-                pass
-            else:
-                temp = list(map(str.strip, line.split(":")))
-                if temp[0] == "":
-                    continue
-                if temp[0] not in lParams:
-                    print(temp[0] + " is not a valid parameter.\n")
-                else:
-                    dParams[temp[0]] = temp[1].strip()
-        content.close()
+    for param in dParams:
+        if param not in lParams:
+            print(param + " is not a valid parameter.\n")
 
     # If infile(s) given through command line, takes priority
     if inf != "":
@@ -201,7 +185,7 @@ def paramDef(step, params, inf, queryName, outdir):
     negAnswers = ["N", "NO", "F", "FALSE"]
 
     for param in dParams.keys():
-        if type(dParams[param]) is not list:
+        if isinstance(dParams[param], str):
             if dParams[param].upper() in answers:
                 dParams[param] = True
             elif dParams[param].upper() in negAnswers:
@@ -346,7 +330,7 @@ def paramDef(step, params, inf, queryName, outdir):
     }
 
     for i in defaultParam:
-        if i in dParams.keys() and dParams[i] != "":
+        if i in dParams.keys() and dParams[i] != "" and dParams[i] is not None:
             defaultParam[i] = dParams[i]
 
     return defaultParam

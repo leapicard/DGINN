@@ -14,7 +14,7 @@ if __name__ == "__main__":
         data_file=None,
         query_file=None,
         log_file=snakemake.log[0],
-        debug=snakemake.config["debug"],
+        config=snakemake.config,
     )
 
     # Run treatBlast function
