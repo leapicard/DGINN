@@ -16,6 +16,7 @@ class Steps:
         self,
         step: str,
         data_file: str = None,
+        dAlTree_file: str = None,
         query_file: str = None,
         log_file: str = None,
         config: str = None,
@@ -26,9 +27,10 @@ class Steps:
         Args:
             step (str): step to be run.
             data_file (str): name of the pickle file containing data object.
+            dAlTree_file (str): name of the pickle file containing dAlTree object.
             query_file (str): name of the query file.
             log_file (str): name of the log file.
-            debug (bool): debug mode flag.
+            config (dict): snakemake config object.
         """
         # Get step and debug command line arguments values
         self.step = step
@@ -42,11 +44,17 @@ class Steps:
         # Init data object if None
         if data_file is None:
             self.Data = Init.initData(self.parameters)
-            self.dAlTree = {}
             self.Data.setGenAttr(self.step)
         else:
             with open(data_file, "rb") as f:
                 self.Data = pickle.load(f)
+
+        # Init dAlTree object if None
+        if dAlTree_file is None:
+            self.dAlTree = {}
+        else:
+            with open(dAlTree_file, "rb") as f:
+                self.dAlTree = pickle.load(f)
 
         # Update queryFile
         if query_file is not None:

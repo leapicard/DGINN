@@ -1,9 +1,6 @@
 # --- Main config file ---
 
 
-configfile: "config.yaml"
-
-
 # --- Path functions ---
 
 
@@ -30,6 +27,8 @@ rule all:
         data_path("data_orf.pkl"),
         data_path("data_alignment.pkl"),
         data_path("data_tree.pkl"),
+        data_path("data_duplication.pkl"),
+        data_path("dAlTree_duplication.pkl"),
 
 
 # --- Step rules ---
@@ -95,7 +94,6 @@ rule alignment:
     output:
         data_path("data_alignment.pkl"),
         out_path("mafft.fasta"),
-        out_path("prank.best.fas"),
         out_path("clustiso.fasta"),
     log:
         log_path("05_alignment.log"),
@@ -107,12 +105,31 @@ rule tree:
     input:
         data_path("data_alignment.pkl"),
         out_path("clustiso.fasta"),
-        out_path("prank.best.fas"),
     output:
         data_path("data_tree.pkl"),
+        data_path("dAlTree_tree.pkl"),
         out_path("tree.phylip"),
         out_path("tree.phylip_phyml_tree.txt"),
+        out_path("tree.phylip_phyml_stats.txt"),
     log:
         log_path("06_tree.log"),
     script:
         "lib/StepTree.py"
+
+
+rule duplication:
+    input:
+        data_path("data_tree.pkl"),
+        data_path("dAlTree_tree.pkl"),
+        out_path("tree.phylip"),
+        out_path("tree.phylip_phyml_tree.txt"),
+        out_path("tree.phylip_phyml_stats.txt"),
+    output:
+        data_path("data_duplication.pkl"),
+        data_path("dAlTree_duplication.pkl"),
+        out_path("tree.phylip_phyml_tree.txt_recs.nhx"),
+        out_path("tree.phylip_phyml_tree.txt_recs.svg"),
+    log:
+        log_path("07_duplication.log"),
+    script:
+        "lib/StepDuplication.py"

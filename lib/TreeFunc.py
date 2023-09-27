@@ -519,7 +519,7 @@ def runTreerecs(pathGtree, pathSptree, cor, o):
     return recTree
 
 
-def treeTreatment(data, dAlnTree, nbSp, phymlOpt):
+def treeTreatment(data, dAlnTree, nbspecies, phymlOpt):
     """
     Procedure which execute all functions for the tree step.
 
@@ -538,7 +538,7 @@ def treeTreatment(data, dAlnTree, nbSp, phymlOpt):
         # setattr(data, "recTree", recTree)
 
         if recTree:
-            lFastaFile += treeParsing(data.ORFs, recTree, nbSp, data.o, logger)
+            lFastaFile += treeParsing(data.ORFs, recTree, nbspecies, data.o, logger)
 
             setattr(data, "duplication", lFastaFile)
 
