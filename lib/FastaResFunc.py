@@ -145,7 +145,7 @@ def catFile(queryFile, dId2Seq, firstFasta):
     return firstFasta
 
 
-def fastaCreation(data, remote, APIKey, maxLen, step, duplication):
+def fastaCreation(data, step, remote, APIKey, maxLen, duplication):
     """
     Function handling the creation of fasta files in the pipeline.
 
