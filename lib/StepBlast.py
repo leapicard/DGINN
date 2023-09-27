@@ -4,17 +4,19 @@ Script running the blast analysis step.
 
 import Steps
 import BlastFunc
-import pickle
 
 if __name__ == "__main__":
     # Init and run analysis steps
     snakemake = globals()["snakemake"]
+
+    config = snakemake.config
+    config["outputs"] = snakemake.output
     steps = Steps.Steps(
         step=snakemake.rule,
         data_file=None,
         query_file=None,
         log_file=snakemake.log[0],
-        config=snakemake.config,
+        config=config,
     )
 
     # Run treatBlast function

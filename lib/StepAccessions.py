@@ -9,6 +9,9 @@ import ExtractFunc
 if __name__ == "__main__":
     # Init and run analysis steps
     snakemake = globals()["snakemake"]
+
+    config = snakemake.config
+    config["outputs"] = snakemake.output
     steps = Steps.Steps(
         step=snakemake.rule,
         data_file=snakemake.input[0],

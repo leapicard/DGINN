@@ -9,6 +9,9 @@ import AnalysisFunc
 if __name__ == "__main__":
     # Init and run analysis steps
     snakemake = globals()["snakemake"]
+
+    config = snakemake.config
+    config["outputs"] = snakemake.output
     steps = Steps.Steps(
         step=snakemake.rule,
         data_file=snakemake.input[0],
@@ -18,8 +21,9 @@ if __name__ == "__main__":
     )
 
     # Run step
-    steps.Data = LoadFileFunc.orfEntry(steps.Data)
-    LoadFileFunc.spTreeCheck(steps.Data, "orf", snakemake.config["duplication"])
+    print(steps.Data.__dict__)
+    # steps.Data = LoadFileFunc.orfEntry(steps.Data)
+    # LoadFileFunc.spTreeCheck(steps.Data, "orf", snakemake.config["duplication"])
     AnalysisFunc.orfFinder(steps.Data)
 
     # Serialize data to disk

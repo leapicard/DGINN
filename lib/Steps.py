@@ -1,5 +1,8 @@
 import Init
 import pickle
+import os
+import shutil
+import sys
 
 VERSION = "1.0"
 
@@ -44,12 +47,27 @@ class Steps:
         else:
             with open(data_file, "rb") as f:
                 self.Data = pickle.load(f)
+
         # Update queryFile
         if query_file is not None:
             self.Data.queryFile = query_file
 
         # Init logger
         Init.initLogger(self.Data, log_file, self.debug, VERSION)
+
+        # Fakerun
+        # TODO : Remove when not needed anymore
+        if config["fakerun"]:
+            all_copied = True
+            for f in config["outputs"]:
+                source_file = f.replace("results/", "results_ok/")
+                if os.path.exists(source_file):
+                    print(f"FAKERUN --- Copying {source_file} to {f}")
+                    shutil.copy(source_file, f)
+                else:
+                    all_copied = False
+            if all_copied:
+                sys.exit(0)
 
         # Force basename for output files
         self.Data.baseName = "out"

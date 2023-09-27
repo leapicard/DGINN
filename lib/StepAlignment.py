@@ -9,6 +9,9 @@ import AnalysisFunc
 if __name__ == "__main__":
     # Init and run analysis steps
     snakemake = globals()["snakemake"]
+
+    config = snakemake.config
+    config["outputs"] = snakemake.output
     steps = Steps.Steps(
         step=snakemake.rule,
         data_file=snakemake.input[0],
@@ -18,8 +21,8 @@ if __name__ == "__main__":
     )
 
     # Run step
-    steps.Data = LoadFileFunc.prankEntry(steps.Data)
-    LoadFileFunc.spTreeCheck(steps.Data, "alignment", snakemake.config["duplication"])
+    # steps.Data = LoadFileFunc.prankEntry(steps.Data)
+    # LoadFileFunc.spTreeCheck(steps.Data, "alignment", snakemake.config["duplication"])
     AnalysisFunc.alnMafft(steps.Data)
     fasCov, nbOut = AnalysisFunc.covAln(
         steps.Data.aln, snakemake.config["mincov"], steps.Data.queryName, steps.Data.o
