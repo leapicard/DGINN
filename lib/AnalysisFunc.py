@@ -493,9 +493,9 @@ def cutLongBranches(aln, dAlnTree, nbSp, LBOpt, logger):
     return dAlnTree
 
 
-def checkPhyMLTree(data, dAlnTree, nbSp, LBopt, step="duplication"):
+def checkPhyMLTree(data, dAlnTree, nbspecies, LBopt, step="duplication"):
     logger = logging.getLogger(".".join(["main", step]))
-    dAlnTree = cutLongBranches(data.aln, dAlnTree, nbSp, LBopt, logger)
+    dAlnTree = cutLongBranches(data.aln, dAlnTree, nbspecies, LBopt, logger)
     dAlnTree2 = {}
 
     for aln in dAlnTree:
