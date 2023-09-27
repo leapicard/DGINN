@@ -84,7 +84,9 @@ class Steps:
         """
         Return a subset of parameters as a dict.
         """
-        return {p: self.parameters[p] for p in params}
+        res = {p: self.parameters[p] for p in params if p in self.parameters}
+        res.update({p: None for p in params if p not in self.parameters})
+        return res
 
     def serialize_data(self, filename: str) -> None:
         """

@@ -519,7 +519,7 @@ def checkPhyMLTree(data, dAlnTree, nbspecies, LBopt, step="duplication"):
 ######GARD==============================================================================================================
 
 
-def runGARD(aln, o, hostFile, logger):
+def runGARD(aln, o, hostfile, logger):
     """
     Function creating the batch file to run GARD (Kosakovsky Pond et al., 2006).
 
@@ -534,7 +534,7 @@ def runGARD(aln, o, hostFile, logger):
     errGard = gardRes + "_err"
 
     # for hyphy 2.5
-    if hostFile == "":
+    if hostfile == "" or hostfile is None:
         cmd = "mpirun -np 4 HYPHYMPI GARD --alignment {:s} --output {:s} --output-lf {:s}".format(
             aln, gardJson, gardRes
         )
@@ -689,12 +689,12 @@ def parseGard(kh, aln, o, logger):
         return []
 
 
-def gardRecomb(data, pvalue, dAT, hostFile):
+def gardRecomb(data, dAT, hyphySeuil, hostfile):
     """
     Procedure which execute gard functions on each alignment given.
 
     @param1 data: basicData object
-    @param2 pvalue: threshold value
+    @param2 hyphySeuil: threshold value
     @param3 step: String
     @param4 logger: Logging object
     """
@@ -705,7 +705,7 @@ def gardRecomb(data, pvalue, dAT, hostFile):
     dFrag = {}
     for aln in dAT:
         logger.info("Running GARD on {:s}".format(aln))
-        gardRes = runGARD(aln, data.o, hostFile, data.logger)
+        gardRes = runGARD(aln, data.o, hostfile, logger)
 
         logger.info("Checked for recombination using HYPHY GARD.")
 

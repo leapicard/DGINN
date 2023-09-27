@@ -1,6 +1,3 @@
-# --- Main config file ---
-
-
 # --- Path functions ---
 
 
@@ -29,6 +26,10 @@ rule all:
         data_path("data_tree.pkl"),
         data_path("data_duplication.pkl"),
         data_path("dAlTree_duplication.pkl"),
+        data_path("data_recombination.pkl"),
+        data_path("dAlTree_recombination.pkl"),
+        data_path("data_positive_selection.pkl"),
+        data_path("dAlTree_positive_selection.pkl"),
 
 
 # --- Step rules ---
@@ -133,3 +134,29 @@ rule duplication:
         log_path("07_duplication.log"),
     script:
         "lib/StepDuplication.py"
+
+
+rule recombination:
+    input:
+        data_path("data_duplication.pkl"),
+        data_path("dAlTree_duplication.pkl"),
+    output:
+        data_path("data_recombination.pkl"),
+        data_path("dAlTree_recombination.pkl"),
+    log:
+        log_path("08_recombination.log"),
+    script:
+        "lib/StepRecombination.py"
+
+
+rule positive_selection:
+    input:
+        data_path("data_recombination.pkl"),
+        data_path("dAlTree_recombination.pkl"),
+    output:
+        data_path("data_positive_selection.pkl"),
+        data_path("dAlTree_positive_selection.pkl"),
+    log:
+        log_path("09_positive_selection.log"),
+    script:
+        "lib/StepPositiveSelection.py"
