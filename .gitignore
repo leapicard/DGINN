@@ -1,12 +1,11 @@
 __pycache__
-examples/*.log
 examples/*results*
-examples/bug_*
 *_sandbox
 build-temp-*
 *.sif
-/dginn_snakemake
-config.yaml
+*_sif/
 .snakemake
 results*/
-examples/param_*
+example_snakemake/results*
+.python-version
+.cache/
