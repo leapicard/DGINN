@@ -1,17 +1,17 @@
 import logging, os, re, subprocess
 
 # def hyphyBusted(alnFile, cladoFile, outDir, baseName, logger): old line for function with logger.
-def hyphyBusted(alnFile, cladoFile, outDir, baseName):
+def hyphyBusted(alnFile, cladoFile, outDir, logger):
 ### WHOLE-GENE ANALYSIS: HYPHY BUSTED
 	print("Whole Gene (BUSTED, HYPHY)")
 	
 	# Valid for Hyphy 2.3
 	# create BUSTED batch file for the gene
-	outWG = outDir+"busted/"
+	outWG = outDir+"/busted/"
 	if not os.path.exists(outWG):
 		subprocess.Popen("mkdir "+outWG, shell =  True).wait()
 
-	bustedFile = outWG+baseName+"_busted.bf"
+	bustedFile = outWG+"busted.bf"
 	with open(bustedFile, "w") as bf:
 		bf.write("inputRedirect = {};\n")
 		bf.write("inputRedirect[\"01\"] = \"Universal\";\n")
@@ -21,16 +21,16 @@ def hyphyBusted(alnFile, cladoFile, outDir, baseName):
 		bf.write("inputRedirect[\"05\"] = \"\";\n")
 		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"SelectionAnalyses\" + DIRECTORY_SEPARATOR + \"BUSTED.bf\", inputRedirect);")
 		bf.close()
-	print("Batch file: {:s}".format(bustedFile))
+	logger.info("Batch file: {:s}".format(bustedFile))
 
 	# run BUSTED
 	### find way to suppress stderr
 	resBusted = outWG+alnFile.split("/")[-1].split(".")[0]+"_busted.res"
-	outBusted = open(outWG+baseName+"_busted.out", "w")
-	errBusted = open(outWG+baseName+"_busted.err", "w")
+	outBusted = open(outWG+"busted.out", "w")
+	errBusted = open(outWG+"busted.err", "w")
 	
 	cmd = "hyphy BUSTED --alignment {:s} --tree {:s} --output {:s}".format(alnFile, cladoFile, resBusted)
-	#logger.debug(cmd)
+	logger.debug(cmd)
 	
 	runBusted = subprocess.Popen(cmd, shell=True, stdout=outBusted, stderr=errBusted).wait()
 	

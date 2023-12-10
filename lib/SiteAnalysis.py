@@ -2,10 +2,8 @@ import os, logging, subprocess
 import PSPFunc
 from ete3 import EvolTree
 
-def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, baseName):	
+def bppSite(alnFile, treeFile, outDir, bppFile, bppMixed, lModels, logger):	
   # outDir=os.getcwd()+"/"  # used to debug
-  logger = logging.getLogger("main.tree")
-  
   logger.info(os.getcwd())
   ### SITE ANALYSIS: BIO++
   lModels = [m if (m[-2:]=="_C" or m.find("_G")!=-1) else m+"_G" for m in lModels] #gamma(n=4) distrib is default
@@ -15,7 +13,13 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
   for k in ["C","G"]:
     dlModels[k].sort(key = lambda x : dallMod[x])
 
-  
+  logger.info("Bio++ Site Analysis")
+  if len(dlModels["C"])!=0:
+          logger.info("Models to be run with Constant rate: {:s}".format(", ".join(model for model in dlModels["C"])))
+  if len(dlModels["G"])!=0:
+          logger.info("Models to be run with Gamma rate: {:s}".format(", ".join(model for model in dlModels["G"])))
+  logger.info("Bppml parameter file: {:s}".format(bppFile))
+
   ## Bppml
   """ 
   Optimize tree and model using bppml
@@ -31,14 +35,13 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
   """
 
   # Bppml output file names - dictionaries that associate model number with output file name for the model
-  outSite = outDir+"bpp_site/"
+  outSite = outDir+"/bpp_site/"
   if not os.path.exists(outSite):
     subprocess.Popen("mkdir "+outSite, shell =  True).wait()
 
-  outFileName = outSite+baseName
-  dModelTrees = {model:outFileName+"_"+model+".dnd" for model in lModels}
-  dModelParams = {model:outFileName+"_"+model+".params" for model in lModels}
-  dModelLog = {model:outFileName+"_optimization_"+model for model in lModels}
+  dModelTrees = {model:outSite+model+".dnd" for model in lModels}
+  dModelParams = {model:outSite+model+".params" for model in lModels}
+  dModelLog = {model:outSite+"optimization_"+model for model in lModels}
   dModelSyntax = {}
   for k,lmod in dlModels.items():
     dModelSyntax[k]={model:["YNGP_"+model,"frequencies=F3X4","initFreqs=observed", "data=1"] for model in lmod if model[0]=="M"}		# dictionary model number - [MODEL name, MODEL arguments for bppml]
@@ -83,7 +86,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
       modelDesc=dModelSyntax[k][model][0]+"("+",".join(dModelSyntax[k][model][1:])+")"
       distribDesc=["Constant()","Gamma(n=4)"][k=="G"]
       dBppCmd = {"INPUTFILE":alnFile, 
-                      "FORMAT":alnFormat, 
+                      "FORMAT":"Fasta", 
                       "TREEFILE":treeFile, 
                       "MODEL":modelDesc, 
                       "DISTRIB":distribDesc, 
@@ -115,7 +118,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
   # perform LRT
         # M1 vs M2
   for k,lModels in dlModels.items():
-    if not k in dLogLlh.keys():
+    if not k in dLogLlh:
                   continue
     if "M1"  in lModels and "M2" in lModels:
                 if "M1"  in dLogLlh[k] and "M2" in dLogLlh[k]:
@@ -150,6 +153,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
                 else:
                         logger.info("Possible failed optimization, likelihoods of DFP07_%s and DFP07_0_%s have not been computed."%(k,k))
 
+                        
       # Bppmixedlikelihoods
   """ 
         Optimize tree and model using bppml
@@ -160,7 +164,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
               PARAMS - .params file from model optimization (bppml)
               OUTINFO - name of the results file (info about sites etc.)
   """
-
+  
   for k,lModels in dlModels.items():
     for model in lModels:
               # use tree optimized in M0 for each model
@@ -173,10 +177,10 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
                       continue
 
               # dictionary(model:results file name)
-              dModelResults = {model+"_"+k:outSite+baseName+"_results_"+model+"_"+k+".log" for model in lModels}
+              dModelResults = {model+"_"+k:outSite+"results_"+model+"_"+k+".log" for model in lModels}
 
               dMixCmd = {"INPUTFILE":alnFile, 
-                         "FORMAT":alnFormat, 
+                         "FORMAT":"Fasta", 
                          "TREEFILE":treeFile, 
                          "params":dModelParams[model+"_"+k], 
                          "OUTINFO":dModelResults[model+"_"+k], 
@@ -184,8 +188,7 @@ def bppSite(bppFile, bppMixed, alnFile, alnFormat, treeFile, lModels, outDir, ba
 
               logger.info("Running mixed likelihoods with model {:s}".format(model+"_"+k))
               argsMx = "\""+"\" \"".join([k2+"="+v for k2, v in dMixCmd.items()])+"\""
-              logger.debug("mixedlikelihoods "+argsMx)
-              runMx = subprocess.Popen("mixedlikelihoods "+argsMx, shell=True, stdout=subprocess.PIPE).wait()
+              runMx = subprocess.Popen("bppmixedlikelihoods "+argsMx, shell=True, stdout=subprocess.PIPE).wait()
               logger.debug(subprocess.PIPE)
 
 
@@ -245,22 +248,22 @@ def getNewParfromOptim(model, lModels, dModelLog, logger):          ### new valu
         else:
             nst=st.replace(prevmodeldeb,modeldeb)
 
-        if not nst in dnewpar.keys():
+        if not nst in dnewpar:
           dnewpar[nst]=val
 
       # And then for specific parameters
       for key, par in dequiv.items():
-        if modeldeb in par.keys() and prevmodeldeb in par.keys():
+        if modeldeb in par and prevmodeldeb in par:
           parav=par[prevmodeldeb]
           parap=par[modeldeb]
           for oname,oval in dprevpar.items():
             ## look which oname is in equivalence list
-            for kparav in parav.keys():
+            for kparav in parav:
               if oname.startswith(kparav+"_"):
                 for npar, nexp in parap.items():
                   nname=oname.replace(kparav,npar)
                   nval=str(eval(nexp.replace(key,oval).strip()))
-                  if True:#not nname in dnewpar.keys():
+                  if True:#not nname in dnewpar:
                     dnewpar[nname]=nval
 
               #            break
@@ -290,7 +293,8 @@ def setIgnoreParams(model, prevmodel, lModels, logger):
   return lignore
 
 
-def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName):
+
+def pamlSite(alnFile, treeFile, outDir, pamlParams, lModels):
 
       lModels = [m if (m[-2:]=="_C" or m.find("_G")!=-1) else m+"_C" for m in lModels] #constant distrib only available
       dlModels = {"C":[m[:-2] for m in lModels if m[-2:]=="_C"]}  #constant distrib
@@ -298,11 +302,16 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName):
       tree = EvolTree(treeFile)
       tree.link_to_alignment(alnFile, "Fasta")
       dLogLlh = {}		# dictionary(model:logllh)
-      os.mkdir(outDir+"paml_site/")
+      outP=outDir+"/paml_site/"
+      if not os.path.exists(outP):
+        os.mkdir(outP)
+        
       for k,lModels in dlModels.items():
        dLogLlh[k]={}
-       outpaml=outDir+"paml_site/"+k+"/"
-       os.mkdir(outpaml)
+       outpaml=outP+k+"/"
+       if not os.path.exists(outpaml):
+        os.mkdir(outpaml)
+
        tree.workdir = outpaml
        for model in lModels:
         if model in ["M0","M1","M2","M7","M8","M8a"]:
@@ -314,7 +323,7 @@ def pamlSite(alnFile, treeFile, lModels, pamlParams, outDir, baseName):
           print("Log Likelihood = {}".format(dLogLlh[k].get(model,None)))
 
        for k,lModels in dlModels.items():
-          if not k in dLogLlh.keys():
+          if not k in dLogLlh:
             continue
           if "M1"  in lModels and "M2" in lModels:
                         if "M1"  in dLogLlh[k] and "M2" in dLogLlh[k]:

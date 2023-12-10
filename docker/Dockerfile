@@ -142,9 +142,9 @@ RUN pip3 install biopython
 
 RUN pip3 install --upgrade ete3
 
-RUN git clone https://github.com/lgueguen/DGINN && cd DGINN && chmod +x DGINN.py
+RUN git  clone https://github.com/lgueguen/DGINN && cd DGINN && chmod +x DGINN.py
 ENV PATH /opt/DGINN/:$PATH
-ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
+ENV PYTHONPATH /opt/DGINN/:/opt/DGINN/scripts/:/opt/DGINN/lib/:$PYTHONPATH
 
 
 ## All softwares
@@ -179,10 +179,12 @@ ENV LD_LIBRARY_PATH /opt/bpp/lib:$LD_LIBRARY_PATH
 RUN apt-get install -y hyphy-mpi hyphy-common hyphy-pt
 RUN echo $PATH
 
+RUN apt-get install -y snakemake
+
 COPY --from=paml /opt/paml/src/codeml /usr/local/bin/
 
 RUN apt-get install -y python3-biopython
 
-#WORKDIR ~/
-ENTRYPOINT ["DGINN.py"]
-CMD ["-h"]
+WORKDIR ~/
+ENTRYPOINT ["snakemake","-c1","--snakefile","/opt/DGINN/Snakefile"]
+#CMD ["-h"]

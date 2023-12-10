@@ -49,12 +49,13 @@ def getParams2(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 	return dCtrls, lModels
 
 
-def supBoot(outDir, baseName, treeFile):
+def supBoot(params):
 	# Suppress bootstrap numbers from treeFile (necessary for HYPHY)
-	cladoFile = outDir+baseName+"_clado.tree"
-	t = ete3.Tree(treeFile)
-	t.write(format=9, outfile=cladoFile)
-	return cladoFile
+        cladoFile = params["outdir"]+"/"+params["queryName"]+"_clado.tree"
+        tree = params["outdir"]+"/"+params["queryName"]+"_tree.dnd"
+        t = ete3.Tree(tree)
+        t.write(format=9, outfile=cladoFile)
+        return cladoFile
 
 def nbNode(treeFile):
 	# count number of nodes in tree file
@@ -106,8 +107,8 @@ def pspFileCreation(path, option):
       dparams["rate_distribution1"] = "$(DISTRIB)"
       dparams["optimization"] = "FullD(derivatives=Newton)"
       dparams["optimization.ignore_parameters"] = "$(IGNORE)"
-      dparams["optimization.max_number_f_eval"] =  "1000"
-      dparams["optimization.tolerance"] = "0.00001"
+      dparams["optimization.max_number_f_eval"] =  "10000"
+      dparams["optimization.tolerance"] = "0.0001"
       dparams["output.tree.file"] = "$(OUTTREE)"
       dparams["output.tree.format"] = "Newick"
       dparams["output.estimates"] = "$(OUTPARAMS)"
