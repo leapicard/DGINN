@@ -591,6 +591,8 @@ def parseGard(kh, parameters):
         if lLine.find('breakpoints') != -1:
             lLine = f.readline()
             lLine = lLine[lLine.find("[") + 1 : lLine.find("]")]
+            if len(lLine)==0:
+              break
             lBP = list(map(int, lLine.split(",")))
             break
         lLine = f.readline()

@@ -85,7 +85,7 @@ recombination: True
 ### POSITIVE SELECTION
 
 # Option for the detection of positive selection (default: False)
-positiveSelection:  true
+positiveSelection:  
 
 # P-value for Hyphy methods (BUSTED/MEME) (Pond *et al.*, 2005) (default: 0.1)
 hyphySeuil: 

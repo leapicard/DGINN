@@ -1,4 +1,4 @@
-import shutil, sys
+import shutil, sys, os
 
 # --- Path functions ---
 
@@ -30,11 +30,9 @@ if not queryName or len(queryName)==0:
            queryName = name[:pn].strip()
         else:
            queryName = name.strip()
-      elif config["step"] in ["accessions","fasta","alignment"]:
+      else:
         try:
-          fin=open(config["infile"].split(",")[0].strip(),"r")
-          queryName = fin.readline()[1:].strip()
-          fin.close()
+          queryName = os.path.split(config["infile"].split(",")[0])[-1].rsplit(".",1)[0].strip()
         except:
           print("Missing accession file " + config["infile"][0])
           sys.exit()        
@@ -55,25 +53,32 @@ rule all:
           (out_path("duplications.txt",queryName) if with_dupli else
             (out_path("recombinations.txt",queryName) if with_rec else
                (out_path("tree.dnd",queryName))))
+
                
 
 # --- Step rules ---
+
+## Needed starting rule for intermediate steps 
+rule step:
+    output:
+        config["infile"],
+          
 
 rule blast:
     input:
         config["infile"],
     output:
-         out_path("blastres.tsv"),
+        out_path("blastres.tsv"),
     log:
          log_path("01_blast.log"),
     script:
         "lib/StepBlast.py"
        
-step_acc = ("step" in config and config["step"]=="accessions")
+step = config.get("step","")
 
 rule accessions:
     input:
-        rules.blast.output if not step_acc else config["infile"],
+        rules.blast.output if not step=="accessions" else config["infile"],
     output:
         out_path("accessions.txt"),
     log:
@@ -81,7 +86,6 @@ rule accessions:
     script:
         "lib/StepAccessions.py"
 
-step_fasta = ("step" in config and config["step"]=="fasta")
 
 rule fasta:
     input:
@@ -94,11 +98,9 @@ rule fasta:
         "lib/StepFasta.py"
 
 
-step_orf = ("step" in config and config["step"]=="orf")
-
 rule orf:
     input:
-        rules.fasta.output if not step_orf else config["infile"],
+        rules.fasta.output if not step=="orf" else config["infile"],
     output:
         out_path("longestORFs.fasta"),
     log:
@@ -107,11 +109,10 @@ rule orf:
         "lib/StepORF.py"
 
 
-step_ali = ("step" in config and config["step"]=="alignment")
           
 rule alignment:
     input:
-        rules.orf.output if not step_ali else config["infile"],
+        rules.orf.output if not step=="alignment" else config["infile"],
     output:
         out_path("align.fasta"),
     log:
@@ -120,11 +121,9 @@ rule alignment:
         "lib/StepAlignment.py"
 
 
-step_tree = ("step" in config and config["step"]=="tree")
-
 rule tree:
     input:
-        out_path("align.fasta") if not step_tree else config["infile"],
+        out_path("align.fasta",queryName) if not step=="tree" else config["infile"],
     output:
         out_path("tree.dnd"),
     log:
@@ -133,11 +132,9 @@ rule tree:
         "lib/StepTree.py"
 
 
-step_recomb = ("step" in config and config["step"]=="recombination")
-
 rule recombination:
     input:
-        out_path("align.fasta") if not step_recomb else config["infile"],
+        out_path("align.fasta") if not step=="recombation" else config["infile"],
     output:
         out_path("recombinations.txt"),
     log:
@@ -146,11 +143,9 @@ rule recombination:
         "lib/StepRecombination.py"
 
 
-step_dupli = ("step" in config and config["step"]=="duplication")
-
 rule duplication:
     input:
-        rules.recombination.output if with_rec else ([rules.alignment.output,rules.tree.output] if not step_dupli else config["infile"]),
+        rules.recombination.output if with_rec else ([rules.alignment.output,rules.tree.output] if not step=="duplication" else config["infile"]),
     output:
         out_path("duplications.txt"),
     log:
@@ -158,12 +153,9 @@ rule duplication:
     script:
         "lib/StepDuplication.py"
 
-
-step_ps = ("step" in config and config["step"]=="positive_selection")
-
 rule positive_selection:
     input:
-        rules.duplication.output if with_dupli else (rules.recombination.output if with_rec else ([rules.alignment.output,rules.tree.output] if not step_dupli else config["infile"])),
+        rules.duplication.output if with_dupli else (rules.recombination.output if with_rec else ([rules.alignment.output,rules.tree.output] if not step=="positive_selection" else config["infile"])),
     output:
         out_path("positive_selection.txt"),
     log:

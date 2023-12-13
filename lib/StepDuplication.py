@@ -29,7 +29,7 @@ if __name__ == "__main__":
         with open(newconfig,"w") as lout:
            yaml.dump(dpar,lout)
 
-        subprocess.run(['snakemake',"--nolock","--cores=%d"%(len(lq)),"--configfile="+newconfig,"--until=duplication"])
+        subprocess.run(['snakemake',"--nolock","--cores=%d"%(max(len(lq),1)),"--configfile="+newconfig,"--until=duplication"])
 
         os.remove(newconfig)
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
           with open(newconfig,"w") as lout:
             yaml.dump(dpar,lout)
             
-          subprocess.run(['snakemake',"--nolock","--cores=%d"%(len(lquery)),"--configfile="+ newconfig ,"--until=tree"])
+          subprocess.run(['snakemake',"--nolock","--cores=%d"%(max(1,len(lquery))),"--configfile="+ newconfig ,"--until=tree"])
 
           os.remove(newconfig)
 
