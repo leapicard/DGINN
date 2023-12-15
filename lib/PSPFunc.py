@@ -1,6 +1,5 @@
 from scipy import stats
-from collections import OrderedDict
-import sys, re, os, logging, ete3
+import re, ete3
 
 def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 	# Check analyses to be run and where the parameters file are
@@ -25,19 +24,45 @@ def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 
 	return dCtrls, lModels
 
-def supBoot(outDir, baseName, treeFile, logger):
-	# Suppress bootstrap numbers from treeFile (necessary for HYPHY)
-	cladoFile = outDir+baseName+"_clado.tree"
-	t = ete3.Tree(treeFile)
-	t.write(format=9, outfile=cladoFile)
-	return cladoFile
+def getParams2(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
+	# Check analyses to be run and where the parameters file are
 
-def nbNode(treeFile, logger):
+	dCtrls = {}
+	lModels = []
+	if models != "":
+		if bppml not in ["", "False", False] and mixed not in ["", "False", False]:
+			dCtrls["bppml"] = bppml
+			dCtrls["mixedlikelihood"] = mixed
+		if paml not in ["", "False", False]:
+			dCtrls["paml"] = paml
+		lModels = re.compile("\s*,\s*").split(models)
+		print(lModels )
+	if opb != "" and opb != False:
+		dCtrls["opb"] = opb
+	if gnh != "" and gnh != False:
+		dCtrls["gnh"] = gnh
+	if Busted:
+		dCtrls["busted"] = ""
+	if Meme:
+		dCtrls["meme"] = ""
+
+	return dCtrls, lModels
+
+
+def supBoot(params):
+	# Suppress bootstrap numbers from treeFile (necessary for HYPHY)
+        cladoFile = params["outdir"]+"/"+params["queryName"]+"_clado.tree"
+        tree = params["outdir"]+"/"+params["queryName"]+"_tree.dnd"
+        t = ete3.Tree(tree)
+        t.write(format=9, outfile=cladoFile)
+        return cladoFile
+
+def nbNode(treeFile):
 	# count number of nodes in tree file
 	with open(treeFile, "r") as tree:
 		data = tree.read()
 		nodes = str(data.count("(")+data.count(")"))
-		logger.info("There are {:s} nodes in the provided tree.".format(nodes))
+		print("There are {:s} nodes in the provided tree.".format(nodes))
 		tree.close()
 	return nodes
 
@@ -82,8 +107,8 @@ def pspFileCreation(path, option):
       dparams["rate_distribution1"] = "$(DISTRIB)"
       dparams["optimization"] = "FullD(derivatives=Newton)"
       dparams["optimization.ignore_parameters"] = "$(IGNORE)"
-      dparams["optimization.max_number_f_eval"] =  "1000"
-      dparams["optimization.tolerance"] = "0.00001"
+      dparams["optimization.max_number_f_eval"] =  "10000"
+      dparams["optimization.tolerance"] = "0.0001"
       dparams["output.tree.file"] = "$(OUTTREE)"
       dparams["output.tree.format"] = "Newick"
       dparams["output.estimates"] = "$(OUTPARAMS)"

@@ -1,26 +1,29 @@
-import os
 import LoadFileFunc, TreeFunc
-import logging, sys
+import sys
 from Bio import Entrez
 from statistics import median
+
 
 """
 This file pools functions related to the creation and conversion of fasta format data.
 """
 
+
 def dict2fasta(dico):
-	"""
-	Function converting a dictionary associating gene names to their sequences into a writable Fasta format.
+    """
+    Function converting a dictionary associating gene names to their sequences into a writable Fasta format.
 
-	@param dico: Dictionary associating gene names (keys) to their CCDS fasta sequence (values)
-	@return txtoutput: Fasta formatted string of the dictionary
-	"""
+    @param dico: Dictionary associating gene names (keys) to their CCDS fasta sequence (values)
+    @return txtoutput: Fasta formatted string of the dictionary
+    """
 
-	txtoutput = ""
-	for key, value in dico.items():
-		txtoutput += ">{:s}\n{:s}\n".format(str(key),str(value))
+    txtoutput = ""
+    for key, value in dico.items():
+        txtoutput += ">{:s}\n{:s}\n".format(str(key), str(value))
 
-	return(txtoutput)
+    return txtoutput
+
+
 
 def remoteDl(lBlastRes, queryName, apiKey):
 	"""
@@ -29,16 +32,10 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	@param1 lBlastRes: List of accessions
 	@param2 geneName: Gene name
 	@param3 sequence: gene sequence
-	@param4 hitsFasta: Path
-	@param5 sptree: species tree
-	@param6 o: Output directory
-	@param7 apiKey: Key for the API of NCBI
-	@param8 treerecs: Boolean
-	@param9 logger: Object logging
 	@return1 outCat: Path to the file containing the sequences and the new IDs
 	@return2 corSG: Path
 	"""
-	logger = logging.getLogger("main.accessions")
+	#logger = logging.getLogger("main.accessions")
 	dSpecies = {}
 	dId2Seq = {}
 	lTax = []
@@ -70,12 +67,11 @@ def remoteDl(lBlastRes, queryName, apiKey):
 					break
 				else:
 					name = ""
-					
 		if "." in name or "-" in name or name == "":
 			try:
-                                name = "pot"+queryName.split("_")[1]
+				name = "pot_"+queryName.split("_")[1]
 			except IndexError:
-                                name = "pot"
+				name = "pot"
 		if tax == "synCon" or 'GBSeq_sequence' not in record.keys():
 			continue
 		else:
@@ -84,14 +80,15 @@ def remoteDl(lBlastRes, queryName, apiKey):
 			
 	handle.close()
 	nbSp = len(set(lTax))
-	logger.info("Remote option on, downloaded gene IDs and sequences from NCBI databases ({} different species represented in the retrieved sequences).".format(nbSp))
+	print(f"Remote option on, downloaded gene IDs and sequences from NCBI databases ({nbSp} different species represented in the retrieved sequences).\n")
+	print("Remote option on, downloaded gene IDs and sequences from NCBI databases ({} different species represented in the retrieved sequences).".format(nbSp))
 	
 	return(dId2Seq)
 
 
-def sizeCheck(dId2Seq, maxLen):
-	logger = logging.getLogger("main.accessions")
-	
+def sizeCheck(dId2Seq):
+	#logger = logging.getLogger("main.accessions")
+
 	dId2Len = {Id:len(seq) for Id, seq in dId2Seq.items()}
 	m = median(dId2Len.values())
 	n = 0
@@ -101,7 +98,7 @@ def sizeCheck(dId2Seq, maxLen):
 			if v > 2*m:
 				try:
 					del dId2Seq[k]
-					logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
+					#logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
 					n += 1
 				except KeyError:
 					pass
@@ -109,18 +106,19 @@ def sizeCheck(dId2Seq, maxLen):
 			if v > 3*m or v > 20000:
 				try:
 					del dId2Seq[k]
-					logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
+					#logger.debug("Deleted sequence {:s} (length {:d})".format(k, v))
 					n += 1
 				except KeyError:
 					pass
-	
-	logger.info("Deleted {} sequences due to excessive length.".format(n))
-	
+	print(f"Deleted {n} sequences due to excessive length\n")
+	print("Deleted {} sequences due to excessive length.".format(n))
+
 	return(dId2Seq)
 	
+
 def catFile(queryFile, dId2Seq, firstFasta):
-	logger = logging.getLogger("main")
-	
+	#logger = logging.getLogger("main")
+
 	with open(queryFile, "r") as query:
 		lquery = query.readlines()
 		query.close()
@@ -128,42 +126,43 @@ def catFile(queryFile, dId2Seq, firstFasta):
 	
 		with open(firstFasta, "w") as fasta:
 			fasta.write(dict2fasta(dId2Seq))
-			fasta.close()	
+			fasta.close()
+
 	return(firstFasta)
 	
 
-def fastaCreation(data, remote, apiKey, maxLen, step, treerecs):
-	"""
-	Function handling the creation of fasta files in the pipeline.
-
-	@param1 data: basicdata object
-	@param2 remote: Boolean (online database or not)
-	@param3 apiKey: Key for the API of NCBI
-	@param4 treerecs: Booleans
-	"""
-
-	if remote:
-		dId2Seq = remoteDl(data.lBlastRes, data.queryName, apiKey)
-	else: ### need to code this!!!!
-	  logger = logging.getLogger("main.fasta")
-	  logger.info("Local retrieval of information not yet implemented, exiting DGINN.")
-	  sys.exit()
+def fastaCreation(parameters, lBlastRes, outputfile):
+        """
+        Function handling the creation of fasta files in the pipeline.
+        
+        @param1 data: basicdata object
+        @param2 remote: Boolean (online database or not)
+        @param3 apiKey: Key for the API of NCBI
+        @param4 treerecs: Booleans
+        """
+        
+        if parameters["remote"]:
+        	dId2Seq = remoteDl(lBlastRes, parameters["queryName"], parameters["APIKey"])
+        else: ### need to code this!!!!
+        	#logger = logging.getLogger("main.fasta")
+        	print("Local retrieval of information not yet implemented, exiting DGINN.")
+        	sys.exit()
+        
+        dId2Seq = sizeCheck(dId2Seq)
+        
+        firstFasta = outputfile
+        
+        if parameters["step"] == "blast":
+        	firstFasta = catFile(parameters["queryFile"], dId2Seq, firstFasta)
+        else:
+        	with open(firstFasta, "w") as out:
+        		out.write(dict2fasta(dId2Seq))
+        		out.close()
+        
+        if "sptree" in parameters and parameters["duplication"]:
+          parameters["sptree"], parameters["duplication"] = TreeFunc.treeCheck(parameters["sptree"], firstFasta)
+        
+        if parameters["duplication"] and parameters["sptree"]!="":
+          parameters["seqFile"], parameters["cor"] = LoadFileFunc.filterData(parameters["sptree"], firstFasta, parameters["outdir"])
 	
-	dId2Seq = sizeCheck(dId2Seq, maxLen)
-	
-	firstFasta = data.o+data.accnFile.replace("_accns.txt", "_sequences.fasta").split("/")[-1]
-	if step == "blast":
-		firstFasta = catFile(data.queryFile, dId2Seq, firstFasta)
-	else:
-		with open(firstFasta, "w") as out:
-			out.write(dict2fasta(dId2Seq))
-			out.close()
-	setattr(data, "seqFile", firstFasta)
-	
-	if treerecs:
-          data.sptree, treerecs=TreeFunc.treeCheck(data.sptree, firstFasta, treerecs)
-	if treerecs:
-		outCat, corSG = LoadFileFunc.filterData(data.sptree, firstFasta, data.o)
-		setattr(data, "seqFile", outCat)
-		setattr(data, "cor", corSG)
-	
+        return firstFasta

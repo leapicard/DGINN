@@ -1,0 +1,17 @@
+Bootstrap: docker
+From: mambaorg/micromamba:latest
+
+%files
+    environment.yml /opt
+    etc/ /opt
+    lib/ /opt
+    Snakefile /opt
+
+%post
+    micromamba install --yes --name base -c conda-forge python=3.10
+    micromamba install --name base --yes -f /opt/environment.yml
+    micromamba clean --all --yes
+
+%runscript
+#!/bin/bash
+eval "$(micromamba shell hook --shell bash)" && micromamba activate && snakemake $@

@@ -1,0 +1,11 @@
+__pycache__
+examples/*results*
+*_sandbox
+build-temp-*
+*.sif
+*_sif/
+.snakemake
+results*/
+example_snakemake/results*
+.python-version
+.cache/

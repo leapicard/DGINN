@@ -5,20 +5,15 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get  clean && apt-get update && apt-get install -y apt-utils
 
+RUN apt-get -y install default-jdk default-jre
+
 RUN TZ="Europe/Paris" apt-get -y install tzdata
 
-RUN apt-get -y install build-essential \
-	git \
-	emboss \
-	doxygen \
-	pkg-config \
-	automake \
-	openssl \
-	libssl-dev \
-	openmpi-bin \
-	libopenmpi-dev \
-        libeigen3-dev
-        
+RUN apt-get -y install build-essential git emboss doxygen  pkg-config  automake  openssl  libssl-dev  openmpi-bin  libopenmpi-dev  libeigen3-dev
+
+
+
+
 ## Install most recent version of cMake
 ## RUN git clone https://github.com/Kitware/CMake && cd CMake && ./bootstrap && make && make install
 
@@ -116,6 +111,15 @@ FROM base as mafft
 RUN apt-get clean  && apt-get update && apt-get install -y mafft
 
 
+#################
+## Install MACSE
+FROM base as macse
+WORKDIR /opt
+
+RUN apt-get install wget
+RUN wget https://www.agap-ge2pop.org/wp-content/uploads/macse/releases/macse_v2.07.jar
+
+
 ####################
 ## Install all
 FROM base
@@ -138,9 +142,9 @@ RUN pip3 install biopython
 
 RUN pip3 install --upgrade ete3
 
-RUN git clone https://github.com/lgueguen/DGINN && cd DGINN && chmod +x DGINN.py
+RUN git  clone https://github.com/lgueguen/DGINN && cd DGINN && chmod +x DGINN.py
 ENV PATH /opt/DGINN/:$PATH
-ENV PYTHONPATH /opt/DGINN/:$PYTHONPATH
+ENV PYTHONPATH /opt/DGINN/:/opt/DGINN/scripts/:/opt/DGINN/lib/:$PYTHONPATH
 
 
 ## All softwares
@@ -158,6 +162,7 @@ ENV PATH /opt/mafft/bin/:/opt/mafft/lib/:$PATH
 # RUN echo $PATH
 #
 
+COPY --from=macse /opt/macse_v2.07.jar /opt/macse.jar
 
 COPY --from=phyml /usr/lib/phyml/bin/phyml /opt/bin/phyml
 
@@ -174,10 +179,12 @@ ENV LD_LIBRARY_PATH /opt/bpp/lib:$LD_LIBRARY_PATH
 RUN apt-get install -y hyphy-mpi hyphy-common hyphy-pt
 RUN echo $PATH
 
+RUN apt-get install -y snakemake
+
 COPY --from=paml /opt/paml/src/codeml /usr/local/bin/
 
 RUN apt-get install -y python3-biopython
 
-#WORKDIR ~/
-ENTRYPOINT ["DGINN.py"]
-CMD ["-h"]
+WORKDIR ~/
+ENTRYPOINT ["snakemake","-c1","--snakefile","/opt/DGINN/Snakefile"]
+#CMD ["-h"]
