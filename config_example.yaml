@@ -1,6 +1,10 @@
 # CDS file (fasta format
-infile: example_snakemake/results/ex_CCDS.fasta
-step: alignment
+infile: example_snakemake/ex_CCDS.fasta
+# - example_snakemake/CD38.fasta
+# - example_snakemake/APOBEC3G.fasta
+# - example_snakemake/ATF3.fasta
+
+step: 
 
 # Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName:

@@ -11,10 +11,14 @@ if __name__ == "__main__":
     snakemake = globals()["snakemake"]
 
     config = snakemake.config
-    config["output"] = str(snakemake.output)
-    config["input"] = str(snakemake.input)
     config["queryName"] = str(snakemake.wildcards).split(":",1)[0]
+    config["output"] = str(snakemake.output)
     config["step"] = snakemake.rule
+    cq = config["allquery"][config["queryName"]]
+    if len(snakemake.input)>1 and cq!="void" and config["step"] != "positive_selection":
+      config["input"] =  cq
+    else:
+      config["input"] = str(snakemake.input)
 
     # Run step
 
@@ -36,7 +40,7 @@ if __name__ == "__main__":
         os.remove(newconfig)
 
         if len(lq)>1:  ## several subqueries, otherwise only queryName
-          f=open(str(snakemake.output),"w")
+          f=open(config["output"],"w")
           for quer in lq:
             fquer = open(config["outdir"] + "/" + quer + "_positive_selection.txt","r")
             for l in fquer:
@@ -52,7 +56,7 @@ if __name__ == "__main__":
         aln = parameters["outdir"]+"/"+parameters["queryName"]+"_align.fasta"
 
         ## register resulting files in output
-        f=open(str(snakemake.output),"w")
+        f=open(config["output"],"w")
         f.write(outDir + "\t" + aln + "\n")
         f.close()
 
