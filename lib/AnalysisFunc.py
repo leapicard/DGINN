@@ -576,7 +576,7 @@ def parseGard(kh, parameters):
 
     @param1 kh: Path to GARD.json output file
     @param2 aln: Path to alignment file
-    @param3 pvalue: Float
+<    @param3 pvalue: Float
     @param4 o: Path to output directory
     @return lOutFrag: List of Path (Fragments in fasta files)
     """
@@ -630,7 +630,7 @@ def parseGard(kh, parameters):
         dFrag += [{name:seq[deb:] for  name,seq in dFname2Fseq.items()}]
 
         lBP = lPos + [lenSeq]
-        lOutFrag = []
+        lQuerFrag = []
         index = 0
         for x in range(len(lBP)-1):
             extension = "_{:d}-{:d}".format(lBP[x]+1, lBP[x+1])
@@ -641,11 +641,11 @@ def parseGard(kh, parameters):
             with open(outFrag, "w") as outF:
                 outF.write(FastaResFunc.dict2fasta(dFrag[x]))
                 outF.close()
-            lOutFrag.append(name)
-
-        return lOutFrag
+            lQuerFrag.append(name)
+            
+        return [lQuerFrag]
     else:
-        return []
+        return [queryName]
 
 
 #######=================================================================================================================

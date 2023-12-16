@@ -11,9 +11,13 @@ if __name__ == "__main__":
     snakemake = globals()["snakemake"]
 
     config = snakemake.config
-    config["output"] = str(snakemake.output)
-    config["input"] = str(snakemake.input)
     config["queryName"] = str(snakemake.wildcards).split(":",1)[0]
+    config["output"] = str(snakemake.output)
+    cq = config["allquery"][config["queryName"]]
+    if len(snakemake.input)>1 and cq!="void":
+      config["input"] =  cq
+    else:
+      config["input"] = str(snakemake.input)
     config["step"] = snakemake.rule
     
     parameters = Init.paramDef(config)
@@ -23,18 +27,18 @@ if __name__ == "__main__":
     gardRes = config["outdir"]+"/"+config["queryName"]+"_bp.txt"
     frec = open(gardRes,"w")
     frec.write("breakpoints\n")
-    frec.write("[]\n")
+    frec.write("[500]\n")
     frec.close()
-    
-    lAln = AnalysisFunc.parseGard(gardRes, parameters)
 
+    ## lQuer is the list of new queryNames 
+    lQuer = AnalysisFunc.parseGard(gardRes, parameters)
+    
     ## rerun snakemake if needed
     if len(lAln)>1: # several sub 
-      dpar={k:v for k,v in config.items() if k not in ["infile","output","step"]}
-      dpar["infile"]=""
-      dpar["queryName"]=lAln
+      dpar={k:v for k,v in config.items() if k not in ["output","step","queryName"]}
+      dpar["queryName"]=lQuer
       dpar["recombination"]=False
-      newconfig = "."+config["queryName"]+"config_dupl.yaml"
+      newconfig = "."+config["queryName"]+"_config_rec.yaml"
       with open(newconfig,"w") as lout:
         yaml.dump(dpar,lout)
 
@@ -42,8 +46,8 @@ if __name__ == "__main__":
       
       os.remove(newconfig)
 
-    ## register resulting files in output
-    f=open(str(snakemake.output),"w")
-    for aln in lAln:
-      f.write(aln + "\n")
+    ## register resulting queryNames in output
+    f=open(config["output"],"w")
+    for i in range(len(lQuer)):
+      f.write(lQuer[i] + "\n")
     f.close()
