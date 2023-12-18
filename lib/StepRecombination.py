@@ -34,15 +34,15 @@ if __name__ == "__main__":
     lQuer = AnalysisFunc.parseGard(gardRes, parameters)
     
     ## rerun snakemake if needed
-    if len(lAln)>1: # several sub 
-      dpar={k:v for k,v in config.items() if k not in ["output","step","queryName"]}
+    if len(lQuer)>1: # several sub 
+      dpar={k:v for k,v in config.items() if k not in ["output","step","queryName","infile"]}
       dpar["queryName"]=lQuer
       dpar["recombination"]=False
       newconfig = "."+config["queryName"]+"_config_rec.yaml"
       with open(newconfig,"w") as lout:
         yaml.dump(dpar,lout)
 
-      subprocess.run(['snakemake',"--cores=%d"%(max(1,len(lAln))),"--nolock","--configfile=" + newconfig,"--until=alignment"])
+      subprocess.run(['snakemake',"--cores=%d"%(max(1,len(lQuer))),"--nolock","--configfile=" + newconfig,"--until=alignment"])
       
       os.remove(newconfig)
 
@@ -50,4 +50,5 @@ if __name__ == "__main__":
     f=open(config["output"],"w")
     for i in range(len(lQuer)):
       f.write(lQuer[i] + "\n")
+      
     f.close()

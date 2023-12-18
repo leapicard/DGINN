@@ -27,7 +27,7 @@ if __name__ == "__main__":
         lq=list(map(str.strip,frec.readlines()))
         frec.close()
 
-        dpar={k:v for k,v in config.items() if k not in ["input","output","step"]}
+        dpar={k:v for k,v in config.items() if k not in ["input","output","step","infile"]}
         dpar["recombination"]=False
         dpar["duplication"]=False
         dpar["queryName"]=lq

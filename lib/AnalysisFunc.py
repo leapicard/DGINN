@@ -32,7 +32,6 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
       
     lCmd = shlex.split(commandLine)
 
-    print(commandLine)
     try:
         run = subprocess.call(lCmd, shell=choice, stdout=out, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as err:
@@ -643,7 +642,7 @@ def parseGard(kh, parameters):
                 outF.close()
             lQuerFrag.append(name)
             
-        return [lQuerFrag]
+        return lQuerFrag
     else:
         return [queryName]
 

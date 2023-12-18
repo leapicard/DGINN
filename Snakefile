@@ -16,23 +16,23 @@ def data_path(file, queryName = "{queryName}"):
 
           
 ####
-# get queryName
+# get infile & queryName
 
 if not "infile" in config or not config["infile"]:
-    config["infile"]="void"
+    config["infile"]=["void"]
 
 if type(config["infile"]) == str:
     config["infile"]=[config["infile"]]
 
+### in case of no queryNames, build them from infiles
 if not "queryName" in config or not config["queryName"] or len(config["queryName"])==0:
     config["queryName"] = list(map(lambda x:os.path.split(x)[-1].rsplit(".",1)[0].strip(), config.get("infile","void")))
 elif type(config["queryName"]) == str:
     config["queryName"]=[config["queryName"]]
 
-# Check everything is fine (with the exception of positive_selection
-# step, where two files (alignment & tree) are needed
+# Check everything is fine
 
-if config["infile"]!=["void"] and config.get("step","")!="positive_selection":
+if config["infile"]!=["void"]:
   if len(config["queryName"])!=len(config["infile"]):
      print("lengths of queryName & infile do not match")
      sys.exit(0)

@@ -34,7 +34,6 @@ if __name__ == "__main__":
         with open(newconfig,"w") as lout:
            yaml.dump(dpar,lout)
 
-        print(" ".join(['snakemake',"--nolock","--cores=%d"%(max(len(lq),1)),"--configfile="+newconfig,"--until=duplication","--reason"]))
         subprocess.run(['snakemake',"--nolock","--cores=%d"%(max(len(lq),1)),"--configfile="+newconfig,"--until=duplication","--reason"])
 
         os.remove(newconfig)
