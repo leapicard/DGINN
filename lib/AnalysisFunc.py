@@ -1,6 +1,6 @@
 # coding: utf8
 import sys
-import FastaResFunc
+import FastaResFunc, shutil
 import logging, subprocess, shlex, os, ete3
 from Bio import SeqIO, AlignIO
 from collections import defaultdict
@@ -155,7 +155,7 @@ def runPrank(ORFs, parameters):
     logger.info("Finished Prank codon alignment: {:s}.best.fas".format(outPrank))
 
     if os.path.exists(outPrank + ".fas"):
-        os.rename(outPrank + ".fas", outPrank + ".best.fas")
+      shutil.copyfile(outPrank + ".fas", outPrank + ".best.fas")
 
     return outPrank + ".best.fas"
 
@@ -481,9 +481,9 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
 def checkTree(parameters, step="duplication"):
   nbspecies=parameters["nbspecies"]
   LBopt=parameters["LBopt"]
-  
-  aln = parameters["input"].split()[0]
-  tree = parameters["input"].split()[1]
+
+  aln = parameters["input"].split()[0].strip()
+  tree = parameters["input"].split()[1].strip()
   
   logger = logging.getLogger(".".join(["main", step]))
   dAlnTree = cutLongBranches(parameters, aln, tree, nbspecies, LBopt, logger)
@@ -630,6 +630,7 @@ def parseGard(kh, parameters):
 
         lBP = lPos + [lenSeq]
         lQuerFrag = []
+        lOutFrag = []
         index = 0
         for x in range(len(lBP)-1):
             extension = "_{:d}-{:d}".format(lBP[x]+1, lBP[x+1])
@@ -641,10 +642,10 @@ def parseGard(kh, parameters):
                 outF.write(FastaResFunc.dict2fasta(dFrag[x]))
                 outF.close()
             lQuerFrag.append(name)
-            
-        return lQuerFrag
+            lOutFrag.append(outFrag)
+        return [lQuerFrag, lOutFrag]
     else:
-        return [queryName]
+        return [queryName,aln]
 
 
 #######=================================================================================================================

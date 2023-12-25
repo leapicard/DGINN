@@ -13,8 +13,10 @@ if __name__ == "__main__":
     config = snakemake.config
     config["queryName"] = str(snakemake.wildcards).split(":",1)[0]
     config["output"] = str(snakemake.output)
+    config["input"] = list(snakemake.input)
+
     cq = config["allquery"][config["queryName"]]
-    if len(snakemake.input)>1 and cq!="void":
+    if len(config["input"])>1 and cq!="void":
       config["input"] =  cq
     else:
       config["input"] = str(snakemake.input)
@@ -31,13 +33,16 @@ if __name__ == "__main__":
     frec.close()
 
     ## lQuer is the list of new queryNames 
-    lQuer = AnalysisFunc.parseGard(gardRes, parameters)
-    
+    ## lAln is the list of new alignments 
+    [lQuer, lAln] = AnalysisFunc.parseGard(gardRes, parameters)
+
     ## rerun snakemake if needed
     if len(lQuer)>1: # several sub 
-      dpar={k:v for k,v in config.items() if k not in ["output","step","queryName","infile"]}
+      dpar={k:v for k,v in config.items() if k not in ["output","queryName","infile"]}
       dpar["queryName"]=lQuer
+      dpar["infile"]=lAln
       dpar["recombination"]=False
+      dpar["step"]="alignment"
       newconfig = "."+config["queryName"]+"_config_rec.yaml"
       with open(newconfig,"w") as lout:
         yaml.dump(dpar,lout)
@@ -45,10 +50,11 @@ if __name__ == "__main__":
       subprocess.run(['snakemake',"--cores=%d"%(max(1,len(lQuer))),"--nolock","--configfile=" + newconfig,"--until=alignment"])
       
       os.remove(newconfig)
-
-    ## register resulting queryNames in output
+      lAln=[config["outdir"] + "/" + quer+"_align.fasta" for quer in lQuer]
+      
+    ## register resulting [queryName, alignment]s in output
     f=open(config["output"],"w")
     for i in range(len(lQuer)):
-      f.write(lQuer[i] + "\n")
+      f.write(lQuer[i] + "\t" + lAln[i] + "\n")
       
     f.close()

@@ -14,8 +14,10 @@ if __name__ == "__main__":
     config["queryName"] = str(snakemake.wildcards).split(":",1)[0]
     config["output"] = str(snakemake.output)
     config["step"] = snakemake.rule
+    config["input"] = list(snakemake.input)
+
     cq = config["allquery"][config["queryName"]]
-    if len(snakemake.input)>1 and cq!="void" and config["step"] != "positive_selection":
+    if len(config["input"])>1 and cq!="void":
       config["input"] =  cq
     else:
       config["input"] = str(snakemake.input)

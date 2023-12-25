@@ -13,21 +13,25 @@ if __name__ == "__main__":
     config = snakemake.config
     config["queryName"] = str(snakemake.wildcards).split(":",1)[0]
     config["output"] = str(snakemake.output)
-    cq = config["allquery"][config["queryName"]]
-    if len(snakemake.input)>1 and cq!="void":
-      config["input"] =  cq
-    else:
-      config["input"] = str(snakemake.input)
+    config["input"] = str(snakemake.input)
+
     config["step"] = snakemake.rule
 
     if config["input"].endswith("recombinations.txt"):
         frec = open(config["input"],"r")
-        lq=list(map(str.strip,frec.readlines()))
+        lq=[]
+        laln=[]
+        for l in frec.readlines():
+          ll=l.split()
+          lq.append(ll[0].strip())
+          laln.append(ll[1].strip())
+
         frec.close()
 
         dpar={k:v for k,v in config.items() if k not in ["input","output","step","infile"]}
         dpar["recombination"]=False
         dpar["queryName"]=lq
+        dpar["infile"]=laln
         dpar["step"]="alignment"
 
         newconfig = "."+config["queryName"]+"_config_dupl.yaml"
@@ -54,7 +58,7 @@ if __name__ == "__main__":
         # Run step
     
         check_params = {p: parameters[p] for p in ["nbspecies", "LBopt"]}
-    
+
         lquery = AnalysisFunc.checkTree(parameters)
         
         ## rerun snakemake if needed
@@ -65,6 +69,7 @@ if __name__ == "__main__":
           dpar={k:v for k,v in config.items() if k not in ["input","output","step"]}
           dpar["queryName"]=lquery
           dpar["recombination"]=False
+          
           newconfig = "."+config["queryName"]+"config_dupl.yaml"
           with open(newconfig,"w") as lout:
             yaml.dump(dpar,lout)

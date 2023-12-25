@@ -1,10 +1,3 @@
-<!-- To export conda/mamba environment:
-
-```shell
-mamba env export > environment.yml
-```
--->
-
 To run locally, first create and activate a conda/mamba environment from environment.yml:
 
 ```shell
