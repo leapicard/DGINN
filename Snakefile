@@ -1,4 +1,6 @@
 import shutil, sys, os
+#import workflow
+
 
 # --- Path functions ---
 
@@ -14,6 +16,14 @@ def log_path(file, queryName = "{queryName}"):
 def data_path(file, queryName = "{queryName}"):
     return expand("{outdir}/data/"+os.path.basename("{}".format(queryName)) + file, outdir=config["outdir"], queryName=queryName)
 
+#### get Snakefile path
+snakefilepath=workflow.source_path("Snakefile")
+pfile=snakefilepath.rfind(os.sep+"file"+os.sep)
+snakefilepath=snakefilepath[pfile+4+len(os.sep):]
+
+config["outdir"]=os.path.abspath(config["outdir"])
+if "sptree" in config:
+   config["sptree"]=os.path.abspath(config["sptree"])
 
 #### get step
           
@@ -22,14 +32,16 @@ step = config.get("step","")
 ####
 # get infile & queryName
 
-### for duplication, either list of queryNames, or couple of infile [align, tree]
-          
+### for duplication, either list of queryNames, or couple of infile [align, tree]                    
 if not "infile" in config or not config["infile"]:
     config["infile"]=["void"]
 
 if type(config["infile"]) == str:
     config["infile"]=[config["infile"]]
 
+## use absolute paths
+config["infile"]=[os.path.abspath(f) if f!="void" else "void" for f in config["infile"] ]
+          
 ### in case of no queryNames, build them from infiles
 if not "queryName" in config or not config["queryName"] or len(config["queryName"])==0:
   if step!="duplication" and step!="positive_selection":
@@ -53,7 +65,11 @@ if config["infile"]!=["void"]:
 else:
     config["allquery"]={config["queryName"][i]:"void" for i in range(len(config["queryName"]))}
 
+
+### Go to snakefile directory
+os.chdir(snakefilepath[:snakefilepath.rfind(os.sep)])
           
+
 # --- Default rule ---
 
 
@@ -145,7 +161,7 @@ rule tree:
 
 rule recombination:
     input:
-        out_path("_align.fasta") if not step=="recombination" else rules.step.output,
+        ancient(out_path("_align.fasta")) if not step=="recombination" else rules.step.output,
     output:
         out_path("_recombinations.txt"),
     log:
