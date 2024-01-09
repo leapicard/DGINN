@@ -29,7 +29,8 @@ if __name__ == "__main__":
     gardRes = config["outdir"]+"/"+config["queryName"]+"_bp.txt"
     frec = open(gardRes,"w")
     frec.write("breakpoints\n")
-    frec.write("[500]\n")
+#    frec.write("[500]\n")
+    frec.write("[]\n")
     frec.close()
 
     ## lQuer is the list of new queryNames 
