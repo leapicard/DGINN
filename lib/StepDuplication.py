@@ -68,7 +68,7 @@ if __name__ == "__main__":
         if len(lquery)>=1: # several sub alignments
           dpar={k:v for k,v in config.items() if k not in ["input","output","step"]}
           dpar["queryName"]=list(lquery.keys())
-          dpar["input"]=list(lquery.values())
+          dpar["infile"]=list(lquery.values())
           dpar["recombination"]=False
           dpar["step"]="alignment"
           
