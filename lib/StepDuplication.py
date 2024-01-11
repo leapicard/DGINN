@@ -71,7 +71,7 @@ if __name__ == "__main__":
                 for l in fquer:
                     f.write(l)
                 fquer.close()
-            os.remove(config["outdir"] + "/" + quer + "_duplications.txt")
+                os.remove(config["outdir"] + "/" + quer + "_duplications.txt")
             f.close()
 
     else:
@@ -87,12 +87,14 @@ if __name__ == "__main__":
 
         fout = open(config["output"], "w")
 
-        if len(lquery) > 1:  # several sub alignments
+        if len(lquery) >= 1:  # several sub alignments
             dpar = {
                 k: v for k, v in config.items() if k not in ["input", "output", "step"]
             }
-            dpar["queryName"] = lquery
-            dpar["recombination"] = False
+            dpar["queryName"]=list(lquery.keys())
+            dpar["infile"]=list(lquery.values())
+            dpar["recombination"]=False
+            dpar["step"]="alignment"
 
             newconfig = "." + config["queryName"] + "config_dupl.yaml"
             with open(newconfig, "w") as lout:
@@ -111,9 +113,9 @@ if __name__ == "__main__":
             os.remove(newconfig)
 
             for query in lquery:
-                fout.write(query + "\n")
-
+                fout.write(query + "\t"+ config["outdir"] + "/" + query + "_align.fasta" + "\n")
+  
         else:
-            fout.write(config["queryName"] + "\n")
-
+            fout.write(config["queryName"] + "\t"+ config["outdir"] + "/" + config["queryName"] + "_align.fasta" + "\n")
+          
         fout.close()

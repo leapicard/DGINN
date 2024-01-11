@@ -32,11 +32,14 @@ if __name__ == "__main__":
 
     # Run step
 
-    if config["input"].endswith("recombinations.txt") or config["input"].endswith(
-        "duplications.txt"
-    ):
-        frec = open(config["input"], "r")
-        lq = list(map(str.strip, frec.readlines()))
+    if config["input"].endswith("recombinations.txt") or config["input"].endswith("duplications.txt"):
+        frec = open(config["input"],"r")
+        lq=[]
+        lf=[]
+        for l in frec.readlines():
+          [a,b] = [e.strip() for e in l.split()]
+          lq.append(a)
+          lf.append(b)
         frec.close()
 
         dpar = {
@@ -44,12 +47,14 @@ if __name__ == "__main__":
             for k, v in config.items()
             if k not in ["input", "output", "step", "infile"]
         }
-        dpar["recombination"] = False
-        dpar["duplication"] = False
-        dpar["queryName"] = lq
-        newconfig = "." + config["queryName"] + "config_sel.yaml"
-        with open(newconfig, "w") as lout:
-            yaml.dump(dpar, lout)
+        dpar["recombination"]=False
+        dpar["duplication"]=False
+        dpar["queryName"]=lq
+        dpar["infile"]=lf
+        dpar["step"]="alignment"
+        newconfig = "."+config["queryName"]+"config_sel.yaml"
+        with open(newconfig,"w") as lout:
+           yaml.dump(dpar,lout)
 
         subprocess.run(
             [
