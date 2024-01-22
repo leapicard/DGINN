@@ -159,6 +159,25 @@ def runPrank(ORFs, parameters):
 
     return outPrank + ".best.fas"
 
+  
+def runMacse(ORFs, parameters):
+    """
+    Function to run MACSE software for codon alignment.
+
+    @return Path to Macse results file
+    """
+    logger = logging.getLogger("main.alignment")
+    logger.info("Started Macse codon alignment")
+    outdir = parameters["outdir"]
+    queryName = parameters["queryName"]
+    outFile = outdir + "/" + queryName + "_macse"
+
+    cmd("macse -prog refineAlignment -align {:s} -out_NT {:s}.best.fas".format(ORFs, outFile),False)
+
+    logger.info("Finished Macse codon alignment: {:s}.best.fas".format(outFile))
+
+    return outFile + ".best.fas"
+
 
 def runMafft(parameters):
     outdir = parameters["outdir"]
@@ -574,9 +593,6 @@ def parseGard(kh, parameters):
     Function returning the cut fragments following GARD analysis and identification of significant breakpoints.
 
     @param1 kh: Path to GARD.json output file
-    @param2 aln: Path to alignment file
-<    @param3 pvalue: Float
-    @param4 o: Path to output directory
     @return lOutFrag: List of Path (Fragments in fasta files)
     """
     outdir = parameters["outdir"]
@@ -645,7 +661,7 @@ def parseGard(kh, parameters):
             lOutFrag.append(outFrag)
         return [lQuerFrag, lOutFrag]
     else:
-        return [queryName,aln]
+        return [[queryName],[aln]]
 
 
 #######=================================================================================================================

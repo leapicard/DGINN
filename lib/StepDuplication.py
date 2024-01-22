@@ -47,7 +47,7 @@ if __name__ == "__main__":
         dpar["infile"] = laln
         dpar["step"] = "alignment"
 
-        newconfig = "." + config["queryName"] + "_config_dupl.yaml"
+        newconfig = dpar["outdir"]+"/." + config["queryName"] + "_config_dupl.yaml"
         with open(newconfig, "w") as lout:
             yaml.dump(dpar, lout)
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
             [
                 "snakemake",
                 "--nolock",
-                "--cores=%d" % (max(len(lq), 1)),
+                "--cores=%d" %config["cores"],
                 "--configfile=" + newconfig,
                 "--until=duplication",
                 "--reason",
@@ -96,7 +96,7 @@ if __name__ == "__main__":
             dpar["recombination"]=False
             dpar["step"]="alignment"
 
-            newconfig = "." + config["queryName"] + "config_dupl.yaml"
+            newconfig = dpar["outdir"] + "/." + config["queryName"] + "config_dupl.yaml"
             with open(newconfig, "w") as lout:
                 yaml.dump(dpar, lout)
 
@@ -104,7 +104,7 @@ if __name__ == "__main__":
                 [
                     "snakemake",
                     "--nolock",
-                    "--cores=%d" % (max(1, len(lquery))),
+                    "--cores=%d" %config["cores"],
                     "--configfile=" + newconfig,
                     "--until=tree",
                 ]

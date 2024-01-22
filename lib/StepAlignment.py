@@ -21,27 +21,40 @@ if __name__ == "__main__":
     config["output"] = str(snakemake.output)
     config["input"] = list(snakemake.input)
 
+    aligner = config.get("aligner","macse")
+    
     cq = config["allquery"][config["queryName"]]
     if len(config["input"]) > 1 and cq != "void":
         config["input"] = cq
     else:
         config["input"] = str(snakemake.input)
-    config["step"] = snakemake.rule
 
     parameters = Init.paramDef(config)
 
     # Run step
+    if config["step"]=="tree": # alignment already done
+        os.symlink(config["input"],config["output"])
+        sys.exit(0)
+
+
     outMafft = AnalysisFunc.runMafft(parameters)
 
     fasCov, nbOut = AnalysisFunc.covAln(outMafft, parameters)
 
-    outPrank = AnalysisFunc.runPrank(fasCov, parameters)
-
-    if os.path.exists(outPrank):
-        outAli = outPrank
+    if aligner == "prank":
+      outFile = AnalysisFunc.runPrank(fasCov, parameters)
+    elif aligner == "macse":
+      outFile = AnalysisFunc.runMacse(fasCov, parameters)
     else:
-        print("Prank did not run on file " + fasCov)
-        outAli = fasCov
+      print("Unknown aligner: " + aligner)
+    
+      
+    if os.path.exists(outFile):
+      outAli = outFile
+    else:
+      print(aligner + " did not run on file " + fasCov)
+      outAli = fasCov
+
 
     outIso = AnalysisFunc.isoformAln(outAli, parameters)
 

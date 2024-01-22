@@ -57,14 +57,14 @@ if __name__ == "__main__":
         dpar["infile"] = lAln
         dpar["recombination"] = False
         dpar["step"] = "alignment"
-        newconfig = "." + config["queryName"] + "_config_rec.yaml"
+        newconfig = dpar["outdir"] + "/." + config["queryName"] + "_config_rec.yaml"
         with open(newconfig, "w") as lout:
             yaml.dump(dpar, lout)
 
         subprocess.run(
             [
                 "snakemake",
-                "--cores=%d" % (max(1, len(lQuer))),
+                "--cores=%d" %config["cores"],
                 "--nolock",
                 "--configfile=" + newconfig,
                 "--until=alignment",

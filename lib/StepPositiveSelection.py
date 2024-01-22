@@ -52,7 +52,7 @@ if __name__ == "__main__":
         dpar["queryName"]=lq
         dpar["infile"]=lf
         dpar["step"]="alignment"
-        newconfig = "."+config["queryName"]+"config_sel.yaml"
+        newconfig = dpar["outdir"] + "/." + config["queryName"]+"config_sel.yaml"
         with open(newconfig,"w") as lout:
            yaml.dump(dpar,lout)
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
             [
                 "snakemake",
                 "--nolock",
-                "--cores=%d" % (max(1, len(lq))),
+                "--cores=%d" %config["cores"],
                 "--configfile=" + newconfig,
                 "--until=positive_selection",
             ]

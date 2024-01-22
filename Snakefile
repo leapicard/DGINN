@@ -1,6 +1,4 @@
 import shutil, sys, os
-#import workflow
-
 
 # --- Path functions ---
 
@@ -16,7 +14,10 @@ def log_path(file, queryName = "{queryName}"):
 def data_path(file, queryName = "{queryName}"):
     return expand("{outdir}/data/"+os.path.basename("{}".format(queryName)) + file, outdir=config["outdir"], queryName=queryName)
 
+config["cores"]=workflow.cores
+
 #### get Snakefile path
+
 snakefilepath=workflow.source_path("Snakefile")
 pfile=snakefilepath.rfind(os.sep+"file"+os.sep)
 snakefilepath=snakefilepath[pfile+4+len(os.sep):]
@@ -139,7 +140,7 @@ rule orf:
           
 rule alignment:
     input:
-        ancient(out_path("_longestORFs.fasta")) if not step=="alignment" else rules.step.output,
+        ancient(out_path("_longestORFs.fasta")) if not step in ["alignment","tree"] else rules.step.output,
     output:
         out_path("_align.fasta"),
     log:
