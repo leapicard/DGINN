@@ -13,14 +13,14 @@ def pspAnalysis(params):
     """
     logger=logging.getLogger("main.positiveSelection")
 
-    tree = params["outdir"]+"/"+params["queryName"]+"_tree.dnd"
-    aln = params["outdir"]+"/"+params["queryName"]+"_align.fasta"
+    tree = os.path.join(params["outdir"],params["queryName"]+"_tree.dnd")
+    aln = os.path.join(params["outdir"],params["queryName"]+"_align.fasta")
     
     timeStamp = strftime("%Y%m%d%H%M", localtime())
 
     ### set up new directory
     
-    outDir = params["outdir"]+"/" + params["queryName"] + "_positive_selection"
+    outDir = os.path.join(params["outdir"],params["queryName"] + "_positive_selection")
     if not os.path.exists(outDir):
         os.makedirs(outDir)
 

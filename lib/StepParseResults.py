@@ -2,7 +2,7 @@
 Script running the positive selection analysis step.
 """
 import logging
-import subprocess
+import os, subprocess
 
 from Logging import setup_logger
 
@@ -17,14 +17,8 @@ if __name__ == "__main__":
     config = snakemake.config
     config["queryName"] = str(snakemake.wildcards).split(":", 1)[0]
     config["output"] = str(snakemake.output)
-    config["input"] = list(snakemake.input)
 
-    cq = config["allquery"][config["queryName"]]
-    if len(config["input"]) > 1 and cq != "void":
-        config["input"] = cq
-    else:
-        config["input"] = str(snakemake.input)
-    config["step"] = snakemake.rule
+    config["input"] = os.path.join(config["outdir"], config["queryName"] + "_positive_selection.txt")
 
     # Run step
 

@@ -1,9 +1,9 @@
 # CDS file (fasta format
 infile:
-#example_snakemake/ex_CCDS.fasta
+- example_snakemake/results/ex_CCDS_longestORFs.fasta
 #- example_snakemake/CD38.fasta, example_snakemake/results/ex_CD38_tree.dnd
 #- example_snakemake/FYC01_pri.fasta
-- example_snakemake/FYC01_bat.fasta
+#- example_snakemake/FYC01_bat.fasta
 
 step: alignment
 
@@ -79,13 +79,13 @@ phymlOpt:
 sptree: example_snakemake/ex_spTree.tree
 
 # Option for the identification of duplication events (default: False)
-duplication: True
+duplication: False
 
 
 # Option for Long Branch separation (default: cutoff(50))
 # IQR or cutoff, factor can be put after in parenthesis (ex: cutoff(50))
 # EXPERIMENTAL
-LBopt: cutoff(2)
+LBopt: 
 
 # Minimum number of species for assignment to an ortholog group (default: 8)
 nbspecies: 8

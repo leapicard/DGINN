@@ -1,7 +1,7 @@
 name: dginn
 channels:
-  - conda-forge
   - bioconda
+  - conda-forge
   - defaults
 dependencies:
   - _libgcc_mutex=0.1=conda_forge
@@ -30,10 +30,10 @@ dependencies:
   - brotlipy=0.7.0=py310h5764c6d_1005
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.19.1=hd590300_0
-  - ca-certificates=2023.11.17=hbcca054_0
+  - ca-certificates=2023.12.12=h06a4308_0
   - cachetools=5.3.1=pyhd8ed1ab_0
   - cairo=1.16.0=h0c91306_1017
-  - certifi=2023.11.17=pyhd8ed1ab_0
+  - certifi=2023.11.17=py310h06a4308_0
   - cffi=1.15.1=py310h2fee648_4
   - charset-normalizer=3.2.0=pyhd8ed1ab_0
   - coin-or-cbc=2.10.10=h9002f0b_0
@@ -95,6 +95,7 @@ dependencies:
   - idna=3.4=pyhd8ed1ab_0
   - importlib_resources=6.0.1=pyhd8ed1ab_0
   - iniconfig=2.0.0=pyhd8ed1ab_0
+  - iqtree=2.2.6=h21ec9f0_0
   - jinja2=3.1.2=pyhd8ed1ab_1
   - jmespath=1.0.1=pyhd8ed1ab_0
   - jsonschema=4.19.1=pyhd8ed1ab_0
@@ -289,4 +290,4 @@ dependencies:
   - zipp=3.17.0=pyhd8ed1ab_0
   - zlib=1.2.13=hd590300_5
   - zstd=1.5.5=hfc55251_0
-prefix: /usr/local/bin/anaconda3/envs/dginn
+prefix: /home/gueguen/.conda/envs/dginn

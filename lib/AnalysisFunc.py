@@ -29,7 +29,7 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
       else:
         out = open(stdout, "w")
 
-      
+    print(commandLine)
     lCmd = shlex.split(commandLine)
 
     try:
@@ -118,7 +118,7 @@ def getORFs(parameters):
 
     logger.info("Deleted {} sequences as duplicates".format(n))
 
-    outORF = outORFraw.replace("allORFs.fasta", "longestORFs.fasta")
+    outORF = outORFraw.replace("allORFs.fasta", "orf.fasta")
 
     with open(outORF, "w") as outO:
         outO.write(FastaResFunc.dict2fasta(dId2Longest))
@@ -407,6 +407,7 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
     @param3 logger: Logging object
     @return dAlnTree: Updated dictionary of alignments and their corresponding trees
     """
+
     logger.info("Looking for long branches.")
     loadTree = ete3.Tree(tree)
     dist = [leaf.dist for leaf in loadTree.traverse()]
@@ -442,7 +443,7 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
         )
     )
     nbSp = int(nbSp)
-    matches = [leaf for leaf in loadTree.traverse() if leaf.dist > longDist]
+    matches = [leaf for leaf in loadTree.traverse("postorder") if leaf.dist > longDist]
     if len(matches) > 0:
         logger.info(
             "{} long branches found, separating alignments.".format(len(matches))
@@ -452,11 +453,12 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
         dID2Seq = {gene.id: gene.seq for gene in seqs}
 
         for node in matches:
-            gp = node.get_children()
-            lNewGp = list(chain.from_iterable([x.get_leaf_names() for x in gp]))
+            gp = [node] + node.get_children()
+            lNewGp = node.get_leaf_names()
 
             dNewAln = {gene: dID2Seq[gene] for gene in lNewGp if gene in dID2Seq}
-            for k in lNewGp:
+
+            for k in dNewAln:
                 dID2Seq.pop(k, None)
 
             # create new file of sequences
@@ -468,10 +470,10 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
                 fasta.write(FastaResFunc.dict2fasta(dNewAln))
                 fasta.close()
               dAlnTree[newQuery] = alnf
-            else:
+            elif len(dNewAln)!=0:
                 logger.info(
                     "Sequences {} will not be considered for downstream analyses as they do not compose a large enough group.".format(
-                        dNewAln.keys()
+                        " ".join(dNewAln.keys())
                     )
                 )
 
@@ -484,10 +486,10 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
                 logger.info("\tNew alignment:%s" % {alnLeft})
                 fasta.close()
             dAlnTree[newQuery]=alnLeft
-        else:
+        elif len(dID2Seq)!=0:
             logger.info(
                 "Sequences in {} will not be considered for downstream analyses as they do not compose a large enough group.".format(
-                    dID2Seq.keys()
+                  " ".join(dID2Seq.keys())
                 )
             )
 
@@ -652,7 +654,7 @@ def parseGard(kh, parameters):
             extension = "_{:d}-{:d}".format(lBP[x]+1, lBP[x+1])
 
             name = queryName + extension
-            outFrag = outdir + "/" + name + "_longestORFs.fasta"
+            outFrag = outdir + "/" + name + "_orf.fasta"
             
             with open(outFrag, "w") as outF:
                 outF.write(FastaResFunc.dict2fasta(dFrag[x]))

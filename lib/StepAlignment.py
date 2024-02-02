@@ -19,15 +19,10 @@ if __name__ == "__main__":
     config = snakemake.config
     config["queryName"] = str(snakemake.wildcards).split(":", 1)[0]
     config["output"] = str(snakemake.output)
-    config["input"] = list(snakemake.input)
 
     aligner = config.get("aligner","macse")
-    
-    cq = config["allquery"][config["queryName"]]
-    if len(config["input"]) > 1 and cq != "void":
-        config["input"] = cq
-    else:
-        config["input"] = str(snakemake.input)
+
+    config["input"] = os.path.join(config["outdir"],config["queryName"]+"_orf.fasta")
 
     parameters = Init.paramDef(config)
 
@@ -35,7 +30,6 @@ if __name__ == "__main__":
     if config["step"]=="tree": # alignment already done
         os.symlink(config["input"],config["output"])
         sys.exit(0)
-
 
     outMafft = AnalysisFunc.runMafft(parameters)
 
