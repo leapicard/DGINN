@@ -19,6 +19,7 @@ if __name__ == "__main__":
     config = snakemake.config
     config["queryName"] = str(snakemake.wildcards).split(":", 1)[0]
     config["output"] = str(snakemake.output)
+    config["step"] = snakemake.rule
 
     aligner = config.get("aligner","macse")
 

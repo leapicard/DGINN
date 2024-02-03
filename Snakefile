@@ -78,8 +78,7 @@ dstep={
 if step in dstep:
   for i in range(len(config["queryName"])):
     instep = dstep[step][0]
-    if not os.path.exists(out_path(instep,queryName=config["queryName"][i])[0]):
-        os.symlink(config["infile"][i],out_path(instep,queryName=config["queryName"][i])[0])
+    shutil.copyfile(config["infile"][i],out_path(instep,queryName=config["queryName"][i])[0])
     config["infile"][i]=out_path(instep,queryName=config["queryName"][i])[0]
 
           
@@ -100,10 +99,6 @@ rule all:
                 (out_path("_tree.dnd",config["queryName"]))))
 
 
-# --- Step rules ---
-
-## Needed starting rule for intermediate steps 
-
 ######################################################
 #### Request
 ######################################################
@@ -112,16 +107,23 @@ rule all:
 ## does not exists, ask for insuffix file
           
 def check_exists(wildcards, outsuffix, insuffix):
-    if not os.path.exists(out_path(outsuffix,queryName=wildcards)[0]):
-          return out_path(insuffix,queryName=wildcards)
+    outfile = out_path(outsuffix,queryName=wildcards)[0]
+    infile = out_path(insuffix,queryName=wildcards)[0]
+
+    if not os.path.exists(outfile):
+          return infile
+    # elif os.path.exists(infile) and os.path.getmtime(infile) > os.path.getmtime(outfile):
+    #       print("os.remove(outfile)")
+    #       os.remove(outfile)
+    #       return infile
     else:
           return ""
-
+          
 rule blast:
     input:
-        out_path("_raw.fasta")
+        out_path(dstep["blast"][0])
     output:
-        out_path("_blastres.tsv"),
+        out_path(dstep["blast"][1]),
     log:
         log_path("_01_blast.log"),
     script:
@@ -140,7 +142,7 @@ checkpoint accessions:
 
 rule fasta:
     input:
-       ancient(rules.accessions.output)
+        rules.accessions.output
     output:
         out_path("_sequences.fasta"),
     log:

@@ -33,7 +33,7 @@ if __name__ == "__main__":
     
     frec = open(gardRes, "w")
     frec.write("breakpoints\n")
-    frec.write("[500]\n")
+#    frec.write("[500]\n")
 #    frec.write("[]\n")
     frec.close()
 

@@ -18,15 +18,23 @@ if __name__ == "__main__":
 
     config = snakemake.config
 
-    config = snakemake.config
+
     config["queryName"] = str(snakemake.wildcards).split(":", 1)[0]
     config["output"] = str(snakemake.output)
+    config["step"] = snakemake.rule
+
+    builder = config.get("builder","phyml")
 
     config["input"] = os.path.join(config["outdir"],config["queryName"]+"_align.fasta")
     parameters = Init.paramDef(config)
 
     # Run step
 
-    dAlTree = AnalysisFunc.runPhyML(parameters)
-
-    os.rename(dAlTree, config["output"])
+    if builder == "phyml":
+      dAltree = AnalysisFunc.runPhyML(parameters)
+    elif builder == "iqtree":
+      dAltree = AnalysisFunc.runIqTree(parameters)
+    else:
+      print("Unknown tree builder: " + builder)
+      
+    os.rename(dAltree, config["output"])

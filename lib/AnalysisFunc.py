@@ -29,7 +29,6 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
       else:
         out = open(stdout, "w")
 
-    print(commandLine)
     lCmd = shlex.split(commandLine)
 
     try:
@@ -396,6 +395,29 @@ def runPhyML(parameters):
         cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False)
 
     return outPhy+"_phyml_tree.txt"
+
+#######=================================================================================================================
+###### IqTree =============================================================================================================
+
+
+def runIqTree(parameters):
+    """
+    Function converting fasta file to phylip and running PhyML.
+
+    @param1 aln: Path
+    @param2 geneDir: Gene directory
+    @return outPhy: Path to PhyML results file
+    """
+    # convert to Phylip format and replace eventual "!" symbols (relic from using MACSE)
+
+    geneDir = parameters["outdir"]
+    aln = parameters["input"]
+    queryName = parameters["queryName"]
+
+    cmd("iqtree --quiet -s {:s}".format(aln), False)
+
+    return aln+".treefile"
+
 
 
 def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
