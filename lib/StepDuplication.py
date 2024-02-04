@@ -2,83 +2,48 @@
 Script running the duplication analysis step.
 """
 
-import Init, os
+import logging
+import os
+import subprocess
+
 import AnalysisFunc
-import yaml, subprocess
+import Init
+import yaml
+from Logging import setup_logger
 
 if __name__ == "__main__":
     # Init and run analysis steps
     snakemake = globals()["snakemake"]
 
+    # Logging
+    logger = logging.getLogger("main.duplication")
+    setup_logger(logger, snakemake.log[0])
+
     config = snakemake.config
-    config["queryName"] = str(snakemake.wildcards).split(":",1)[0]
+    config["queryName"] = str(snakemake.wildcards).split(":", 1)[0]
     config["output"] = str(snakemake.output)
-    cq = config["allquery"][config["queryName"]]
-    if len(snakemake.input)>1 and cq!="void":
-      config["input"] =  cq
-    else:
-      config["input"] = str(snakemake.input)
+    config["input"] = str(snakemake.input)
+
     config["step"] = snakemake.rule
 
-    if config["input"].endswith("recombinations.txt"):
-        frec = open(config["input"],"r")
-        lq=list(map(str.strip,frec.readlines()))
-        frec.close()
+    # else:
+    parameters = Init.paramDef(config)
 
-        dpar={k:v for k,v in config.items() if k not in ["input","output","step","infile"]}
-        dpar["recombination"]=False
-        dpar["queryName"]=lq
-        dpar["step"]="alignment"
+    # Run step
 
-        newconfig = "."+config["queryName"]+"_config_dupl.yaml"
-        with open(newconfig,"w") as lout:
-           yaml.dump(dpar,lout)
+    check_params = {p: parameters[p] for p in ["nbspecies", "LBopt"]}
 
-        print(" ".join(['snakemake',"--nolock","--cores=%d"%(max(len(lq),1)),"--configfile="+newconfig,"--until=duplication","--reason"]))
-        subprocess.run(['snakemake',"--nolock","--cores=%d"%(max(len(lq),1)),"--configfile="+newconfig,"--until=duplication","--reason"])
+    lquery = AnalysisFunc.checkTree(parameters)
 
-        os.remove(newconfig)
+    ## rerun snakemake if needed
 
-        if len(lq)>1:  # several files, otherwise only first file
-          f=open(str(snakemake.output),"w")
-          for quer in lq:
-            fquer = open(config["outdir"] + "/" + quer + "_duplications.txt","r")
-            for l in fquer:
-              f.write(l)
-            fquer.close()
-          os.remove(config["outdir"] + "/" + quer + "_duplications.txt")
-          f.close()
-        
+    fout = open(config["output"], "w")
+
+    if len(lquery) >= 1:  # several sub alignments
+        for query in lquery:
+            fout.write(query + "\t"+ config["outdir"] + "/" + query + "_longest.fasta" + "\n")
+
     else:
-        parameters = Init.paramDef(config)
-
-        # Run step
-    
-        check_params = {p: parameters[p] for p in ["nbspecies", "LBopt"]}
-    
-        lquery = AnalysisFunc.checkTree(parameters)
-        
-        ## rerun snakemake if needed
-
-        fout=open(config["output"],"w")
-    
-        if len(lquery)>1: # several sub alignments
-          dpar={k:v for k,v in config.items() if k not in ["input","output","step"]}
-          dpar["queryName"]=lquery
-          dpar["recombination"]=False
-          newconfig = "."+config["queryName"]+"config_dupl.yaml"
-          with open(newconfig,"w") as lout:
-            yaml.dump(dpar,lout)
-            
-          subprocess.run(['snakemake',"--nolock","--cores=%d"%(max(1,len(lquery))),"--configfile="+ newconfig ,"--until=tree"])
-
-          os.remove(newconfig)
-
-          for query in lquery:
-            fout.write(query + "\n")
-    
-        else:
-          fout.write(config["queryName"] + "\n")
-          
-        fout.close()
-    
+        fout.write(config["queryName"] + "\t"+ config["outdir"] + "/" + config["queryName"] + "_longest.fasta" + "\n")
+      
+    fout.close()

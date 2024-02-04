@@ -1,6 +1,6 @@
 # coding: utf8
 import sys
-import FastaResFunc
+import FastaResFunc, shutil
 import logging, subprocess, shlex, os, ete3
 from Bio import SeqIO, AlignIO
 from collections import defaultdict
@@ -29,10 +29,8 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
       else:
         out = open(stdout, "w")
 
-      
     lCmd = shlex.split(commandLine)
 
-    print(commandLine)
     try:
         run = subprocess.call(lCmd, shell=choice, stdout=out, stderr=subprocess.PIPE)
     except subprocess.CalledProcessError as err:
@@ -119,7 +117,7 @@ def getORFs(parameters):
 
     logger.info("Deleted {} sequences as duplicates".format(n))
 
-    outORF = outORFraw.replace("allORFs.fasta", "longestORFs.fasta")
+    outORF = outORFraw.replace("allORFs.fasta", "orf.fasta")
 
     with open(outORF, "w") as outO:
         outO.write(FastaResFunc.dict2fasta(dId2Longest))
@@ -156,9 +154,28 @@ def runPrank(ORFs, parameters):
     logger.info("Finished Prank codon alignment: {:s}.best.fas".format(outPrank))
 
     if os.path.exists(outPrank + ".fas"):
-        os.rename(outPrank + ".fas", outPrank + ".best.fas")
+      shutil.copyfile(outPrank + ".fas", outPrank + ".best.fas")
 
     return outPrank + ".best.fas"
+
+  
+def runMacse(ORFs, parameters):
+    """
+    Function to run MACSE software for codon alignment.
+
+    @return Path to Macse results file
+    """
+    logger = logging.getLogger("main.alignment")
+    logger.info("Started Macse codon alignment")
+    outdir = parameters["outdir"]
+    queryName = parameters["queryName"]
+    outFile = outdir + "/" + queryName + "_macse"
+
+    cmd("macse -prog refineAlignment -align {:s} -out_NT {:s}.best.fas".format(ORFs, outFile),False)
+
+    logger.info("Finished Macse codon alignment: {:s}.best.fas".format(outFile))
+
+    return outFile + ".best.fas"
 
 
 def runMafft(parameters):
@@ -379,6 +396,29 @@ def runPhyML(parameters):
 
     return outPhy+"_phyml_tree.txt"
 
+#######=================================================================================================================
+###### IqTree =============================================================================================================
+
+
+def runIqTree(parameters):
+    """
+    Function converting fasta file to phylip and running PhyML.
+
+    @param1 aln: Path
+    @param2 geneDir: Gene directory
+    @return outPhy: Path to PhyML results file
+    """
+    # convert to Phylip format and replace eventual "!" symbols (relic from using MACSE)
+
+    geneDir = parameters["outdir"]
+    aln = parameters["input"]
+    queryName = parameters["queryName"]
+
+    cmd("iqtree --quiet -s {:s}".format(aln), False)
+
+    return aln+".treefile"
+
+
 
 def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
     """
@@ -389,6 +429,7 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
     @param3 logger: Logging object
     @return dAlnTree: Updated dictionary of alignments and their corresponding trees
     """
+
     logger.info("Looking for long branches.")
     loadTree = ete3.Tree(tree)
     dist = [leaf.dist for leaf in loadTree.traverse()]
@@ -424,7 +465,7 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
         )
     )
     nbSp = int(nbSp)
-    matches = [leaf for leaf in loadTree.traverse() if leaf.dist > longDist]
+    matches = [leaf for leaf in loadTree.traverse("postorder") if leaf.dist > longDist]
     if len(matches) > 0:
         logger.info(
             "{} long branches found, separating alignments.".format(len(matches))
@@ -434,11 +475,12 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
         dID2Seq = {gene.id: gene.seq for gene in seqs}
 
         for node in matches:
-            gp = node.get_children()
-            lNewGp = list(chain.from_iterable([x.get_leaf_names() for x in gp]))
+            gp = [node] + node.get_children()
+            lNewGp = node.get_leaf_names()
 
             dNewAln = {gene: dID2Seq[gene] for gene in lNewGp if gene in dID2Seq}
-            for k in lNewGp:
+
+            for k in dNewAln:
                 dID2Seq.pop(k, None)
 
             # create new file of sequences
@@ -450,10 +492,10 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
                 fasta.write(FastaResFunc.dict2fasta(dNewAln))
                 fasta.close()
               dAlnTree[newQuery] = alnf
-            else:
+            elif len(dNewAln)!=0:
                 logger.info(
                     "Sequences {} will not be considered for downstream analyses as they do not compose a large enough group.".format(
-                        dNewAln.keys()
+                        " ".join(dNewAln.keys())
                     )
                 )
 
@@ -466,10 +508,10 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
                 logger.info("\tNew alignment:%s" % {alnLeft})
                 fasta.close()
             dAlnTree[newQuery]=alnLeft
-        else:
+        elif len(dID2Seq)!=0:
             logger.info(
                 "Sequences in {} will not be considered for downstream analyses as they do not compose a large enough group.".format(
-                    dID2Seq.keys()
+                  " ".join(dID2Seq.keys())
                 )
             )
 
@@ -482,9 +524,9 @@ def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
 def checkTree(parameters, step="duplication"):
   nbspecies=parameters["nbspecies"]
   LBopt=parameters["LBopt"]
-  
-  aln = parameters["input"].split()[0]
-  tree = parameters["input"].split()[1]
+
+  aln = parameters["input"].split()[0].strip()
+  tree = parameters["input"].split()[1].strip()
   
   logger = logging.getLogger(".".join(["main", step]))
   dAlnTree = cutLongBranches(parameters, aln, tree, nbspecies, LBopt, logger)
@@ -575,9 +617,6 @@ def parseGard(kh, parameters):
     Function returning the cut fragments following GARD analysis and identification of significant breakpoints.
 
     @param1 kh: Path to GARD.json output file
-    @param2 aln: Path to alignment file
-<    @param3 pvalue: Float
-    @param4 o: Path to output directory
     @return lOutFrag: List of Path (Fragments in fasta files)
     """
     outdir = parameters["outdir"]
@@ -631,21 +670,22 @@ def parseGard(kh, parameters):
 
         lBP = lPos + [lenSeq]
         lQuerFrag = []
+        lOutFrag = []
         index = 0
         for x in range(len(lBP)-1):
             extension = "_{:d}-{:d}".format(lBP[x]+1, lBP[x+1])
 
             name = queryName + extension
-            outFrag = outdir + "/" + name + "_longestORFs.fasta"
+            outFrag = outdir + "/" + name + "_orf.fasta"
             
             with open(outFrag, "w") as outF:
                 outF.write(FastaResFunc.dict2fasta(dFrag[x]))
                 outF.close()
             lQuerFrag.append(name)
-            
-        return [lQuerFrag]
+            lOutFrag.append(outFrag)
+        return [lQuerFrag, lOutFrag]
     else:
-        return [queryName]
+        return [[queryName],[aln]]
 
 
 #######=================================================================================================================

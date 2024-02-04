@@ -1,24 +1,22 @@
 # CDS file (fasta format
-infile: example_snakemake/ex_CCDS.fasta
-# - example_snakemake/CD38.fasta
-# - example_snakemake/APOBEC3G.fasta
-# - example_snakemake/ATF3.fasta
+infile:
+- example_snakemake/ex_CCDS.fasta
 
-step: 
+#step: alignment
 
 # Identifier of the reference sequence for steps outside of blast and positiveSelection
-queryName:
+queryName: ex_CCDS
 
 #infile: example_snakemake/results/accessions.txt
 
 outdir: example_snakemake/results
 
 debug: true
-# fakerun: true
 
 # Path to cluster hostfile if needed for mpi process
 # hostfile:
 
+############################################################
 ### BLAST
 
 # NCBI database on which the blast is to be performed (ex: nr)
@@ -34,6 +32,7 @@ mincov:
 # Percentage of identity for Blast (default: 70)
 percID:
 
+############################################################
 ### QUERY
 
 # Option for eliminating overly long sequences (default: cutoff(3))
@@ -54,6 +53,13 @@ remote: true
 # NCBI API key to increase Blast speed, obtainable from the NCBI
 APIKey: 1056b9f78be5368e43cb8d88f820c3e6df09
 
+############################################################
+### ALIGNER
+# Choice of codon aligner: macse  or  prank.  Mafft is used as a pre-aligner for both.
+
+aligner: macse
+
+############################################################
 ### TREE
 
 # Options for running PhyML
@@ -62,34 +68,37 @@ APIKey: 1056b9f78be5368e43cb8d88f820c3e6df09
 # Please be aware that PhyML will run even if your options are wrong, but with its own default parameters
 phymlOpt:
 
-### ORTHOLOGS
+############################################################
+### CHECK ORTHOLOGS
 
 # Path to the species tree for the detection of duplication events and ortholog group assignment
 # Species names must be formated as speSpe or speSpeSpe (ex: homSap, gorGorGor)
 sptree: example_snakemake/ex_spTree.tree
 
 # Option for the identification of duplication events (default: False)
-duplication: True
+duplication: False
 
-### CLEANING
 
 # Option for Long Branch separation (default: cutoff(50))
 # IQR or cutoff, factor can be put after in parenthesis (ex: cutoff(50))
 # EXPERIMENTAL
-LBopt: cutoff(2)
+LBopt: 
 
 # Minimum number of species for assignment to an ortholog group (default: 8)
 nbspecies: 8
 
+############################################################
 ### RECOMBINATION
 
 # Option for the detection of recombination events (default: False)
 recombination: True
 
+
+############################################################
 ### POSITIVE SELECTION
 
 # Option for the detection of positive selection (default: False)
-positiveSelection:  
+positiveSelection: True
 
 # P-value for Hyphy methods (BUSTED/MEME) (Pond *et al.*, 2005) (default: 0.1)
 hyphySeuil: 

@@ -6,10 +6,9 @@ It automatizes all the necessary preliminary steps for evolutionary
 analyses, including retrieval of homologs, assignment to orthology
 groups, codon alignment and reconstruction of gene phylogeny.
 
-It automatizes all the necessary preliminary steps for evolutionary analyses, including retrieval of homologs,
-assignment to orthology groups, codon alignment and reconstruction of gene phylogeny.
-Once the alignements and corresponding phylogenies are obtained, three major genetic innovations are detected:
-duplication events, recombination events, and signatures of positive selection.
+Once the alignements and corresponding phylogenies are obtained, three
+major genetic innovations are detected: duplication events,
+recombination events, and signatures of positive selection.
 
 DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted in the associated paper
 (doi: https://doi.org/10.1093/nar/gkaa680).
@@ -33,19 +32,58 @@ laurent.gueguen [at] univ-lyon1.fr or lucie.etienne [at] ens-lyon.fr.
 
 # Installation
 
+The pipeline is organized using snakemake.
+
 ## 1/ Necessary dependencies and softwares
 
-- Softwares and versions: [EMBOSS:6.6](http://en.bio-soft.net/format/emboss.html), [PhyML 3.0](https://github.com/stephaneguindon/phyml), [PRANK v.170427](http://wasabiapp.org/software/prank/prank_installation/), [Treerecs v1.0](https://gitlab.inria.fr/Phylophile/Treerecs), [HYPHY 2.3](http://www.hyphy.org/installation/), [Bio++ v.3](https://github.com/BioPP)
+- Softwares and versions: [EMBOSS:6.6](http://en.bio-soft.net/format/emboss.html), [PRANK v.170427](http://wasabiapp.org/software/prank/prank_installation/), [MACSE V2.07](https://bio.tools/macse), [PhyML 3.0](https://github.com/stephaneguindon/phyml), [IQTREE v 2.6.6](http://www.iqtree.org), [Treerecs v1.0](https://gitlab.inria.fr/Phylophile/Treerecs), [HYPHY 2.3](http://www.hyphy.org/installation/), [Bio++ v.3](https://github.com/BioPP)
 - Python (>3.5) and packages: Biopython, ete3, collections, logging, shlex, os, numpy, scipy, requests, pandas, statistics, time, re, argparse
+- Snakemake
 
 ## 2/ Containers
 
-The simplest way to use DGINN is through the use of a container, which frees the user from the necessity of installing all of DGINN's dependencies, and should make cross-platform usage possible (Linux/Mac OS/Windows).
-We strongly advise the user to use either of the images that we provide through [Docker](https://docs.docker.com/install/) or [Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html), so the only software installation needed is the one for the chosen container system.
+The simplest way to use DGINN is through the use of a container, which
+frees the user from the necessity of installing all of DGINN's
+dependencies, and should make cross-platform usage possible (Linux/Mac
+OS/Windows).
 
-Please be aware that, due to Docker necessitating root access, the Docker container is not appropriate for usage in cluster environments, though it is appropriate for cloud computing (tutorial to come) and local usage. The Singularity container should be usable in every environment.
+### 2.1/ Conda
 
-### a/ Docker
+We provide a conda setting for DGINN, through file environment.yml. To
+run locally, first create and activate a conda environment from
+environment.yml:
+
+```shell
+conda env create --file=environment.yml
+conda activate dginn
+```
+
+then, in the working directory 
+
+```shell
+snakemake -s path_to_Snakefile --cores 1 --configfile=configuration_file
+```
+
+In case you want to allow more than one core for the analysis, set up
+the "--cores" option accordingly. If the number is omitted (i.e., only
+--cores is given), the number of used cores is determined as the
+number of available CPU cores in the machine.
+
+### 2.2/ Docker
+
+The user can use either of the images that we provide through
+[Docker](https://docs.docker.com/install/) or
+[Singularity](https://sylabs.io/guides/3.0/user-guide/installation.html),
+so the only software installation needed is the one for the chosen
+container system.
+
+Please be aware that, due to Docker necessitating root access, the
+Docker container is not appropriate for usage in cluster environments,
+though it is appropriate for cloud computing (tutorial to come) and
+local usage. The Singularity container should be usable in every
+environment.
+
+#### a/ Docker
 A [Docker image](https://hub.docker.com/repository/docker/leapicard/dginn) is available and can be obtained through the following command:
 ```{sh}
 docker pull leapicard/dginn
@@ -60,13 +98,15 @@ Use the docker:
 ```{sh}
 docker run --rm -u $(id -u $USER):$(id -u $USER) -e HOME=. -v $PWD:$PWD -w $PWD leapicard/dginn -p <filename>
 ```
+
 The command should be run as is, and should work on both Mac and Linux systems, provided the user belong to the 'docker' group (please refer to the [Docker Documentation](https://docs.docker.com/install/linux/linux-postinstall/) for help about setting the user as part of this group on Linux.)
 
 We unfortunately cannot promise about the Docker container's usability on Windows. In case the container doesn't work, we advise the user to try the Singularity container.
 
 All other arguments are passed exactly as if DGINN were run through the command line directly from the script (such as -p parameters.txt / see next section). However, one main difference is that all the files should be referred to by their name in the parameter file and be located within the working directory, while they can be referred by their path and be located in a different directory when running the script version.
 
-### b/ Singularity
+#### b/ Singularity
+
 A [Singularity image](https://cloud.sylabs.io/library/leapicard/dginn/dginn) is also available and can be downloaded through the following command:
 ```{sh}
 singularity pull library://leapicard/dginn/dginn
@@ -121,7 +161,7 @@ Two example files are provided in the examples directory:
 This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized over all alignments instead of doing them sequentially.
 
 Please be aware that fasta sequence name **and** queryName must follow
-the format speSpe_GENE_Id (ex: homSap_MX1_CCDS13673,
+the format speSpe_GENE_Id for matching (ex: homSap_MX1_CCDS13673,
 macMul_APOBEC3G_NM_001198693).
 
 ```
@@ -186,8 +226,21 @@ remote:
 APIKey:
 
 ##################################################
+###### ALIGNMENT
+##################################################
+
+# Choice of codon aligner: prank or macse (default):
+
+aligner:
+
+##################################################
 ###### TREE
 ##################################################
+
+# Choice of tree builder: iqtree or phyml (default)
+
+builder:
+
 
 # Options for running PhyML
 # Input the command in the same way you would to run PhyML yourself in the following manner phyml -i ALN [the rest of your options]
@@ -310,10 +363,10 @@ as our validation results point to their providing the best compromise of solid 
 
 In the examples folder, two parameter files are provided.
 
-NB: these files should be updated with the absolute paths to the files referred to instead of just their name when using DGINN through the command line and not through the docker.
+NB: these files should be updated with the paths to the files referred to instead of just their name when using DGINN through the command line and not through the docker.
 
 ```
-python3 DGINN.py -p parameters.txt
+snakemake --cores python3 DGINN.py -p parameters.txt
 ```
 
 Will launch DGINN steps 1-7 on ex_CCDS.fasta by :

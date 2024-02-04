@@ -2,39 +2,55 @@
 Script running the alignment analysis step.
 """
 
-import Init, os
+import logging
+import os
+import Init
 import AnalysisFunc
+from Logging import setup_logger
 
 if __name__ == "__main__":
     # Init and run analysis steps
     snakemake = globals()["snakemake"]
 
+    # Logging
+    logger = logging.getLogger("main.alignment")
+    setup_logger(logger, snakemake.log[0])
+
     config = snakemake.config
-    config["queryName"] = str(snakemake.wildcards).split(":",1)[0]
+    config["queryName"] = str(snakemake.wildcards).split(":", 1)[0]
     config["output"] = str(snakemake.output)
-    cq = config["allquery"][config["queryName"]]
-    if len(snakemake.input)>1 and cq!="void":
-      config["input"] =  cq
-    else:
-      config["input"] = str(snakemake.input)
     config["step"] = snakemake.rule
-    
+
+    aligner = config.get("aligner","macse")
+
+    config["input"] = os.path.join(config["outdir"],config["queryName"]+"_orf.fasta")
+
     parameters = Init.paramDef(config)
 
     # Run step
-    outMafft = AnalysisFunc.runMafft(parameters)
-    
-    fasCov, nbOut = AnalysisFunc.covAln(outMafft, parameters)
-    
-    outPrank = AnalysisFunc.runPrank(fasCov, parameters)
+    if config["step"]=="tree": # alignment already done
+        os.symlink(config["input"],config["output"])
+        sys.exit(0)
 
-    if os.path.exists(outPrank):
-      outAli = outPrank
+    outMafft = AnalysisFunc.runMafft(parameters)
+
+    fasCov, nbOut = AnalysisFunc.covAln(outMafft, parameters)
+
+    if aligner == "prank":
+      outFile = AnalysisFunc.runPrank(fasCov, parameters)
+    elif aligner == "macse":
+      outFile = AnalysisFunc.runMacse(fasCov, parameters)
     else:
-      print("Prank did not run on file " + fasCov)
+      print("Unknown aligner: " + aligner)
+    
+      
+    if os.path.exists(outFile):
+      outAli = outFile
+    else:
+      print(aligner + " did not run on file " + fasCov)
       outAli = fasCov
 
-    outIso = AnalysisFunc.isoformAln(outAli, parameters)
-    
-    os.rename(outIso, config["output"])
 
+    outIso = AnalysisFunc.isoformAln(outAli, parameters)
+
+    os.rename(outIso, config["output"])

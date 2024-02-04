@@ -2,27 +2,32 @@
 Script running the accessions analysis step.
 """
 
-import LoadFileFunc, Init
+import logging
+
 import ExtractFunc
+import Init
+import LoadFileFunc
+from Logging import setup_logger
 
 if __name__ == "__main__":
     # Init and run analysis steps
     snakemake = globals()["snakemake"]
 
+    # Logging
+    logger = logging.getLogger("main.accessions")
+    setup_logger(logger, snakemake.log[0])
+
     config = snakemake.config
-    config["queryName"] = str(snakemake.wildcards).split(":",1)[0]
+    config["queryName"] = str(snakemake.wildcards).split(":", 1)[0]
     config["output"] = str(snakemake.output)
-    cq = config["allquery"][config["queryName"]]
-    if len(snakemake.input)>1 and cq!="void":
-      config["input"] =  cq
-    else:
-      config["input"] = str(snakemake.input)
-    config["step"] = snakemake.rule
+
+    config["input"] = str(snakemake.input)
     
+    config["step"] = snakemake.rule
+
     parameters = Init.paramDef(config)
 
     # Run step
     query, lBlastRes = LoadFileFunc.accnEntry(parameters["input"])
 
     ExtractFunc.makeAccnsFile(lBlastRes, query, parameters["output"])
-

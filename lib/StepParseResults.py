@@ -1,27 +1,32 @@
 """
 Script running the positive selection analysis step.
 """
+import logging
+import os, subprocess
 
-import Init
-import yaml, os, subprocess
+from Logging import setup_logger
 
 if __name__ == "__main__":
     # Init and run analysis steps
     snakemake = globals()["snakemake"]
 
+    # Logging
+    logger = logging.getLogger("main.parse_results")
+    setup_logger(logger, snakemake.log[0])
+
     config = snakemake.config
-    config["queryName"] = str(snakemake.wildcards).split(":",1)[0]
+    config["queryName"] = str(snakemake.wildcards).split(":", 1)[0]
     config["output"] = str(snakemake.output)
-    cq = config["allquery"][config["queryName"]]
-    if len(snakemake.input)>1 and cq!="void":
-      config["input"] =  cq
-    else:
-      config["input"] = str(snakemake.input)
-    config["step"] = snakemake.rule
+
+    config["input"] = os.path.join(config["outdir"], config["queryName"] + "_positive_selection.txt")
 
     # Run step
 
-    subprocess.run(['python',"etc/parseResults.py","-in=" + config["input"],"-o=" + config["output"]])
-
-
-
+    subprocess.run(
+        [
+            "python",
+            "etc/parseResults.py",
+            "-in=" + config["input"],
+            "-o=" + config["output"],
+        ]
+    )
