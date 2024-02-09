@@ -1,19 +1,17 @@
 FROM mambaorg/micromamba:latest
 
+ENV HOME=/home/mambauser
 
-WORKDIR /opt
+WORKDIR $HOME
 COPY environment.yml .
 RUN micromamba install --yes --name base -c conda-forge python=3.10 \
     && micromamba install --name base --yes -f environment.yml \
     && micromamba clean --all --yes
-COPY etc/ .
-COPY lib/ .
-COPY DGINN.py .
+COPY ./etc ./etc/
+COPY ./lib ./lib/
+COPY Snakefile .
 
-ENV HOME=/home/mambauser
-RUN chmod 777 $HOME
-
-WORKDIR /opt/local/
-ENTRYPOINT ["micromamba", "run", "-n", "base", "snakemake"]
+WORKDIR /local/
+ENTRYPOINT ["micromamba", "run", "-n", "base", "snakemake", "-s", "/home/mambauser/Snakefile"]
 
 
