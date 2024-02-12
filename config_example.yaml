@@ -2,7 +2,7 @@
 infile:
 - example_snakemake/ex_CCDS.fasta
 
-#step: alignment
+step: 
 
 # Identifier of the reference sequence for steps outside of blast and positiveSelection
 queryName: ex_CCDS
@@ -51,7 +51,7 @@ entryQuery: Primates[Organism]
 remote: true
 
 # NCBI API key to increase Blast speed, obtainable from the NCBI
-APIKey: 1056b9f78be5368e43cb8d88f820c3e6df09
+APIKey: 
 
 ############################################################
 ### ALIGNER

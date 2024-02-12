@@ -38,9 +38,11 @@ if type(config["infile"]) == str:
 
 ## use absolute paths
 config["outdir"]=os.path.abspath(config["outdir"])
-if "sptree" in config:
-   config["sptree"]=os.path.abspath(config["sptree"])
+if not os.path.exists(config["outdir"]):
+          os.mkdir(config["outdir"])
 
+if "sptree" in config and config["sptree"]:
+   config["sptree"]=os.path.abspath(config["sptree"])
 
 config["infile"]=[os.path.abspath(f) if f!="void" else "void" for f in config["infile"] ]
 
@@ -74,7 +76,7 @@ dstep={
           "tree":["_align.fasta","_tree.dnd"],
           "recombination":["_align.fasta","_recombination.txt"]
        }          
-          
+
 if step in dstep:
   for i in range(len(config["queryName"])):
     instep = dstep[step][0]
