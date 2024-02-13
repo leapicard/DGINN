@@ -44,12 +44,12 @@ if not os.path.exists(config["outdir"]):
 if "sptree" in config and config["sptree"]:
    config["sptree"]=os.path.abspath(config["sptree"])
 
-config["infile"]=[os.path.abspath(f) if f!="void" else "void" for f in config["infile"] ]
-
+config["infile"]=[",".join([os.path.abspath(f2.strip()) if f2!="void" else "void" for f2 in f.split(",")]) for f in config["infile"]]
+          
 ### in case of no queryNames, build them from infiles
 if not "queryName" in config or not config["queryName"] or len(config["queryName"])==0:
   if step!="duplication" and step!="positive_selection":
-    config["queryName"] = list(map(lambda x:os.path.split(x)[-1].rsplit(".",1)[0].strip(), config["infile"]))
+    config["queryName"] = list(map(lambda x:os.path.split(x.split(",")[0])[-1].rsplit(".",1)[0].strip(), config["infile"]))
   elif config["infile"]!=["void"]:
     config["queryName"] = [os.path.split(config["infile"][0])[-1].rsplit(".",1)[0].strip()]
   else:
@@ -58,10 +58,9 @@ if not "queryName" in config or not config["queryName"] or len(config["queryName
 elif type(config["queryName"]) == str:
     config["queryName"]=[config["queryName"]]
 
-
 # Check everything is fine and match queryName:infile
 if config["infile"]!=["void"]:
-    if step!="duplication" and step!="positive_selection" and len(config["queryName"])!=len(config["infile"]):
+    if len(config["queryName"])!=len(config["infile"]):
        print("lengths of queryName & infile do not match.")
        sys.exit(0)
 
@@ -83,6 +82,20 @@ if step in dstep:
     shutil.copyfile(config["infile"][i],out_path(instep,queryName=config["queryName"][i])[0])
     config["infile"][i]=out_path(instep,queryName=config["queryName"][i])[0]
 
+
+## specifically for positive selection step, infiles should be couples (alignment, tree)
+
+if step == "positiveSelection" or step == "duplication":
+  for i in range(len(config["queryName"])):
+    infi = config["infile"][i].split(",")
+    if len(infi)!=2:
+           print(step + " step needs couples of infiles \"alignment, tree\", not " + config["infile"][i])
+           sys.exit(0)
+    outali = out_path(dstep["alignment"][1],queryName=config["queryName"][i])[0]
+    shutil.copyfile(infi[0],outali)
+    outtree = out_path(dstep["tree"][1],queryName=config["queryName"][i])[0]
+    shutil.copyfile(infi[1],outtree)
+    config["infile"][i]=",".join([outali,outtree])
           
 ### Go to snakefile directory
 os.chdir(snakefilepath[:snakefilepath.rfind(os.sep)])
@@ -114,6 +127,7 @@ def check_exists(wildcards, outsuffix, insuffix):
 
     if not os.path.exists(outfile):
           return infile
+    # to check file modification times, does not work
     # elif os.path.exists(infile) and os.path.getmtime(infile) > os.path.getmtime(outfile):
     #       print("os.remove(outfile)")
     #       os.remove(outfile)
