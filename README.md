@@ -10,6 +10,11 @@ Once the alignements and corresponding phylogenies are obtained, three
 major genetic innovations are detected: duplication events,
 recombination events, and signatures of positive selection.
 
+
+Eventually, the results of the whole process are summarized in a file `..._results.txt`.
+
+
+
 DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted in the associated paper
 (doi: https://doi.org/10.1093/nar/gkaa680).
 Results from the validation are available in the [corresponding repository](https://github.com/leapicard/DGINN_validation).
@@ -79,15 +84,15 @@ The user can use either of the images that we provide through
 so the only software installation needed is the one for the chosen
 container system.
 
-Please be aware that, due to Docker necessitating root access, the
-Docker container is not appropriate for usage in cluster environments,
-though it is appropriate for cloud computing (tutorial to come) and
-local usage. The Singularity container should be usable in every
-environment.
+Please be aware that, due to Docker compulsory root access, a Docker
+container is not appropriate for usage in cluster environments, though
+it is appropriate for cloud computing (tutorial to come) and local
+usage. The Singularity container should be usable in every environment.
 
 #### a/ Docker
 
-To use docker you will have to clone this repository first, and then build the docker image with:
+To use Docker you will have to clone this repository first, and then
+build the Docker image with:
 
 ```{sh}
 docker build . -t dginn
@@ -99,25 +104,34 @@ After that, you will be able to run DGINN with:
 docker run --rm -u $(id -u $USER) -v $(pwd):/local dginn --cores 1 --configfile config_example.yaml
 ```
 
-The command should be run as is, and should work on both Mac and Linux systems, provided the user belong to the 'docker' group (please refer to the [Docker Documentation](https://docs.docker.com/install/linux/linux-postinstall/) for help about setting the user as part of this group on Linux.)
+The command should run on both Mac and Linux systems, provided the
+user belongs to the 'docker' group (please refer to the [Docker
+Documentation](https://docs.docker.com/install/linux/linux-postinstall/)
+for help about setting the user as part of this group on Linux.)
 
-We unfortunately cannot promise about the Docker container's usability on Windows. In case the container doesn't work, we advise the user to try the Apptainer container.
+We unfortunately cannot promise about the Docker container's usability
+on Windows. In case the container doesn't work, we advise the user to
+try the Apptainer container.
 
 #### b/ Apptainer / Singularity
 
-To use an Apptainer or Singularity container you will have to clone this repository. You can then build the image by running the following at its root:
+To use an Apptainer or Singularity container you will have to clone
+this repository. You can then build the image by running the following
+at its root:
 
 ```{sh}
 apptainer build dginn.sif Apptainer
 ```
 
-To use the container, you can run the following from the root of the repository:
+To use the container, you can run the following from the root of the
+repository, with "config_example.yaml" your configuration file :
 
 ```{sh}
 apptainer run dginn.sif --cores 1 --configfile config_example.yaml
 ```
 
-If you want to run DGINN from another folder, you can specify the path to the Snakefile file in the cloned repository:
+If you want to run DGINN from another folder, you can specify qthe
+path to the Snakefile file in the cloned repository:
 
 ```{sh}
 apptainer run /path/to/dginn.sif -s /path/to/Snakefile --cores 1 --configfile config_example.yaml
@@ -127,21 +141,23 @@ apptainer run /path/to/dginn.sif -s /path/to/Snakefile --cores 1 --configfile co
 
 ## 1/ Configuration file
 
-DGINN uses a parameter file to pass all the necessary arguments for launching the pipeline.
-Two example files are provided in the examples directory:
+DGINN uses a parameter file in yaml syntax to pass all the necessary
+arguments. Two example files are provided in the examples directory:
 
-1. one performing steps 1-7 (see Overview) from the CDS of the gene of interest to the detection of recombination (parameters.txt)
-2. one performing step 8 for the detection of positive selection (parameters_possel.txt)
+1. one performing steps 1-7 (see Overview) from the CDS of the gene of
+interest to the detection of recombination (parameters.yaml)
 
-This is the recommended usage for DGINN, so that analyses for positive selection can be parallelized over all alignments instead of doing them sequentially.
+2. one performing step 8 for the detection of positive selection
+(parameters_possel.yaml) and summarizing the results in a file.
 
-Please be aware that fasta sequence name **and** queryName must follow
-the format speSpe_GENE_Id for matching (ex: homSap_MX1_CCDS13673,
-macMul_APOBEC3G_NM_001198693).
+
+Please be aware that, when provided, fasta sequence name **and**
+queryName must follow the format **speSpe_GENE_Id** for matching (ex:
+homSap_MX1_CCDS13673, macMul_APOBEC3G_NM_001198693).
+
 
 ```
 # Path or list of paths (absolute or relative) to the files needed to start the pipeline
-# Please refer to **3/ Entry steps** for necessary files
 infile:
 
 # Output directory for all results
@@ -191,7 +207,8 @@ maxLen:
 # https://www.ncbi.nlm.nih.gov/books/NBK3837/#EntrezHelp.Entrez_Searching_Options
 entryQuery:
 
-# Identifier of the reference sequence for steps outside of blast and positiveSelection
+# Identifier of the reference sequences (or list of identifiers of the
+# same length as infile). Automatically filled is left empty
 queryName:
 
 # Determines if Blast is performed against NCBI databases (default: True)
@@ -312,8 +329,9 @@ opb:
 
 File order must be respected and follow the one indicated in this table.
 
-Though codon alignments are not technically necessary for the phyml, duplication and recombination steps, they are for positiveSelection.
-Thus, starting at steps upstream of positiveSelection with non codon alignments will probably lead to failure at the positiveSelection step.
+Though alignments are not technically necessary in codons for the
+tree, duplication and recombination steps, they are for
+positiveSelection.
 
 ## 3/ Positive selection
 
@@ -325,12 +343,20 @@ DGINN includes different softwares to check for positive selection:
 -   BIO++ (Guéguen et al., Molecular Biology and Evolution, 2013) for site models M0, M1, M2, M7 M8a, M8, M10 and DFP_07
 -   BIO++ for one-per-branch (OPB) model (similar to PAML codeml FreeRatio model) to test positive selection on branches
 
-The first three methods are automatically parameterized in DGINN.
+The two first methods are automatically parameterized in DGINN.
 
-For BIO++, the parameter files can be automatically generated by DGINN, but the user can also provide their own parameter files if they wish to tweak the parameters further. The OPB option can also be used for different analyses using Bio++ as its results do not influence any subsequent step. Example parameter files for bppml and bppmixedlikelihoods (for site models) are provided in examples/, as well as a parameter file for running a one-per-branch model.
+For BIO++, the parameter files can be automatically generated by
+DGINN, but the user can also provide their own parameter files if they
+wish to tweak the parameters further. The OPB option can also be used
+for different analyses using Bio++ as its results do not influence any
+subsequent step. Example parameter files for bppml and
+bppmixedlikelihoods (for site models) are provided in examples, as
+well as a parameter file for running a one-per-branch model.
 
-Users wishing to do the fastest check possible on their genes of interest are encouraged to run only BIO++ site models,
-as our validation results point to their providing the best compromise of solid results and shorter running times.
+Users wishing to do the fastest check possible on their genes of
+interest are encouraged to run only BIO++ site models, as our
+validation results point to their providing the best compromise of
+solid results and shorter running times.
 
 # Tutorial
 
@@ -338,10 +364,14 @@ as our validation results point to their providing the best compromise of solid 
 
 In the examples folder, two parameter files are provided.
 
-NB: these files should be updated with the paths to the files referred to instead of just their name when using DGINN through the command line and not through the docker.
+NB: these files should be updated with the paths to the files referred
+to instead of just their name when using DGINN through the command
+line and not through the docker.
+
+In the next command, it is provided that the user is in `examples` directory.
 
 ```
-snakemake --cores python3 DGINN.py -p parameters.txt
+snakemake -s ../Snakefile --cores 1 --configfile=parameters.yaml
 ```
 
 Will launch DGINN steps 1-7 on ex_CCDS.fasta by :
@@ -351,7 +381,7 @@ Will launch DGINN steps 1-7 on ex_CCDS.fasta by :
 -   detecting recombination events
 
 ```
-python3 DGINN.py -p parameters_possel.txt
+snakemake -s ../Snakefile --cores 1 --configfile=parameters_poosel.yaml
 ```
 
 Will launch DGINN step 8 on ex_aln.fasta and ex_genetree.tree by :
@@ -373,40 +403,6 @@ Results from the validation are available in the [corresponding repository](http
 Several utility scripts upstream and downstream of DGINN in the etc folder,
 
 ## 1/ Upstream
-
-### 1/ multi_dginn
-
-multi_dginn.py allows the user to run several DGINN containers in
-parallel, from a file of several inputs. A maximum number of running
-containers can be entered (default is 4) and processes are run up to
-this maximum. Later (when some runs are completed) the same script can
-be run on the same file of inputs, and successive analyses will be
-run. So, by calling repetively this script, the user will easily
-complete as many analyses as wanted.
-
-```
-python3 DGINN/etc/multi_dginn.py dataname -p parameters [-i image][-v][-j jobs]
-
-where:
-
-   dataname: name of the file where the input names are stored per
-             line (aka used as argument of --infile option of
-             DGINN.py).
-
-   -p parameters: name of the DGINN parameters file (aka used with
-                  option -p in DGINN.py).
-
-optional arguments:
-   -h show this help message and exit
-
-   -i image: name of the docker image used (default lpicard/dginn).
-
-   -j jobs : number of jobs used in parallel (default 4)
-
-   -v  verbosity of the commands.   (default False)
-```
-
-### 2/ CCDSquery
 
 CCDSquery.py allows the user to download the CCDS sequences of human
 genes, by providing the properly formatted file obtained through HGNC.
@@ -430,6 +426,9 @@ Mandatory input infos for running:
 ```
 
 ## 2/ Downstream
+
+These programs are useful if the last rule `analyse_ps` has not run
+(which should not occur).
 
 ### 1/ recup_to_parse
 
