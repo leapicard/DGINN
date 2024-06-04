@@ -10,10 +10,7 @@ Once the alignements and corresponding phylogenies are obtained, three
 major genetic innovations are detected: duplication events,
 recombination events, and signatures of positive selection.
 
-
 Eventually, the results of the whole process are summarized in a file `..._results.txt`.
-
-
 
 DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted in the associated paper
 (doi: https://doi.org/10.1093/nar/gkaa680).
@@ -123,18 +120,10 @@ at its root:
 apptainer build dginn.sif Apptainer
 ```
 
-To use the container, you can run the following from the root of the
-repository, with "config_example.yaml" your configuration file :
+To use the container, you can run the following, with "config_example.yaml" your configuration file :
 
 ```{sh}
-apptainer run dginn.sif --cores 1 --configfile config_example.yaml
-```
-
-If you want to run DGINN from another folder, you can specify qthe
-path to the Snakefile file in the cloned repository:
-
-```{sh}
-apptainer run /path/to/dginn.sif -s /path/to/Snakefile --cores 1 --configfile config_example.yaml
+apptainer run --bind .snakemake:/home/mambauser/.snakemake dginn.sif --cores 1 --configfile config_example.yaml
 ```
 
 # Usage
@@ -145,16 +134,14 @@ DGINN uses a parameter file in yaml syntax to pass all the necessary
 arguments. Two example files are provided in the examples directory:
 
 1. one performing steps 1-7 (see Overview) from the CDS of the gene of
-interest to the detection of recombination (parameters.yaml)
+   interest to the detection of recombination (parameters.yaml)
 
 2. one performing step 8 for the detection of positive selection
-(parameters_possel.yaml) and summarizing the results in a file.
-
+   (parameters_possel.yaml) and summarizing the results in a file.
 
 Please be aware that, when provided, fasta sequence name **and**
 queryName must follow the format **speSpe_GENE_Id** for matching (ex:
 homSap_MX1_CCDS13673, macMul_APOBEC3G_NM_001198693).
-
 
 ```
 # Path or list of paths (absolute or relative) to the files needed to start the pipeline
