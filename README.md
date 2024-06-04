@@ -127,14 +127,14 @@ To use the container, you can run the following from the root of the
 repository, with "config_example.yaml" your configuration file :
 
 ```{sh}
-apptainer run dginn.sif --cores 1 --configfile config_example.yaml
+apptainer run --bind .snakemake:/home/mambauser/.snakemake dginn.sif --cores 1 --configfile config_example.yaml
 ```
 
-If you want to run DGINN from another folder, you can specify qthe
+If you want to run DGINN from another folder, you can specify the
 path to the Snakefile file in the cloned repository:
 
 ```{sh}
-apptainer run /path/to/dginn.sif -s /path/to/Snakefile --cores 1 --configfile config_example.yaml
+apptainer run --bind .snakemake:/home/mambauser/.snakemake /path/to/dginn.sif -s /path/to/Snakefile --cores 1 --configfile config_example.yaml
 ```
 
 # Usage
