@@ -3,7 +3,7 @@ MAINTAINER Lea Picard lea.picard@gmail.com
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get  clean && apt-get update && apt-get install -y apt-utils
+RUN apt-get clean && apt-get update && apt-get install -y apt-utils
 
 RUN apt-get -y install default-jdk default-jre
 
@@ -15,7 +15,6 @@ RUN apt-get -y install build-essential git emboss doxygen  pkg-config  automake 
 
 
 ## Install most recent version of cMake
-## RUN git clone https://github.com/Kitware/CMake && cd CMake && ./bootstrap && make && make install
 
 RUN apt-get -y install build-essential cmake
 
@@ -50,43 +49,44 @@ RUN git  clone  --recurse-submodules https://gitlab.inria.fr/Phylophile/Treerecs
 FROM base as biopp
 WORKDIR /opt
 
-RUN mkdir bpp && cd  bpp && mkdir sources && cd sources && for d in bpp-core; \
-	do git clone https://github.com/BioPP/$d; \
-	cd $d; \
-	cmake  -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
-	make -j 4; \
-	make install; \
-	cd ..; \
-	done
+RUN mkdir bpp && cd  bpp && mkdir sources && cd sources
+RUN     git clone https://github.com/BioPP/bpp-core; \
+	cd bpp-core; \
+        mkdir build; \
+        cd build; \
+        cmake -B . -S .. -DCMAKE_INSTALL_PREFIX=/opt/bpp/;\
+        make -j 4; \
+        make install;\ 
+        cd ../..
 
-RUN  cd bpp && cd sources && for d in bpp-seq; \
-	do git clone https://github.com/BioPP/$d; \
-	cd $d; \
-	cmake  -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
-	make -j 4; \
-	make install; \
-	cd ..; \
-	done
+RUN     git clone https://github.com/BioPP/bpp-seq; \
+	cd bpp-seq; \
+        mkdir build; \
+        cd build; \
+        cmake -B . -S .. -DCMAKE_INSTALL_PREFIX=/opt/bpp/;\
+        make -j 4; \
+        make install;\ 
+        cd ../..
+        
+RUN     git clone https://github.com/BioPP/bpp-phyl; \
+	cd bpp-phyl; \
+        mkdir build; \
+        cd build; \
+        cmake -B . -S .. -DCMAKE_INSTALL_PREFIX=/opt/bpp/;\
+        make -j 4; \
+        make install;\ 
+        cd ../..
+        
+RUN     git clone https://github.com/BioPP/bpp-popgen; \
+	cd bpp-popgen; \
+        mkdir build; \
+        cd build; \
+        cmake -B . -S .. -DCMAKE_INSTALL_PREFIX=/opt/bpp/;\
+        make -j 4; \
+        make install;\ 
+        cd ../..
 
-RUN cd bpp && cd sources && for  d in bpp-phyl; \
-	do git clone https://github.com/BioPP/$d; \
-	cd $d; \
-	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
-	make -j 4; \
-	make install; \
-	cd ..; \
-	done
-
-RUN cd bpp && cd sources && for d in bpp-popgen; \
-	do git clone https://github.com/BioPP/$d; \
-	cd $d; \
-	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
-	make; \
-	make install; \
-	cd ..; \
-	done
-
-RUN cd bpp && git clone https://github.com/BioPP/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ && make -j 4 && make install
+RUN cd bpp  && git clone https://github.com/BioPP/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ && make -j 4 && make install
 
 
 #################
@@ -127,22 +127,18 @@ FROM base
 WORKDIR /opt/
 
 ## Install python3, necessary packages and DGINN
-RUN apt-get install -y python3-pip
 
-RUN pip3 install --upgrade numpy \
-	scipy \
-	pandas \
-	requests \
-	setuptools \
-	pyqt5==5.14 \
-	six \
-	lxml
+RUN apt-get install -y python3-numpy python3-scipy \
+	python3-pandas \
+	python3-requests \
+	python3-setuptools \
+	python3-pyqt5 \
+	python3-six \
+	python3-lxml
 
-RUN pip3 install biopython
+RUN apt-get install -y python3-biopython python3-ete3
 
-RUN pip3 install --upgrade ete3
-
-RUN git  clone https://github.com/lgueguen/DGINN && cd DGINN && chmod +x DGINN.py
+RUN git  clone https://github.com/lgueguen/DGINN && cd DGINN
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:/opt/DGINN/scripts/:/opt/DGINN/lib/:$PYTHONPATH
 
@@ -183,8 +179,15 @@ RUN apt-get install -y snakemake
 
 COPY --from=paml /opt/paml/src/codeml /usr/local/bin/
 
-RUN apt-get install -y python3-biopython
+#RUN echo `groups`
+#RUN useradd --uid 1001 --gid 1000 -m nonroot
+#USER 0
 
-WORKDIR ~/
-ENTRYPOINT ["snakemake","-c1","--snakefile","/opt/DGINN/Snakefile"]
+RUN mkdir /opt/DGINN/.snakemake
+RUN chmod 777 /opt/DGINN/.snakemake
+ENV XDG_CACHE_HOME /opt/DGINN/.snakemake
+
+WORKDIR ~
+
+ENTRYPOINT ["/usr/bin/snakemake","-c1","--snakefile","/opt/DGINN/Snakefile"]
 #CMD ["-h"]

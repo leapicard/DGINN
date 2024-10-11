@@ -276,8 +276,6 @@ def setIgnoreParams(model, prevmodel, lModels, logger):
   # if M0 optimization in models, use tree optimized in M0 for subsequent model optimizations
   lignore=[]
   distr=model[-2:]  # dist _C or _G
-  if model!="M0"+distr and "M0"+distr in lModels:
-    lignore.append("BrLen")
   
   if model=="DFP07_0"+distr:
     lignore.append("DFP07.p0_1")
@@ -289,7 +287,10 @@ def setIgnoreParams(model, prevmodel, lModels, logger):
 
     logger.info("Optimization for model " + model + " does not re-optimize equilibrium frequencies" )  
     lignore.append("*_Full.theta*")
-            
+
+    logger.info("Optimization for model " + model + " does not re-optimize branch lengths" )  
+    lignore.append("BrLen")
+
   return lignore
 
 

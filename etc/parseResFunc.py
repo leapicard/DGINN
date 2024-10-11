@@ -52,7 +52,7 @@ def ResBusted(baseName, posDir):
                     posSel = "N"
                 d["BUSTED_sel"] = posSel
                 d["BUSTED_pv"] = str(p)
-            except FileNotFoundError:
+            except:
                 d = {}
 
     return(d)
@@ -80,7 +80,7 @@ def ResMeme(baseName, posDir, pv):
                 d["MEME_NbSites"] = str(nbSites)
                 d["MEME_PSS"] = ",".join(map(str,dPSok.keys()))
             bs.close()
-        except FileNotFoundError:
+        except:
             next
 
     """
@@ -133,7 +133,7 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
                 d["PSS"] = lResFinal
                 d["wPS"] = wPS
                     
-        except FileNotFoundError:
+        except:
             next
     return(d)
 

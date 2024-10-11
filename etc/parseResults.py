@@ -98,6 +98,7 @@ if __name__ == "__main__":
                 ### Get the method specific results
         baseName2 = baseName.split("_")[0]
 
+        print(baseName, posDir)
         bust = PRS.ResBusted(baseName, posDir)
         dGene.update(bust)
 
@@ -119,11 +120,12 @@ if __name__ == "__main__":
         minlid=min(map(len, lsplitid))
         sp=set([l[0] for l in lsplitid])
         ids=[l[1].upper() for l in lsplitid]
-        if (len(set(ids))!=len(lsplitid)):
-          ids=["_".join(l[1:]).upper() for l in lsplitid]
-          if len(set(ids))!=len(lsplitid):
-                    print("Unable to find good ids in alignment file " + aln)
-                    sys.exit()
+        ids=["_".join(l).upper() for l in lsplitid]
+        # if (len(set(ids))!=len(lsplitid)):
+        #   ids=["_".join(l[1:]).upper() for l in lsplitid]
+        #   if len(set(ids))!=len(lsplitid):
+        #             print("Unable to find good ids in alignment file " + aln)
+        #             sys.exit()
 
         lLen = [len(str(fasta.seq)) for fasta in SeqIO.parse(open(aln),'fasta')]
         alnLen = max(lLen)/3
@@ -169,7 +171,7 @@ if __name__ == "__main__":
     with open(cov, "w") as outf:
         outf.write("\n".join([k+"\t"+"\t".join(map(str, v)) for k, v in dCovSort.items()]))
 
-        # filter out unused headers
+    # filter out unused headers
     if len(allRes)==0:
       sys.exit(0)
     
