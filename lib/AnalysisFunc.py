@@ -19,7 +19,7 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
     @param2 choice: Boolean determining whether the command is executed within the shell
     """
     if not stdout:
-      if verbose:
+      if not verbose:
         out = None
       else:
         out = subprocess.PIPE
@@ -32,7 +32,7 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
     lCmd = shlex.split(commandLine)
 
     try:
-        run = subprocess.call(lCmd, shell=choice, stdout=out, stderr=subprocess.PIPE)
+        run = subprocess.run(lCmd, shell=choice, stdout=out, stderr=out)
     except subprocess.CalledProcessError as err:
         sys.stderr.write(str(err))
 
@@ -40,9 +40,6 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
       out.close()
 
 ######ORF===================================================================================================================
-
-#    ORFile = getORFs(data.seqFile, data.queryName, data.o)
-
 
 def getORFs(parameters):
     """
@@ -171,7 +168,7 @@ def runMacse(ORFs, parameters):
     queryName = parameters["queryName"]
     outFile = outdir + "/" + queryName + "_macse"
 
-    cmd("macse -prog refineAlignment -align {:s} -out_NT {:s}.best.fas".format(ORFs, outFile),False)
+    cmd("java -jar macse.jar -prog refineAlignment -align {:s} -out_NT {:s}.best.fas".format(ORFs, outFile),False)
 
     logger.info("Finished Macse codon alignment: {:s}.best.fas".format(outFile))
 
@@ -359,14 +356,14 @@ def runPhyML(parameters):
     tmp = geneDir + "/" + queryName + "tree.tmp"
 
     logger = logging.getLogger("main.tree")
-    with open(aln, "rU") as aln2:
+    with open(aln, "r") as aln2:
         laln = aln2.read().replace("!", "N")
         aln2.close()
         with open(tmp, "w") as temp:
             temp.write(laln)
             temp.close()
 
-    input_handle = open(tmp, "rU")
+    input_handle = open(tmp, "r")
     output_handle = open(outPhy, "w")
 
     alignments = AlignIO.parse(input_handle, "fasta")
@@ -381,7 +378,7 @@ def runPhyML(parameters):
     if phymlOpt != "":
         try:
             opt = phymlOpt.split("ALN ")[1]
-            logger.debug("phyml -i {:s} {}".format(outPhy, opt))
+            logger.info("phyml -i {:s} {}".format(outPhy, opt))
             cmd("phyml --quiet -i {:s} {}".format(outPhy, opt), False)
         except:
             logger.info(
@@ -389,10 +386,10 @@ def runPhyML(parameters):
                     phymlOpt
                 )
             )
-            cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False)
+            cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
     else:
-        logger.debug("phyml --quiet -i {:s} -v e -b -2".format(outPhy))
-        cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False)
+        logger.info("phyml -i {:s} -v e -b -2".format(outPhy))
+        cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
 
     return outPhy+"_phyml_tree.txt"
 
@@ -414,7 +411,7 @@ def runIqTree(parameters):
     aln = parameters["input"]
     queryName = parameters["queryName"]
 
-    cmd("iqtree --quiet -s {:s}".format(aln), False)
+    cmd("iqtree2 --quiet -s {:s}".format(aln), False)
 
     return aln+".treefile"
 

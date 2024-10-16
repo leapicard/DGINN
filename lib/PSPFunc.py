@@ -12,7 +12,7 @@ def getParams(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 			dCtrls["bppmixedlikelihood"] = mixed
 		if paml not in ["", "False", False]:
 			dCtrls["paml"] = paml
-		lModels = re.compile("\s*,\s*").split(models)
+		lModels = re.compile(r'"[^"]*"(*SKIP)(*FAIL)|,').split(models)
 	if opb != "" and opb != False:
 		dCtrls["OPB"] = opb
 	if gnh != "" and gnh != False:
@@ -35,7 +35,7 @@ def getParams2(models, paml, bppml, mixed, Busted, Meme, opb, gnh):
 			dCtrls["mixedlikelihood"] = mixed
 		if paml not in ["", "False", False]:
 			dCtrls["paml"] = paml
-		lModels = re.compile("\s*,\s*").split(models)
+		lModels = re.compile(r'"[^"]*"(*SKIP)(*FAIL)|,').split(models)
 		print(lModels )
 	if opb != "" and opb != False:
 		dCtrls["opb"] = opb
