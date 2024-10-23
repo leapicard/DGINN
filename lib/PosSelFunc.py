@@ -40,7 +40,7 @@ def pspAnalysis(params):
 
     ###########################################################
     #### HYPHY
-    
+
     if params["busted"]:
       try:		
         GeneAnalysis.hyphyBusted(aln, cladoFile, outDir, logger)
@@ -48,16 +48,16 @@ def pspAnalysis(params):
         logger.info("BUSTED encountered an unexpected error, skipping.")
 
     if params["meme"]:
-        try:
+       try:
             BranchAnalysis.memeBranchSite(aln, cladoFile, outDir, logger)
-        except Exception:
+       except Exception:
             logger.error("MEME encountered an unexpected error, skipping.")
 
 
     ###########################################################
     #### BPP
 
-    lModels = re.compile("\s*,\s*").split(params["models"])
+    lModels = list(map(str.strip,re.compile(r"[,;]").split(params["models"])))
 
     if params["bppml"] or params["opb"] or params["gnh"]:
       outBPP = outDir+"/bpp_site"

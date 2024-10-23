@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     subprocess.run(
         [
-            "python",
+            "python3",
             "etc/parseResults.py",
             "-in=" + config["input"],
             "-o=" + config["output"],

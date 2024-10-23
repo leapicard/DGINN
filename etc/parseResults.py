@@ -35,7 +35,7 @@ if __name__ == "__main__":
                         'folder for analysis results (path - by default output file will be saved in the incoming directory)')
     files.add_argument('-pr', '--postrate', metavar="<value>", type=float, default=0.95, required=False, dest = 'pr', help =\
                         'Threshold posterior probability of omega>1 to admit positive selected sites.')	
-    files.add_argument('-pm', '--pvmeme', metavar="<value>", type=float, default=0.01, required=False, dest = 'pvmeme', help =\
+    files.add_argument('-pm', '--pvmeme', metavar="<value>", type=float, default=0.05, required=False, dest = 'pvmeme', help =\
                         'Maximum p-value of PS site significance for MEME method.')	
 
     
@@ -98,10 +98,9 @@ if __name__ == "__main__":
                 ### Get the method specific results
         baseName2 = baseName.split("_")[0]
 
-        print(baseName, posDir)
         bust = PRS.ResBusted(baseName, posDir)
         dGene.update(bust)
-
+        
         meme = PRS.ResMeme(baseName, posDir, pvmeme)
         dGene.update(meme)
 
@@ -178,10 +177,11 @@ if __name__ == "__main__":
     lBase = ["File", "Name", "Gene", "GeneSize", "NbSpecies"]#, "omegaM0Bpp", "omegaM0codeml"]
     allK = allRes[0][1].keys()
     allKok=[]
+
     for k in allK:
       ok=False
       for (a,meth) in allRes:
-        if meth[k]!="na":
+        if k in meth and meth[k]!="na":
           ok=True
           break
       if ok:

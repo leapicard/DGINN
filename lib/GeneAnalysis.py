@@ -15,8 +15,8 @@ def hyphyBusted(alnFile, cladoFile, outDir, logger):
 	with open(bustedFile, "w") as bf:
 		bf.write("inputRedirect = {};\n")
 		bf.write("inputRedirect[\"01\"] = \"Universal\";\n")
-		bf.write("inputRedirect[\"02\"] = \"{:s}\";\n".format(alnFile.replace(":", "\:")))
-		bf.write("inputRedirect[\"03\"] = \"{:s}\";\n".format(cladoFile.replace(":", "\:")))
+		bf.write("inputRedirect[\"02\"] = \"{:s}\";\n".format(alnFile.replace(":", r"\:")))
+		bf.write("inputRedirect[\"03\"] = \"{:s}\";\n".format(cladoFile.replace(":", r"\:")))
 		bf.write("inputRedirect[\"04\"] = \"All\";\n")
 		bf.write("inputRedirect[\"05\"] = \"\";\n")
 		bf.write("ExecuteAFile(HYPHY_LIB_DIRECTORY + \"TemplateBatchFiles\" + DIRECTORY_SEPARATOR + \"SelectionAnalyses\" + DIRECTORY_SEPARATOR + \"BUSTED.bf\", inputRedirect);")
@@ -29,7 +29,7 @@ def hyphyBusted(alnFile, cladoFile, outDir, logger):
 	outBusted = open(outWG+"busted.out", "w")
 	errBusted = open(outWG+"busted.err", "w")
 	
-	cmd = "hyphy BUSTED --alignment {:s} --tree {:s} --output {:s}".format(alnFile, cladoFile, resBusted)
+	cmd = "/usr/lib/hyphy/bin/hyphy-sse3 BUSTED --alignment {:s} --tree {:s} --output {:s}".format(alnFile, cladoFile, resBusted)
 	logger.debug(cmd)
 	
 	runBusted = subprocess.Popen(cmd, shell=True, stdout=outBusted, stderr=errBusted).wait()

@@ -19,7 +19,7 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
     @param2 choice: Boolean determining whether the command is executed within the shell
     """
     if not stdout:
-      if not verbose:
+      if verbose:
         out = None
       else:
         out = subprocess.PIPE
@@ -29,16 +29,19 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
       else:
         out = open(stdout, "w")
 
-    lCmd = shlex.split(commandLine)
+    if not choice:  ## if shell==False, split command & arguments. 
+      commandLine = shlex.split(commandLine)
 
     try:
-        run = subprocess.run(lCmd, shell=choice, stdout=out, stderr=out)
+        run = subprocess.Popen(commandLine, shell=choice, stdout=out, stderr=out)
     except subprocess.CalledProcessError as err:
-        sys.stderr.write(str(err))
+      sys.stderr.write(str(err))
 
+        
     if stdout and stdout != subprocess.PIPE:
       out.close()
-
+    return(run.stdout)
+  
 ######ORF===================================================================================================================
 
 def getORFs(parameters):
@@ -378,7 +381,7 @@ def runPhyML(parameters):
     if phymlOpt != "":
         try:
             opt = phymlOpt.split("ALN ")[1]
-            logger.info("phyml -i {:s} {}".format(outPhy, opt))
+            logger.debug("phyml -i {:s} {}".format(outPhy, opt))
             cmd("phyml --quiet -i {:s} {}".format(outPhy, opt), False)
         except:
             logger.info(
@@ -388,8 +391,8 @@ def runPhyML(parameters):
             )
             cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
     else:
-        logger.info("phyml -i {:s} -v e -b -2".format(outPhy))
-        cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
+        logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
+        cmd("phyml -i {:s} -v e -b -2".format(outPhy), False, False)
 
     return outPhy+"_phyml_tree.txt"
 

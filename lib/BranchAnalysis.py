@@ -193,12 +193,12 @@ def memeBranchSite(aln, cladoFile, outDir, logger):
     lopt = " ".join([k + " " + v for k,v in dopt.items()])
         
     # run MEME
-    logger.info("hyphy meme "+ lopt)
+    logger.debug("/usr/lib/hyphy/bin/hyphy-sse3 meme "+ str(lopt))
 
     fout = open(outBSA+"meme.out","w")
-    runMeme = subprocess.Popen("hyphy meme "+ lopt, shell = True, stdout = fout, bufsize=0).wait()
+    runMeme = subprocess.run("/usr/lib/hyphy/bin/hyphy-sse3 meme " + lopt, shell=True, stdout = fout)
     fout.close()
         
-    os.rename(dopt["--output"], outBSA+"MEME.json")
+    #os.rename(dopt["--output"], outBSA+"MEME.json")
     
     

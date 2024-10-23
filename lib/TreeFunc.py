@@ -547,7 +547,7 @@ def treeTreatment(parameters):
             aln = AnalysisFunc.runPrank(orthoGp, data.geneName, data.o)
             tree = AnalysisFunc.runPhyML(aln, phymlOpt, data.o)
             dAlnTree2[aln] = tree + "_phyml_tree.txt"
-    logger.info(str(dAlnTree2))
+
     if len(dAlnTree2) != 0:
         dAlnTree = dAlnTree2
 
