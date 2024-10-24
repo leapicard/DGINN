@@ -33,7 +33,7 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
       commandLine = shlex.split(commandLine)
 
     try:
-        run = subprocess.Popen(commandLine, shell=choice, stdout=out, stderr=out)
+        run = subprocess.run(commandLine, shell=choice, stdout=out, stderr=out)
     except subprocess.CalledProcessError as err:
       sys.stderr.write(str(err))
 
@@ -171,8 +171,12 @@ def runMacse(ORFs, parameters):
     queryName = parameters["queryName"]
     outFile = outdir + "/" + queryName + "_macse"
 
-    cmd("java -jar macse.jar -prog refineAlignment -align {:s} -out_NT {:s}.best.fas".format(ORFs, outFile),False)
+    fout = open(outFile+"_macse.out","w")
 
+    subprocess.run("java -jar /opt/bin/macse.jar -prog refineAlignment -align {:s} -out_NT {:s}.best.fas".format(ORFs, outFile),shell=True, stdout=fout)
+
+    fout.close()
+    
     logger.info("Finished Macse codon alignment: {:s}.best.fas".format(outFile))
 
     return outFile + ".best.fas"
