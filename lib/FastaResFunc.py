@@ -41,7 +41,8 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	lTax = []
 
 	Entrez.email="example@example.com"
-	Entrez.api_key = apiKey
+	if apiKey!="":
+	  Entrez.api_key = apiKey
 	
 	handle = Entrez.efetch(db="nuccore", id=lBlastRes , idtype="acc", retmode="xml")
 	records = list(Entrez.read(handle))
