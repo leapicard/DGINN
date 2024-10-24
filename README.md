@@ -1,6 +1,6 @@
 # DGINN: Detection of Genetic INNovations pipeline
 
-DGINN is a pipeline dedicated to the detection of genetic innovations, starting from a nucleotidic sequence.
+DGINN is a pipeline dedicated to the detection of genetic innovations, starting from a gene sequence.
 
 It automatizes all the necessary preliminary steps for evolutionary
 analyses, including retrieval of homologs, assignment to orthology
@@ -11,6 +11,7 @@ major genetic innovations are detected: duplication events,
 recombination events, and signatures of positive selection.
 
 Eventually, the results of the whole process are summarized in a file `..._results.txt`.
+
 
 DGINN was validated on nineteen primate genes with known evolutionary histories, and results can be consulted in the associated paper
 (doi: https://doi.org/10.1093/nar/gkaa680).
@@ -44,36 +45,35 @@ The pipeline is organized using snakemake.
 -   Python (>3.5) and packages: Biopython, ete3, collections, logging, shlex, os, numpy, scipy, requests, pandas, statistics, time, re, argparse
 -   Snakemake
 
-## 2/ Conda and containers
+## 2/ Containers
 
-The simplest way to use DGINN is through the use of a conda environment or a container, which
+The simplest way to use DGINN is through the use of a container, which
 frees the user from the necessity of installing all of DGINN's
 dependencies, and should make cross-platform usage possible (Linux/Mac
 OS/Windows).
 
-### 2.1/ Conda
+<!-- ### 2.1/ Conda -->
 
-We provide a conda setting for DGINN, through file environment.yml. To
-run locally, first create and activate a conda environment from
-environment.yml:
+<!-- We provide a conda setting for DGINN, through file environment.yml. To -->
+<!-- run locally, first create and activate a conda environment from -->
+<!-- environment.yml: -->
 
-```shell
-conda env create --file=environment.yml
-conda activate dginn
-```
+<!-- ```shell -->
+<!-- conda env create --file=environment.yml -->
+<!-- conda activate dginn -->
+<!-- ``` -->
 
-then, in the working directory
+<!-- then, in the working directory -->
 
-```shell
-snakemake -s path_to_Snakefile --cores 1 --configfile=configuration_file
-```
+<!-- ```shell -->
+<!-- snakemake -s path_to_Snakefile --cores 1 --configfile=configuration_file -->
+<!-- ``` -->
 
-In case you want to allow more than one core for the analysis, set up
-the "--cores" option accordingly. If the number is omitted (i.e., only
---cores is given), the number of used cores is determined as the
-number of available CPU cores in the machine.
+<!-- In case you want to allow more than one core for the analysis, set up -->
+<!-- the "--cores" option accordingly. If the number is omitted (i.e., only -->
+<!-- --cores is given), the number of used cores is determined as the -->
+<!-- number of available CPU cores in the machine. -->
 
-### 2.2/ Containers
 
 The user can use either of the images that we provide through
 [Docker](https://docs.docker.com/install/) or
@@ -84,12 +84,18 @@ container system.
 Please be aware that, due to Docker compulsory root access, a Docker
 container is not appropriate for usage in cluster environments, though
 it is appropriate for cloud computing (tutorial to come) and local
-usage. The Singularity container should be usable in every environment.
+usage. The Apptainer container should be usable in every environment.
 
 #### a/ Docker
 
-To use Docker you will have to clone this repository first, and then
-build the Docker image with:
+To use Docker, either you pull the image from github:
+
+```{sh}
+docker pull laugueguen/dginn
+```
+
+or you to clone this repository first, and then build the Docker image
+with:
 
 ```{sh}
 docker build . -t dginn
@@ -98,7 +104,7 @@ docker build . -t dginn
 After that, you will be able to run DGINN with:
 
 ```{sh}
-docker run --rm -u $(id -u $USER) -v $(pwd):/local dginn --cores 1 --configfile config_example.yaml
+docker run --rm -u $(id -u $USER) --mount source=$(pwd),target=/opt/home,type=bind dginn --cores 1 --configfile config_example.yaml
 ```
 
 The command should run on both Mac and Linux systems, provided the
@@ -112,27 +118,27 @@ try the Apptainer container.
 
 #### b/ Apptainer / Singularity
 
-To use an Apptainer or Singularity container you will have to clone
-this repository. You can then build the image by running the following
-at its root:
+To use an Apptainer or Singularity container you can build it from the
+docker hub:
 
 ```{sh}
-apptainer build dginn.sif Apptainer
+apptainer build dginn.sif docker://laugueguen/dginn:latest
 ```
 
-To use the container, you can run the following, with "config_example.yaml" your configuration file :
+To use the container, you can run the following, with
+"config_example.yaml" as your configuration file :
 
 ```{sh}
-apptainer run --bind .snakemake:/home/mambauser/.snakemake dginn.sif --cores 1 --configfile config_example.yaml
+apptainer run --bind .snakemake:/opt/DGINN/.snakemake dginn.sif --cores 1 --configfile config_example.yaml
 ```
 
-If you want to run DGINN from another folder, you can specify the
-path to the Snakefile file in the cloned repository:
+<!-- If you want to run DGINN from another folder, you can specify the -->
+<!-- path to the Snakefile file in the cloned repository: -->
 
-```{sh}
-apptainer run --bind .snakemake:/home/mambauser/.snakemake /path/to/dginn.sif -s /path/to/Snakefile --cores 1 --configfile config_example.yaml
+<!-- ```{sh} -->
+<!-- apptainer run --bind .snakemake:/home/mambauser/.snakemake /path/to/dginn.sif -s /path/to/Snakefile --cores 1 --configfile config_example.yaml -->
 
-```
+<!-- ``` -->
 
 # Usage
 
@@ -216,7 +222,7 @@ APIKey:
 ###### ALIGNMENT
 ##################################################
 
-# Choice of codon aligner: prank or macse (default):
+# Choice of codon aligner: prank or macse (default)
 
 aligner:
 
@@ -287,7 +293,10 @@ meme:
 # Must be comma separated (ex: M0,M1,M2)
 #
 # Rate distribution are either Constant ou Gamma(n=4)
-# Default is Gamma, and explicit rate distribution are available through "_C" or "_G" suffixes to model names (ex: M0_C, M0_G)
+# Default is Gamma with Bio++ and Constant with PAML, and explicit
+# rate distribution are available through "_C" or "_G" suffixes to model
+# names (ex: M0_C, M0_G)
+
 models: M0, M1, M2
 
 # Option for using paml for the detection of sites under positive selection (default: False)
@@ -342,16 +351,20 @@ The two first methods are automatically parameterized in DGINN.
 
 For BIO++, the parameter files can be automatically generated by
 DGINN, but the user can also provide their own parameter files if they
-wish to tweak the parameters further. The OPB option can also be used
-for different analyses using Bio++ as its results do not influence any
-subsequent step. Example parameter files for bppml and
+wish to tweak the parameters further. 
+<!-- The OPB option can also be used -->
+<!-- for different analyses using Bio++ as its results do not influence any -->
+<!-- subsequent step.  -->
+Example parameter files for bppml and
 bppmixedlikelihoods (for site models) are provided in examples, as
 well as a parameter file for running a one-per-branch model.
 
 Users wishing to do the fastest check possible on their genes of
-interest are encouraged to run only BIO++ site models, as our
-validation results point to their providing the best compromise of
-solid results and shorter running times.
+interest are encouraged to run only BIO++ site models (with Constant
+rate distribution), as our validation results point to their providing
+the best compromise of solid results and shorter running times.
+
+## 4/ Output
 
 # Tutorial
 
