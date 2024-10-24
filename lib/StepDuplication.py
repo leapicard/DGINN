@@ -6,7 +6,7 @@ import logging
 import os
 import subprocess
 
-import AnalysisFunc
+import AnalysisFunc, TreeFunc
 import Init
 import yaml
 from Logging import setup_logger
@@ -31,19 +31,17 @@ if __name__ == "__main__":
 
     # Run step
 
-    check_params = {p: parameters[p] for p in ["nbspecies", "LBopt"]}
+    lquery = TreeFunc.splitTree(parameters)
 
-    lquery = AnalysisFunc.checkTree(parameters)
-
-    ## rerun snakemake if needed
+    # output of the resulting sub-alignments querynames
 
     fout = open(config["output"], "w")
 
     if len(lquery) >= 1:  # several sub alignments
         for query in lquery:
-            fout.write(query + "\t"+ config["outdir"] + "/" + query + "_longest.fasta" + "\n")
+            fout.write(query + "\t"+ config["outdir"] + "/" + query + ".fasta" + "\n")
 
     else:
-        fout.write(config["queryName"] + "\t"+ config["outdir"] + "/" + config["queryName"] + "_longest.fasta" + "\n")
+        fout.write(config["queryName"] + "\t"+ str(snakemake.input[0]) + "\n")
       
     fout.close()
