@@ -3,10 +3,9 @@ MAINTAINER Lea Picard lea.picard@gmail.com
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get clean && apt-get update && apt-get install -y apt-utils && apt-get -y install default-jdk default-jre &&  apt-get -y install build-essential git emboss doxygen  pkg-config  automake  openssl  libssl-dev  openmpi-bin  libopenmpi-dev  libeigen3-dev wget
+RUN apt-get update && apt-get install -y apt-utils  locales default-jdk default-jre  build-essential git emboss doxygen  pkg-config  automake openmpi-bin  libopenmpi-dev  libeigen3-dev wget openssl locales
 
 RUN TZ="Europe/Paris" apt-get -y install tzdata
-
 
 ## Install python3, necessary packages and DGINN
 
