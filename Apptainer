@@ -6,6 +6,9 @@ From: mambaorg/micromamba:latest
 
 %files
     environment.yml {{ ROOT }}
+    Snakefile {{ ROOT }}
+    lib {{ ROOT}}
+    etc {{ ROOT }}
 
 %post
     micromamba install --yes --name base -c conda-forge python=3.10
@@ -14,4 +17,4 @@ From: mambaorg/micromamba:latest
 
 %runscript
 #!/bin/bash
-eval "$(micromamba shell hook --shell bash)" && micromamba activate && snakemake -s Snakefile $@
+eval "$(micromamba shell hook --shell bash)" && micromamba activate && snakemake -s {{ ROOT }}/Snakefile $@

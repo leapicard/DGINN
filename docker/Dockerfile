@@ -3,22 +3,38 @@ MAINTAINER Lea Picard lea.picard@gmail.com
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get  clean && apt-get update && apt-get install -y apt-utils
-
-RUN apt-get -y install default-jdk default-jre
+RUN apt-get update && apt-get install -y apt-utils  locales default-jdk default-jre  build-essential git emboss doxygen  pkg-config  automake openmpi-bin  libopenmpi-dev  libeigen3-dev wget openssl locales
 
 RUN TZ="Europe/Paris" apt-get -y install tzdata
 
-RUN apt-get -y install build-essential git emboss doxygen  pkg-config  automake  openssl  libssl-dev  openmpi-bin  libopenmpi-dev  libeigen3-dev
+## Install python3, necessary packages and DGINN
+
+RUN apt-get install -y python3-numpy python3-scipy \
+	python3-pandas \
+	python3-requests \
+	python3-setuptools \
+	python3-pyqt5 \
+	python3-six \
+	python3-lxml python3-biopython python3-ete3
 
 
 
 
 ## Install most recent version of cMake
-## RUN git clone https://github.com/Kitware/CMake && cd CMake && ./bootstrap && make && make install
 
 RUN apt-get -y install build-essential cmake
 
+### SNAKEMAKE
+
+RUN apt-get install -y snakemake
+
+### Clean apt cache
+
+RUN apt-get clean
+
+
+############################################
+##ALIGNERS
 
 #################
 ## Install PRANK
@@ -29,12 +45,31 @@ RUN git clone https://github.com/ariloytynoja/prank-msa.git && cd prank-msa/src 
 
 
 #################
-## Install PhyML
-FROM base as phyml
+## Install mafft
+FROM base as mafft
+RUN apt-get install -y mafft
+
+
+#################
+## Install MACSE
+FROM base as macse
 WORKDIR /opt
 
-##RUN git clone  https://github.com/stephaneguindon/phyml && cd phyml && sh ./autogen.sh && ./configure --enable-phyml && make
+RUN wget https://www.agap-ge2pop.org/wp-content/uploads/macse/releases/macse_v2.07.jar
+
+
+##################################################
+### Trees
+
+#################
+## Install PhyML
+FROM base as phyml
 RUN apt-get -y install phyml
+
+#################
+## Install Iqtree
+FROM base as iqtree
+RUN apt-get  -y install iqtree
 
 
 #################
@@ -44,147 +79,149 @@ WORKDIR /opt
 
 RUN git  clone  --recurse-submodules https://gitlab.inria.fr/Phylophile/Treerecs && cd Treerecs && cmake -DCMAKE_BUILD_TYPE=MinSizeRel . && make && make install
 
+#################################################
+### Selection
 
 #################
 ## Install BIO++
 FROM base as biopp
 WORKDIR /opt
 
-RUN mkdir bpp && cd  bpp && mkdir sources && cd sources && for d in bpp-core; \
-	do git clone https://github.com/BioPP/$d; \
-	cd $d; \
-	cmake  -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
-	make -j 4; \
-	make install; \
-	cd ..; \
-	done
+RUN mkdir bpp && cd  bpp && mkdir sources && cd sources
+RUN     git clone https://github.com/BioPP/bpp-core; \
+	cd bpp-core; \
+        mkdir build; \
+        cd build; \
+        cmake -B . -S .. -DCMAKE_INSTALL_PREFIX=/opt/bpp/;\
+        make -j 4; \
+        make install;\ 
+        cd ../..
 
-RUN  cd bpp && cd sources && for d in bpp-seq; \
-	do git clone https://github.com/BioPP/$d; \
-	cd $d; \
-	cmake  -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
-	make -j 4; \
-	make install; \
-	cd ..; \
-	done
+RUN     git clone https://github.com/BioPP/bpp-seq; \
+	cd bpp-seq; \
+        mkdir build; \
+        cd build; \
+        cmake -B . -S .. -DCMAKE_INSTALL_PREFIX=/opt/bpp/;\
+        make -j 4; \
+        make install;\ 
+        cd ../..
+        
+RUN     git clone https://github.com/BioPP/bpp-phyl; \
+	cd bpp-phyl; \
+        mkdir build; \
+        cd build; \
+        cmake -B . -S .. -DCMAKE_INSTALL_PREFIX=/opt/bpp/;\
+        make -j 4; \
+        make install;\ 
+        cd ../..
+        
+RUN     git clone https://github.com/BioPP/bpp-popgen; \
+	cd bpp-popgen; \
+        mkdir build; \
+        cd build; \
+        cmake -B . -S .. -DCMAKE_INSTALL_PREFIX=/opt/bpp/;\
+        make -j 4; \
+        make install;\ 
+        cd ../..
 
-RUN cd bpp && cd sources && for  d in bpp-phyl; \
-	do git clone https://github.com/BioPP/$d; \
-	cd $d; \
-	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
-	make -j 4; \
-	make install; \
-	cd ..; \
-	done
+RUN cd bpp  && git clone https://github.com/BioPP/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ && make -j 4 && make install
 
-RUN cd bpp && cd sources && for d in bpp-popgen; \
-	do git clone https://github.com/BioPP/$d; \
-	cd $d; \
-	cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp -DCMAKE_LIBRARY_PATH=/opt/bpp/lib -DCMAKE_INCLUDE_PATH=/opt/bpp/include -DBUILD_TESTING=FALSE ./; \
-	make; \
-	make install; \
-	cd ..; \
-	done
-
-RUN cd bpp && git clone https://github.com/BioPP/bppsuite && cd bppsuite && cmake -DCMAKE_INSTALL_PREFIX=/opt/bpp ./ && make -j 4 && make install
-
-
-#################
-## Install HYPHY
-FROM base as hyphy
-WORKDIR /opt
-
-RUN git clone https://github.com/veg/hyphy.git && cd hyphy && cmake . && make MPI && make MP && make install
 
 
 #################
 ## Install paml
 FROM base as paml
-WORKDIR /opt
-RUN git clone  https://github.com/abacus-gene/paml && cd paml && cd src && make
+
+RUN apt-get install -y paml
 
 
 #################
-## Install mafft
-FROM base as mafft
-#No WORKDIR /opt  because not used for apt-get
-RUN apt-get clean  && apt-get update && apt-get install -y mafft
+### Install HYPHY
+FROM base as hyphy
+
+RUN apt-get install -y hyphy-mpi hyphy-common hyphy-pt
 
 
-#################
-## Install MACSE
-FROM base as macse
-WORKDIR /opt
 
-RUN apt-get install wget
-RUN wget https://www.agap-ge2pop.org/wp-content/uploads/macse/releases/macse_v2.07.jar
-
-
-####################
+############################################################
+############################################################
 ## Install all
+
+#########################"
+## DGINN
+
 FROM base
-
 WORKDIR /opt/
+RUN git clone https://github.com/lgueguen/DGINN && cd DGINN
 
-## Install python3, necessary packages and DGINN
-RUN apt-get install -y python3-pip
 
-RUN pip3 install --upgrade numpy \
-	scipy \
-	pandas \
-	requests \
-	setuptools \
-	pyqt5==5.14 \
-	six \
-	lxml
+### Environnment
 
-RUN pip3 install biopython
-
-RUN pip3 install --upgrade ete3
-
-RUN git  clone https://github.com/lgueguen/DGINN && cd DGINN && chmod +x DGINN.py
 ENV PATH /opt/DGINN/:$PATH
 ENV PYTHONPATH /opt/DGINN/:/opt/DGINN/scripts/:/opt/DGINN/lib/:$PYTHONPATH
 
 
 ## All softwares
-ENV PATH /opt/bin:$PATH
+ENV PATH /opt/bin:/usr/bin/$PATH
+
+#################################
+## ALIGNERS
 
 COPY --from=prank /opt/prank-msa/src/prank /opt/bin/prank
 
-COPY --from=mafft /usr/bin/mafft /opt/mafft/bin/mafft
-COPY --from=mafft /usr/bin/mafft-homologs /opt/mafft/bin/mafft-homologs
-COPY --from=mafft /usr/bin/mafft-profile /opt/mafft/bin/mafft-profil
+COPY --from=mafft /usr/bin/mafft /opt/bin/mafft
+COPY --from=mafft /usr/bin/mafft-homologs /opt/bin/mafft-homologs
+COPY --from=mafft /usr/bin/mafft-profile /opt/bin/mafft-profil
+
 COPY --from=mafft /usr/lib/mafft /usr/lib/mafft   
-# 
-ENV PATH /opt/mafft/bin/:/opt/mafft/lib/:$PATH
-#ENV LD_LIBRARY_PATH /opt/local/lib:$LD_LIBRARY_PATH
-# RUN echo $PATH
+ 
+# ENV PATH /opt/mafft/bin/:/opt/mafft/lib/:$PATH
 #
 
-COPY --from=macse /opt/macse_v2.07.jar /opt/macse.jar
+COPY --from=macse /opt/macse_v2.07.jar /opt/bin/macse.jar
 
-COPY --from=phyml /usr/lib/phyml/bin/phyml /opt/bin/phyml
+###############################
+## Trees
 
+COPY --from=iqtree /usr/bin/iqtree2 /usr/bin/iqtree2
+
+COPY --from=phyml /usr/bin/phyml /usr/bin/phyml
+COPY --from=phyml /usr/lib/phyml/bin /usr/lib/phyml/bin
 
 COPY --from=treerecs  /opt/Treerecs /opt/treerecs
 ENV PATH /opt/treerecs/bin:$PATH
 
+
+######################################
+### Selection
+
 COPY --from=biopp  /opt/bpp/lib /opt/bpp/lib
 COPY --from=biopp  /opt/bpp/bppsuite/bppSuite /opt/bpp/bppsuite/bppSuite
+
+COPY --from=paml /usr/bin/codeml  /usr/bin/codeml
+COPY --from=paml /etc/paml  /etc/paml
+COPY --from=paml /usr/lib/paml/bin /usr/lib/paml/bin
+
+COPY --from=hyphy /usr/lib/hyphy/bin /usr/lib/hyphy/bin
+COPY --from=hyphy /usr/bin/hyphy /usr/bin/hyphy
+COPY --from=hyphy /usr/share/hyphy /usr/share/hyphy
 
 ENV PATH /opt/bpp/bppsuite/bppSuite/:$PATH
 ENV LD_LIBRARY_PATH /opt/bpp/lib:$LD_LIBRARY_PATH
 
-RUN apt-get install -y hyphy-mpi hyphy-common hyphy-pt
-RUN echo $PATH
 
-RUN apt-get install -y snakemake
 
-COPY --from=paml /opt/paml/src/codeml /usr/local/bin/
+### Set Up rights for snakemake
 
-RUN apt-get install -y python3-biopython
+RUN mkdir /opt/DGINN/.snakemake
+RUN chmod 777 /opt/DGINN/.snakemake
+ENV XDG_CACHE_HOME /opt/DGINN/.snakemake
 
-WORKDIR ~/
-ENTRYPOINT ["snakemake","-c1","--snakefile","/opt/DGINN/Snakefile"]
-#CMD ["-h"]
+###
+
+WORKDIR /opt/home
+
+ENTRYPOINT ["/usr/bin/snakemake","-c1","--snakefile","/opt/DGINN/Snakefile"]
+
+
+CMD ["--help"]

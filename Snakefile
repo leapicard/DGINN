@@ -48,15 +48,14 @@ config["infile"]=[",".join([os.path.abspath(f2.strip()) if f2!="void" else "void
           
 ### in case of no queryNames, build them from infiles
 if not "queryName" in config or not config["queryName"] or len(config["queryName"])==0:
-  if step!="duplication" and step!="positive_selection":
+  if config["infile"]!=["void"]:
     config["queryName"] = list(map(lambda x:os.path.split(x.split(",")[0])[-1].rsplit(".",1)[0].strip(), config["infile"]))
-  elif config["infile"]!=["void"]:
-    config["queryName"] = [os.path.split(config["infile"][0])[-1].rsplit(".",1)[0].strip()]
   else:
     print("Missing infile and queryName for duplication step")
     sys.exit(0)
 elif type(config["queryName"]) == str:
     config["queryName"]=[config["queryName"]]
+
 
 # Check everything is fine and match queryName:infile
 if config["infile"]!=["void"]:

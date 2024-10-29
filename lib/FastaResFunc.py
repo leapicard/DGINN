@@ -30,19 +30,22 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	Function dowloading species to generate new datas.
 
 	@param1 lBlastRes: List of accessions
-	@param2 geneName: Gene name
-	@param3 sequence: gene sequence
-	@return1 outCat: Path to the file containing the sequences and the new IDs
-	@return2 corSG: Path
+	@param2 queryName
+	@param3 apiKey: apikey, not considered if equals ""
+	@return dId2Seq: dictionnary from gene ids to sequences
 	"""
-	#logger = logging.getLogger("main.accessions")
+        logger = logging.getLogger("main.accessions")
 	dSpecies = {}
 	dId2Seq = {}
 	lTax = []
 
 	Entrez.email="example@example.com"
-	Entrez.api_key = apiKey
-	
+	if apiKey!="":
+	  Entrez.api_key = apiKey
+          logger.info("No ApiKey")
+        else:
+          logger.info("ApiKey " + apikey)
+          
 	handle = Entrez.efetch(db="nuccore", id=lBlastRes , idtype="acc", retmode="xml")
 	records = list(Entrez.read(handle))
 	

@@ -39,9 +39,9 @@ def LRT(ll1, ll2, df):
 def ResBusted(baseName, posDir):
     WG = glob.glob(posDir+"/busted/busted.out")
     posSel = ""
-    d = OrderedDict({"BUSTED_sel":"na","BUSTED_pv":"na"})
 
     if len(WG)>= 1 and os.path.exists(WG[0]):
+        d = OrderedDict({"BUSTED_sel":"na","BUSTED_pv":"na"})
         with open(WG[0], "r") as wg:
             try:
                 p = wg.read().split("**")[-2].replace(" ", "").split("=")[1]
@@ -52,17 +52,16 @@ def ResBusted(baseName, posDir):
                     posSel = "N"
                 d["BUSTED_sel"] = posSel
                 d["BUSTED_pv"] = str(p)
-            except FileNotFoundError:
+            except:
                 d = {}
-
+    else:
+        d={}        
     return(d)
 
 def ResMeme(baseName, posDir, pv):
     BS = glob.glob(posDir+"/meme/meme.out")
-    d = OrderedDict({"MEME_NbSites":"0", "MEME_PSS":"na"})
-
     if len(BS)>=1 and os.path.exists(BS[0]):
-        try:
+            d = OrderedDict({"MEME_NbSites":"0", "MEME_PSS":"na"})
             bs = open(BS[0], "r")
             dPS={}
             for BSLine in bs.readlines():
@@ -71,7 +70,7 @@ def ResMeme(baseName, posDir, pv):
                           Bspl= list(map(lambda s:s.strip(),BSLine.split("|")))
                           if not Bspl[1].isdigit():
                             continue
-                          dPS[int(Bspl[1])]=float(Bspl[7].split("=")[1])
+                          dPS[int(Bspl[1])]=float(Bspl[6].split("=")[1])
                         
             dPSok={k:v for k,v in dPS.items() if v<=pv}
             nbSites = len(dPSok)
@@ -80,8 +79,8 @@ def ResMeme(baseName, posDir, pv):
                 d["MEME_NbSites"] = str(nbSites)
                 d["MEME_PSS"] = ",".join(map(str,dPSok.keys()))
             bs.close()
-        except FileNotFoundError:
-            next
+    else:
+            d={}        
 
     """
     if len(d) == 0:
@@ -106,7 +105,7 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
                     if len(ival)>0:
                       wPS = sum([val[i] for i in ival])/len(ival)
                     else:
-                                          wPS=0
+                      wPS=0
                     lRespp= df[df.iloc[:,ival].sum(axis=1)>pr].iloc[:,0].tolist()
                     lResw = df[df.iloc[:,-1]>1].iloc[:,0].tolist()
                     #if wPS<5:
@@ -133,7 +132,7 @@ def ResBppExtract(models, dLogLlh, dSAres, posDir, baseName, pr):
                 d["PSS"] = lResFinal
                 d["wPS"] = wPS
                     
-        except FileNotFoundError:
+        except:
             next
     return(d)
 
@@ -180,7 +179,7 @@ def ResPamlExtract(models, dModelLlh, dModelFile, pr):
             
             posSel = "Y"
             nbPSS = str(len(PSS))
-            lResFinal = str("{}".format(PSS).replace("[", "").replace("]", ""))
+            lResFinal = str("{}".format(PSS).replace("[", "").replace("]", "").replace(" ",""))
         
         else:
             posSel = "N"

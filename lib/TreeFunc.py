@@ -1,12 +1,159 @@
 import sys
 import logging, os
 import ete3
+import subprocess
 import FastaResFunc, AnalysisFunc
 from Bio import SeqIO
+from statistics import median, mean
 
 """
 File which countain all functions about treerecs and tree treatement.
 """
+
+
+
+def splitTree(parameters, step="duplication"):
+  """
+  Split the gene tree in several sub-trees, following several methods.
+
+  1- Cutlongbranches
+  2- Reconciliation
+
+  @output The list of new subalignment files
+  """
+
+  nbspecies=parameters["nbspecies"]
+
+  aln = parameters["input"].split()[0].strip()
+  tree = parameters["input"].split()[1].strip()
+  outdir = parameters["outdir"]
+  
+  logger = logging.getLogger(".".join(["main", step]))
+
+  dSubAln = cutLongBranches(parameters, aln, tree, nbspecies, logger)
+
+  lquery=[]
+
+  if parameters["sptree"]!="":
+    sptree = parameters["sptree"]
+    
+    for query, aln in dSubAln.items():
+      logger.info("Running Treerecs for " + query)
+      recTree = runTreerecs(query, aln, tree, sptree, outdir, logger)
+
+      if recTree:
+        lquery += treeParsing(query, aln, recTree, nbspecies, outdir, logger)
+      else:
+        lquery.append(query)
+          
+  else:
+    lquery=list(dSubAln.keys())
+
+  return(lquery)
+
+
+def cutLongBranches(parameters, aln, tree, nbSp, logger):
+    """
+    Check for overly long branches in a tree and separate both tree and corresponding alignment if found.
+
+    @param1 aln: Fasta alignment
+    @param2 tree: Tree corresponding to the alignment
+    @param3 logger: Logging object
+    @return dSubAln: Updated dictionary of queries and their corresponding alignment file
+    """
+
+    LBOpt = parameters["LBopt"]
+    
+    logger.info("Looking for long branches.")
+    loadTree = ete3.Tree(tree)
+    dist = [leaf.dist for leaf in loadTree.traverse()]
+    # longDist = 500
+    dSubAln={}
+
+    queryName=parameters["queryName"]
+    outdir=parameters["outdir"]
+    
+    if "cutoff" in LBOpt:
+        if "(" in LBOpt:
+            factor = float(LBOpt.split("(")[1].replace(")", ""))
+        else:
+            factor = 50
+        medianDist = median(dist)
+        meanDist = mean(dist)
+        longDist = meanDist * factor
+    elif "IQR" in LBOpt:
+        if "(" in LBOpt:
+            factor = float(LBOpt.split("(")[1].replace(")", ""))
+        else:
+            factor = 50
+        df = pd.DataFrame(dist)
+        Q1 = df.quantile(0.25)
+        Q3 = df.quantile(0.75)
+        IQR = Q3 - Q1
+        lDist = Q3 + (factor * IQR)
+        longDist = lDist[0]
+
+    logger.info(
+        "Long branches will be evaluated through the {} method (factor {})".format(
+            LBOpt, factor
+        )
+    )
+    nbSp = int(nbSp)
+    matches = [leaf for leaf in loadTree.traverse("postorder") if leaf.dist > longDist]
+    if len(matches) > 0:
+        logger.info(
+            "{} long branches found, separating alignments.".format(len(matches))
+        )
+
+        seqs = SeqIO.parse(open(aln), "fasta")
+        dID2Seq = {gene.id: gene.seq for gene in seqs}
+
+        for node in matches:
+            gp = [node] + node.get_children()
+            lNewGp = node.get_leaf_names()
+
+            dNewAln = {gene: dID2Seq[gene] for gene in lNewGp if gene in dID2Seq}
+
+            for k in dNewAln:
+                dID2Seq.pop(k, None)
+
+            # create new file of sequences
+
+            if len(dNewAln) > nbSp - 1:
+              newQuery = queryName +  "_part" + str(matches.index(node) + 1)
+              alnf = outdir + "/" + newQuery + ".fasta"
+              with open(alnf,"w") as fasta:
+                fasta.write(FastaResFunc.dict2fasta(dNewAln))
+                fasta.close()
+              dSubAln[newQuery] = alnf
+            elif len(dNewAln)!=0:
+                logger.info(
+                    "Sequences {} will not be considered for downstream analyses as they do not compose a large enough group.".format(
+                        " ".join(dNewAln.keys())
+                    )
+                )
+
+        newQuery = queryName + "_part" + str(len(matches) + 1) 
+        alnLeft = os.path.join(outdir,newQuery + ".fasta")
+
+        if len(dID2Seq) > nbSp - 1:
+            with open(alnLeft, "w") as fasta:
+                fasta.write(FastaResFunc.dict2fasta(dID2Seq))
+                logger.info("\tNew alignment:%s" % {alnLeft})
+                fasta.close()
+            dSubAln[newQuery]=alnLeft
+        elif len(dID2Seq)!=0:
+            logger.info(
+                "Sequences in {} will not be considered for downstream analyses as they do not compose a large enough group.".format(
+                  " ".join(dID2Seq.keys())
+                )
+            )
+
+    else:
+      logger.info("No long branches found.")
+      dSubAln[queryName]=aln
+      
+    return dSubAln
 
 #######################################
 #### Class used for resolving polytomies (from Stackoverflow)
@@ -107,7 +254,7 @@ def buildSpeciesTree(taxon, gfaln):
 
 def treeCheck(treePath, alnf):
     """
-    Check if the tree isn't corruped
+    Check if the tree isn't corrupted
 
     @param1 treePath: tree's path
     @param2 alnf: alignment's path
@@ -215,60 +362,42 @@ def supData(filePath, corFile, dirName):
 # =========================================================================================================================
 
 
-def filterTree(tree, spTree, cor):
+def filterTree(tree, spTree):
     """
     Delete genes in the tree which aren't in the species tree
 
     @param1 tree: Path to a tree file
     @param2 spTree: Path to a species tree file
-    @return out: Path
+    @return out: Path to the filtered tree
     """
-    t1 = ete3.Tree(tree)
-    t2 = ete3.Tree(spTree)
-    g1 = t1.get_leaf_names()
-    g2 = t2.get_leaf_names()
-    lCor = []
 
-    with open(cor, "r") as fCor:
-        lCor = fCor.readlines()
-        fCor.close()
+    tg = ete3.Tree(tree)
+    ts = ete3.Tree(spTree)
+    lg = tg.get_leaf_names()
+    ls = ts.get_leaf_names()
 
-    dCor = {}
-    dCorInv = {}
-    for i in lCor:
-        temp = i.split("\t")
-        dCor[temp[0]] = temp[1].strip("\n")
-        dCorInv[i[1].strip("\n")] = i[0]
+    gok = [g for g in lg if g.split("_")[0] in ls]
 
-    g1Genes = []
-
-    for z in g1:
-        if z in dCor.keys() and dCor[z] in g2:
-            g1Genes.append(z)
-
-    """if len(g1Genes) < len(g1)/2:
-        print(len(g1Genes))
-        print(len(g1)/2)
-        exit()"""
-
-    t1.prune(g1Genes)
+    tg.prune(gok)
     out = tree.replace(".tree", "_filtered.tree")
-    t1.write(outfile=out)
+    tg.write(outfile=out)
 
     return out
 
 
 # =========================================================================================================================
-def treeParsing(ORF, recTree, nbSp, o, logger):
+def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
     """
     Function which parse gene data in many group according to duplication in the reconciliated tree
 
-    @param1 ORFs: Path to the ORFs file
-    @param2 tree: Path to a tree file
-    @param3 geneName: Gene name
-    @param4 o: Output directory
-    @param5 logger: Logging object
-    @return lOut: List of path (fasta files)
+    @param1 query 
+    @param2 ORFs: Path to the ORFs file
+    @param3 recTree: Path to a reconciliation tree file
+    @param4 nbSp: threshold number of leaves to build a separate clade
+    @param5 outdir: Output directory
+    @param6 logger: Logging object
+    
+    @return lOut: List of path to alignments (fasta files)
     """
 
     with open(recTree, "r") as tree:
@@ -297,7 +426,7 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
             # for each of the branches concerned by the duplication
             nGp = 1
             interok = False
-
+            
             # do not consider dubious duplications (no intersection between the species on either side of the annotated duplication)
             lf = [set([leaf.S for leaf in gp]) for gp in node.get_children()]
             interok = (
@@ -332,16 +461,9 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
 
                         if not already:
                             nDuplSign += 1
-                            outFile = (
-                                o
-                                + ORF.split("/")[-1].split(".")[0]
-                                + "_D"
-                                + str(nodeNb)
-                                + "_gp"
-                                + str(nGp)
-                                + ".fasta"
-                            )
-                            lOut.append(outFile)
+                            newQuery = query + "_D%d_gp%d"%(nodeNb,nGp)
+                            outFile = os.path.join(outdir, newQuery + "_orf.fasta")
+                            lOut.append(newQuery)
 
                             # create new file of orthologous sequences
                             with open(outFile, "w") as fasta:
@@ -362,13 +484,14 @@ def treeParsing(ORF, recTree, nbSp, o, logger):
             dRemain = {left: dID2Seq[left] for left in leftovers if left in dID2Seq}
 
             if len(dRemain.keys()) > int(nbSp) - 1:
-                outFile = o + ORF.split("/")[-1].split(".")[0] + "_Drem.fasta"
+                newQuery = query + "_Drem"
+                outFile = os.path.join(outdir, newQuery + "_orf.fasta")
                 nDuplSign += 1
 
                 with open(outFile, "w") as fasta:
                     fasta.write(FastaResFunc.dict2fasta(dRemain))
                     fasta.close()
-                lOut.append(outFile)
+                lOut.append(newQuery)
             else:
                 logger.info(
                     "Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(
@@ -416,7 +539,7 @@ def resolve_polytomy(node, gtree, o):
         gtree.write(outfile=gf)
 
         val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX".format(gf, spf, "tmp")
-        AnalysisFunc.cmd(val, False)  # , True)
+        subprocess.run(val, shell=True, stdout=subprocess.PIPE)  # , True)
 
         fnt = open(os.path.join("tmp", "eval_poly_gene_%d_recs.nhx" % (len(lspt))), "r")
         lc = fnt.readline()
@@ -433,37 +556,47 @@ def resolve_polytomy(node, gtree, o):
     return lspt[im[0]]  # get first reconciliation if equality...
 
 
-def runTreerecs(pathGtree, pathSptree, cor, o):
+def runTreerecs(query, aln, pathGtree, pathSptree, outdir,logger):
     """
-    Procedure which launch treerecs.
+    Procedure which launch treerecs. 
 
+    @param1 query: name of the alignment
+    @param2 aln: file name of the alignment
     @param1 pathGtree: Path to the gene tree file
     @param2 pathSptree: Path to the species tree
-    @param3 o: Output directory
+    @param3 outdir: Output directory
+
+    @output file name of reconciliated tree
     """
 
+    ## prune gene tree according to species Tree
+    pathGtree = filterTree(pathGtree, pathSptree)
+
+    
     ## look for polytomies, and change species tree in a most
     ## parcimonious way
 
-    gTree = ete3.Tree(pathGtree)
+    gtree = ete3.Tree(pathGtree)
     sptree = ete3.Tree(pathSptree)
 
-    g1 = gTree.get_leaf_names()
-    g2 = sptree.get_leaf_names()
+    # ## names of the genes
+    # seqs = SeqIO.parse(open(aln), "fasta")
+    # dID2Seq = [gene.id for gene in seqs]
 
-    lCor = []
-    with open(cor, "r") as fCor:
-        lCor = fCor.readlines()
-        fCor.close()
+    # ## prune gene tree according to aln sequences
+    # gtree.prune(dID2Seq)
 
-    dCor = {}
-    for i in lCor:
-        temp = i.split("\t")
-        dCor[temp[0]] = temp[1].strip("\n")
+    
+    # species of the genes
+    lg = gtree.get_leaf_names()
+    gs = set([g.split("_")[0] for g in lg])
 
-    sp1Genes = set([dCor[z] for z in g1 if z in dCor.keys() and dCor[z] in g2])
+    ## prune species tree
+    sptree.prune(gs)
 
-    sptree.prune(sp1Genes)
+    
+    ## look for polytomies, and change species tree in a most
+    ## parcimonious way
 
     thrspoly = 8
     poly = False
@@ -487,19 +620,18 @@ def runTreerecs(pathGtree, pathSptree, cor, o):
                 )
                 poly = True
 
-            gt2 = gTree.copy()
+            gt2 = gtree.copy()
 
             leavnode = [l.name for l in node.get_leaves()]
-            leag = [l.name for l in gt2.get_leaves() if l.name[:6] in leavnode]
+            leag = [l.name for l in gt2.get_leaves() if l.name.split("_")[0] in leavnode]
             if len(leag) != 0:
                 gt2.prune(leag)
 
-            nb = resolve_polytomy(node, gt2, o)
+            nb = resolve_polytomy(node, gt2, outdir)
 
             node.add_sister(nb)
             node.detach()
 
-    ### then final reconciliation
     if not poly:  # no polytomy solved
         pathSptree2 = pathSptree
     else:
@@ -508,54 +640,17 @@ def runTreerecs(pathGtree, pathSptree, cor, o):
         pathSptree2 = ".".join(lp[:-1] + ["bif"] + [lp[-1]])
         sptree.write(outfile=pathSptree2)
 
-    suff = pathGtree.split("/")[-1]
-    recTree = o + suff + "_recs.nhx"  # o+suff[:suff.rfind(".")]+"_recs.nhx"
+    
+    ### filter out unmatched genes in species tree
     val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX:svg".format(
-        pathGtree, pathSptree2, o
+        pathGtree, pathSptree2, outdir
     )
 
-    AnalysisFunc.cmd(val, False)
+    subprocess.run(val, shell=True, stdout = subprocess.PIPE)
+    
+    return os.path.join(pathGtree + "_recs.nhx")  # o+suff[:suff.rfind(".")]+"_recs.nhx"
 
-    return recTree
 
-
-def treeTreatment(parameters):
-    """
-    Procedure which execute all functions for the tree step.
-
-    @param1 data: basicData object
-    """
-    # try:
-    logger = logging.getLogger("main.duplication")
-    dAlnTree2 = {}
-    lFastaFile = []
-    for aln, tree in dAlnTree.items():
-        filtTree = filterTree(tree, data.sptree, data.cor)
-        logger.info("Cleaning the tree")
-
-        logger.info("Running Treerecs")
-        recTree = runTreerecs(filtTree, data.sptree, data.cor, data.o)
-        # setattr(data, "recTree", recTree)
-
-        if recTree:
-            lFastaFile += treeParsing(data.ORFs, recTree, nbspecies, data.o, logger)
-
-            setattr(data, "duplication", lFastaFile)
-
-    if len(lFastaFile) > 0:
-        for orthoGp in data.duplication:
-            aln = AnalysisFunc.runPrank(orthoGp, data.geneName, data.o)
-            tree = AnalysisFunc.runPhyML(aln, phymlOpt, data.o)
-            dAlnTree2[aln] = tree + "_phyml_tree.txt"
-    logger.info(str(dAlnTree2))
-    if len(dAlnTree2) != 0:
-        dAlnTree = dAlnTree2
-
-    return dAlnTree
-
-    # except Exception:
-    # 	logger.info("Treerecs encountered an unexpected error, skipping.")
-    # 	return dicoAT
 
 
 #######=================================================================================================================

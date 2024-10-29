@@ -4,7 +4,6 @@ from ete3 import EvolTree
 
 def bppSite(alnFile, treeFile, outDir, bppFile, bppMixed, lModels, logger):	
   # outDir=os.getcwd()+"/"  # used to debug
-  logger.info(os.getcwd())
   ### SITE ANALYSIS: BIO++
   lModels = [m if (m[-2:]=="_C" or m.find("_G")!=-1) else m+"_G" for m in lModels] #gamma(n=4) distrib is default
   dlModels = {"C":[m[:-2] for m in lModels if m[-2:]=="_C"]}  #constant distrib
@@ -67,6 +66,14 @@ def bppSite(alnFile, treeFile, outDir, bppFile, bppMixed, lModels, logger):
   for k,lmod in dlModels.items():
     dLogLlh[k]={}                
     for model in lmod:
+      if model!="M0" and "M0" in lmod:
+          treeFile = dModelTrees["M0_"+k]+"_1"
+
+      ## already done
+      #if os.path.exists(dBppCmd["OUTTREE"]+"_1"):
+      #  logger.info("{:s} optimization already done because {:s} exists".format(model+"_"+k,treefile))
+      #  break
+      
       prevmodel, dnewpar = getNewParfromOptim(model+"_"+k, lModels, dModelLog, logger)
       if prevmodel != "":
           fnew=open(dModelLog[model+"_"+k],"w")
@@ -79,10 +86,8 @@ def bppSite(alnFile, treeFile, outDir, bppFile, bppMixed, lModels, logger):
       else:
           ignore = ""
             
-      if model!="M0" and "M0" in lmod:
-          treeFile = dModelTrees["M0_"+k]+"_1"
 
-          # create dictionary with all elements of the two argument lists to build commands
+      # create dictionary with all elements of the two argument lists to build commands
       modelDesc=dModelSyntax[k][model][0]+"("+",".join(dModelSyntax[k][model][1:])+")"
       distribDesc=["Constant()","Gamma(n=4)"][k=="G"]
       dBppCmd = {"INPUTFILE":alnFile, 
@@ -96,10 +101,14 @@ def bppSite(alnFile, treeFile, outDir, bppFile, bppMixed, lModels, logger):
                       "BACKUP":dModelLog[model+"_"+k], 
                       "param":bppFile}
 
-          # running bppml
+      ## invalidate scenario if not mixed
+      if model=="M0":
+        dBppCmd["scenario1"]=""
+        
+      # running bppml
       logger.info("Running {:s} optimization".format(model+"_"+k))
-
-            # join each couple of the cmd dictionary so that it reads "k1 = v1" "k2 = v2" etc...
+      
+      # join each couple of the cmd dictionary so that it reads "k1 = v1" "k2 = v2" etc...
       argsMx = "\""+"\" \"".join([k+"="+str(v) for k, v in dBppCmd.items()])+"\""
       logger.debug("bppml "+argsMx)
       runMx = subprocess.Popen("bppml "+argsMx, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
@@ -276,8 +285,6 @@ def setIgnoreParams(model, prevmodel, lModels, logger):
   # if M0 optimization in models, use tree optimized in M0 for subsequent model optimizations
   lignore=[]
   distr=model[-2:]  # dist _C or _G
-  if model!="M0"+distr and "M0"+distr in lModels:
-    lignore.append("BrLen")
   
   if model=="DFP07_0"+distr:
     lignore.append("DFP07.p0_1")
@@ -289,7 +296,10 @@ def setIgnoreParams(model, prevmodel, lModels, logger):
 
     logger.info("Optimization for model " + model + " does not re-optimize equilibrium frequencies" )  
     lignore.append("*_Full.theta*")
-            
+
+    logger.info("Optimization for model " + model + " does not re-optimize branch lengths" )  
+    lignore.append("BrLen")
+
   return lignore
 
 

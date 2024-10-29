@@ -46,8 +46,11 @@ def blast(parameters, outfile):
 
         sequence = open(queryFile).read()
         seqL = len(sequence.split("\n")[1])
-        url = "https://blast.ncbi.nlm.nih.gov/Blast.cgi?api_key={:s}".format(apiKey)
-
+        if apiKey != "":
+          url = "https://blast.ncbi.nlm.nih.gov/Blast.cgi?api_key={:s}".format(apiKey)
+        else:
+          url = "https://blast.ncbi.nlm.nih.gov/Blast.cgi"
+          
         blasted = False
         while not blasted:
             try:

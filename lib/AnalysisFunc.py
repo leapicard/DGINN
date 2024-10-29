@@ -5,7 +5,6 @@ import logging, subprocess, shlex, os, ete3
 from Bio import SeqIO, AlignIO
 from collections import defaultdict
 from itertools import chain
-from statistics import median, mean
 import pandas as pd
 
 ######Functions=============================================================================================================
@@ -29,20 +28,20 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
       else:
         out = open(stdout, "w")
 
-    lCmd = shlex.split(commandLine)
+    if not choice:  ## if shell==False, split command & arguments. 
+      commandLine = shlex.split(commandLine)
 
     try:
-        run = subprocess.call(lCmd, shell=choice, stdout=out, stderr=subprocess.PIPE)
+        run = subprocess.run(commandLine, shell=choice, stdout=out, stderr=out)
     except subprocess.CalledProcessError as err:
-        sys.stderr.write(str(err))
+      sys.stderr.write(str(err))
 
+        
     if stdout and stdout != subprocess.PIPE:
       out.close()
-
+    return(run.stdout)
+  
 ######ORF===================================================================================================================
-
-#    ORFile = getORFs(data.seqFile, data.queryName, data.o)
-
 
 def getORFs(parameters):
     """
@@ -171,8 +170,12 @@ def runMacse(ORFs, parameters):
     queryName = parameters["queryName"]
     outFile = outdir + "/" + queryName + "_macse"
 
-    cmd("macse -prog refineAlignment -align {:s} -out_NT {:s}.best.fas".format(ORFs, outFile),False)
+    fout = open(outFile+".out","w")
 
+    subprocess.run("java -jar /opt/bin/macse.jar -prog refineAlignment -align {:s} -out_NT {:s}.best.fas".format(ORFs, outFile),shell=True, stdout=fout)
+
+    fout.close()
+    
     logger.info("Finished Macse codon alignment: {:s}.best.fas".format(outFile))
 
     return outFile + ".best.fas"
@@ -359,14 +362,14 @@ def runPhyML(parameters):
     tmp = geneDir + "/" + queryName + "tree.tmp"
 
     logger = logging.getLogger("main.tree")
-    with open(aln, "rU") as aln2:
+    with open(aln, "r") as aln2:
         laln = aln2.read().replace("!", "N")
         aln2.close()
         with open(tmp, "w") as temp:
             temp.write(laln)
             temp.close()
 
-    input_handle = open(tmp, "rU")
+    input_handle = open(tmp, "r")
     output_handle = open(outPhy, "w")
 
     alignments = AlignIO.parse(input_handle, "fasta")
@@ -389,10 +392,10 @@ def runPhyML(parameters):
                     phymlOpt
                 )
             )
-            cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False)
+            cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
     else:
-        logger.debug("phyml --quiet -i {:s} -v e -b -2".format(outPhy))
-        cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False)
+        logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
+        cmd("phyml -i {:s} -v e -b -2".format(outPhy), False, False)
 
     return outPhy+"_phyml_tree.txt"
 
@@ -414,123 +417,49 @@ def runIqTree(parameters):
     aln = parameters["input"]
     queryName = parameters["queryName"]
 
-    cmd("iqtree --quiet -s {:s}".format(aln), False)
+    cmd("iqtree2 --quiet -s {:s}".format(aln), False)
 
     return aln+".treefile"
 
 
 
-def cutLongBranches(parameters, aln, tree, nbSp, LBOpt, logger):
-    """
-    Check for overly long branches in a tree and separate both tree and corresponding alignment if found.
+def splitTree(parameters, step="duplication"):
+  """
+  Split the gene tree in several sub-trees, following several methods.
 
-    @param1 aln: Fasta alignment
-    @param2 tree: Tree corresponding to the alignment
-    @param3 logger: Logging object
-    @return dAlnTree: Updated dictionary of alignments and their corresponding trees
-    """
+  1- Cutlongbranches
+  2- Reconciliation
 
-    logger.info("Looking for long branches.")
-    loadTree = ete3.Tree(tree)
-    dist = [leaf.dist for leaf in loadTree.traverse()]
-    # longDist = 500
-    dAlnTree={}
+  @output The list of new subalignment files
+  """
 
-    queryName=parameters["queryName"]
-    outdir=parameters["outdir"]
-    
-    if "cutoff" in LBOpt:
-        if "(" in LBOpt:
-            factor = float(LBOpt.split("(")[1].replace(")", ""))
-        else:
-            factor = 50
-        medianDist = median(dist)
-        meanDist = mean(dist)
-        longDist = meanDist * factor
-    elif "IQR" in LBOpt:
-        if "(" in LBOpt:
-            factor = float(LBOpt.split("(")[1].replace(")", ""))
-        else:
-            factor = 50
-        df = pd.DataFrame(dist)
-        Q1 = df.quantile(0.25)
-        Q3 = df.quantile(0.75)
-        IQR = Q3 - Q1
-        lDist = Q3 + (factor * IQR)
-        longDist = lDist[0]
-
-    logger.info(
-        "Long branches will be evaluated through the {} method (factor {})".format(
-            LBOpt, factor
-        )
-    )
-    nbSp = int(nbSp)
-    matches = [leaf for leaf in loadTree.traverse("postorder") if leaf.dist > longDist]
-    if len(matches) > 0:
-        logger.info(
-            "{} long branches found, separating alignments.".format(len(matches))
-        )
-
-        seqs = SeqIO.parse(open(aln), "fasta")
-        dID2Seq = {gene.id: gene.seq for gene in seqs}
-
-        for node in matches:
-            gp = [node] + node.get_children()
-            lNewGp = node.get_leaf_names()
-
-            dNewAln = {gene: dID2Seq[gene] for gene in lNewGp if gene in dID2Seq}
-
-            for k in dNewAln:
-                dID2Seq.pop(k, None)
-
-            # create new file of sequences
-
-            if len(dNewAln) > nbSp - 1:
-              newQuery = queryName +  "_part" + str(matches.index(node) + 1)
-              alnf = outdir + "/" + newQuery + "_sequences.fasta"
-              with open(alnf,"w") as fasta:
-                fasta.write(FastaResFunc.dict2fasta(dNewAln))
-                fasta.close()
-              dAlnTree[newQuery] = alnf
-            elif len(dNewAln)!=0:
-                logger.info(
-                    "Sequences {} will not be considered for downstream analyses as they do not compose a large enough group.".format(
-                        " ".join(dNewAln.keys())
-                    )
-                )
-
-        newQuery = queryName + "_part" + str(len(matches) + 1) 
-        alnLeft = outdir + "/" + newQuery + "_sequences.fasta"
-
-        if len(dID2Seq) > nbSp - 1:
-            with open(alnLeft, "w") as fasta:
-                fasta.write(FastaResFunc.dict2fasta(dID2Seq))
-                logger.info("\tNew alignment:%s" % {alnLeft})
-                fasta.close()
-            dAlnTree[newQuery]=alnLeft
-        elif len(dID2Seq)!=0:
-            logger.info(
-                "Sequences in {} will not be considered for downstream analyses as they do not compose a large enough group.".format(
-                  " ".join(dID2Seq.keys())
-                )
-            )
-
-    else:
-        logger.info("No long branches found.")
-
-    return dAlnTree
-
-
-def checkTree(parameters, step="duplication"):
   nbspecies=parameters["nbspecies"]
-  LBopt=parameters["LBopt"]
 
   aln = parameters["input"].split()[0].strip()
   tree = parameters["input"].split()[1].strip()
   
   logger = logging.getLogger(".".join(["main", step]))
-  dAlnTree = cutLongBranches(parameters, aln, tree, nbspecies, LBopt, logger)
-  return(dAlnTree)
+
+  dSubAln = cutLongBranches(parameters, aln, tree, nbspecies, logger)
+
+  lquery=[]
+  
+  if parameters["sptree"]!="":
+    sptree = parameters["sptree"]
+
+    for query, aln in dSubAln.items():
+      logger.info("Running Treerecs for " + query)
+      recTree = runTreerecs(query, aln, tree, sptree, outdir, logger)
+
+      if recTree:
+        lquery += treeParsing(query, aln, recTree, nbspecies, outdir, logger)
+      else:
+        lquery.append(query)
+          
+  else:
+    lquery=list(dSubAln.keys())
+
+  return(lquery)
 
 
 #######=================================================================================================================

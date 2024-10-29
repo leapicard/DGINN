@@ -35,7 +35,7 @@ if __name__ == "__main__":
                         'folder for analysis results (path - by default output file will be saved in the incoming directory)')
     files.add_argument('-pr', '--postrate', metavar="<value>", type=float, default=0.95, required=False, dest = 'pr', help =\
                         'Threshold posterior probability of omega>1 to admit positive selected sites.')	
-    files.add_argument('-pm', '--pvmeme', metavar="<value>", type=float, default=0.01, required=False, dest = 'pvmeme', help =\
+    files.add_argument('-pm', '--pvmeme', metavar="<value>", type=float, default=0.05, required=False, dest = 'pvmeme', help =\
                         'Maximum p-value of PS site significance for MEME method.')	
 
     
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
         bust = PRS.ResBusted(baseName, posDir)
         dGene.update(bust)
-
+        
         meme = PRS.ResMeme(baseName, posDir, pvmeme)
         dGene.update(meme)
 
@@ -119,11 +119,12 @@ if __name__ == "__main__":
         minlid=min(map(len, lsplitid))
         sp=set([l[0] for l in lsplitid])
         ids=[l[1].upper() for l in lsplitid]
-        if (len(set(ids))!=len(lsplitid)):
-          ids=["_".join(l[1:]).upper() for l in lsplitid]
-          if len(set(ids))!=len(lsplitid):
-                    print("Unable to find good ids in alignment file " + aln)
-                    sys.exit()
+        ids=["_".join(l).upper() for l in lsplitid]
+        # if (len(set(ids))!=len(lsplitid)):
+        #   ids=["_".join(l[1:]).upper() for l in lsplitid]
+        #   if len(set(ids))!=len(lsplitid):
+        #             print("Unable to find good ids in alignment file " + aln)
+        #             sys.exit()
 
         lLen = [len(str(fasta.seq)) for fasta in SeqIO.parse(open(aln),'fasta')]
         alnLen = max(lLen)/3
@@ -169,17 +170,18 @@ if __name__ == "__main__":
     with open(cov, "w") as outf:
         outf.write("\n".join([k+"\t"+"\t".join(map(str, v)) for k, v in dCovSort.items()]))
 
-        # filter out unused headers
+    # filter out unused headers
     if len(allRes)==0:
       sys.exit(0)
     
     lBase = ["File", "Name", "Gene", "GeneSize", "NbSpecies"]#, "omegaM0Bpp", "omegaM0codeml"]
     allK = allRes[0][1].keys()
     allKok=[]
+
     for k in allK:
       ok=False
       for (a,meth) in allRes:
-        if meth[k]!="na":
+        if k in meth and meth[k]!="na":
           ok=True
           break
       if ok:
