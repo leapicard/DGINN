@@ -213,7 +213,7 @@ ENV LD_LIBRARY_PATH /opt/bpp/lib:$LD_LIBRARY_PATH
 
 ### Set Up rights for snakemake
 
-RUN mkdir /opt/DGINN/.snakemake
+RUN mkdir -p /opt/DGINN/.snakemake
 RUN chmod 777 /opt/DGINN/.snakemake
 ENV XDG_CACHE_HOME /opt/DGINN/.snakemake
 
