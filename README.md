@@ -104,7 +104,7 @@ docker build . -t dginn
 After that, you will be able to run DGINN with:
 
 ```{sh}
-docker run --rm -u $(id -u $USER) --mount source=$(pwd),target=/opt/home,type=bind dginn --cores 1 --configfile config_example.yaml
+docker run --rm -u $(id -u $USER) --network host --mount source=$(pwd),target=/opt/home,type=bind dginn --cores 1 --configfile config_example.yaml
 ```
 
 The command should run on both Mac and Linux systems, provided the
