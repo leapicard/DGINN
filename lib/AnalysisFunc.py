@@ -6,6 +6,7 @@ from Bio import SeqIO, AlignIO
 from collections import defaultdict
 from itertools import chain
 import pandas as pd
+import re
 
 ######Functions=============================================================================================================
 
@@ -357,7 +358,7 @@ def runPhyML(parameters):
     queryName = parameters["queryName"]
     # origin = os.getcwd()
     # os.chdir(geneDir)
-    outPhy = geneDir + "/" + queryName + "_tree.phylip"
+    outPhy = geneDir + "/" + queryName + ".phy"
     # aln = aln.split("/")[-1]
     tmp = geneDir + "/" + queryName + "tree.tmp"
 
@@ -404,15 +405,6 @@ def runPhyML(parameters):
 
 
 def runIqTree(parameters):
-    """
-    Function converting fasta file to phylip and running PhyML.
-
-    @param1 aln: Path
-    @param2 geneDir: Gene directory
-    @return outPhy: Path to PhyML results file
-    """
-    # convert to Phylip format and replace eventual "!" symbols (relic from using MACSE)
-
     geneDir = parameters["outdir"]
     aln = parameters["input"]
     queryName = parameters["queryName"]
@@ -422,51 +414,91 @@ def runIqTree(parameters):
     return aln+".treefile"
 
 
-
-def splitTree(parameters, step="duplication"):
-  """
-  Split the gene tree in several sub-trees, following several methods.
-
-  1- Cutlongbranches
-  2- Reconciliation
-
-  @output The list of new subalignment files
-  """
-
-  nbspecies=parameters["nbspecies"]
-
-  aln = parameters["input"].split()[0].strip()
-  tree = parameters["input"].split()[1].strip()
-  
-  logger = logging.getLogger(".".join(["main", step]))
-
-  dSubAln = cutLongBranches(parameters, aln, tree, nbspecies, logger)
-
-  lquery=[]
-  
-  if parameters["sptree"]!="":
-    sptree = parameters["sptree"]
-
-    for query, aln in dSubAln.items():
-      logger.info("Running Treerecs for " + query)
-      recTree = runTreerecs(query, aln, tree, sptree, outdir, logger)
-
-      if recTree:
-        lquery += treeParsing(query, aln, recTree, nbspecies, outdir, logger)
-      else:
-        lquery.append(query)
-          
-  else:
-    lquery=list(dSubAln.keys())
-
-  return(lquery)
-
-
 #######=================================================================================================================
 
 ######GARD==============================================================================================================
 
+def runPhymlMulti(parameters):
+    geneDir = parameters["outdir"]
+    aln = parameters["input"]
+    queryName = parameters["queryName"]
+    outPhy = geneDir + "/" + queryName + ".phy"
+    tmp = geneDir + "/" + queryName + "tree.tmp"
 
+    logger = logging.getLogger("main.recombination")
+    with open(aln, "r") as aln2:
+        laln = aln2.read().replace("!", "N")
+        aln2.close()
+        with open(tmp, "w") as temp:
+            temp.write(laln)
+            temp.close()
+
+    input_handle = open(tmp, "r")
+    output_handle = open(outPhy, "w")
+
+    alignments = AlignIO.parse(input_handle, "fasta")
+    AlignIO.write(alignments, output_handle, "phylip-relaxed")
+
+    output_handle.close()
+    input_handle.close()
+    os.remove(tmp)
+
+    #phymlOpt = parameters["phymlOpt"]
+    # PhyML
+    if False:#phymlOpt != "":
+        try:
+            opt = phymlOpt.split("ALN ")[1]
+            logger.debug("phyml -i {:s} {}".format(outPhy, opt))
+            cmd("phyml --quiet -i {:s} {}".format(outPhy, opt), False)
+        except:
+            logger.info(
+                "PhyML couldn't run with the provided info {}, running with default options.".format(
+                    phymlOpt
+                )
+            )
+    else:
+        logger.info("phyml_multi %s 0 i 1 0 HKY e e 4 e BIONJ y y y 2"%(outPhy))
+        subprocess.run("phyml_multi %s 0 i 1 0 HKY e e 4 e BIONJ y y y 2"%(outPhy),shell=True)
+
+    ################
+    ### SARMENT HMM
+
+    outf = outPhy + "_phyml_siteLks.txt"
+    fs = open(outPhy + "_phyml_lk.txt","r")
+    autocor = 0.99
+    for l in fs.readlines():
+      if l.startswith("Autocorrelation"):
+        p=l.find(":")
+        autocor = float(l[p+1:])
+        break
+    fs.close()
+  
+    fout=open(os.path.join(outdir,"outpart.txt"),"w")
+    subprocess.run("python3 /usr/bin/SARMENT/PartitioningHMM.py %s %f"%(outf,autocor),shell=True,stdout=fout)
+    fout.close()
+
+    l = fout.readline()
+    while l:
+      if l.find("Forward")!=-1:
+        l = fout.readline()
+        break
+      l = fout.readline()
+
+    pr=re.compile(r"<(\d+)-\d+>")
+    lbeg=list(map(int,pr.findall(l)))
+
+    threshold = 20
+    ## avoid too short segments
+
+    d=0
+    lbeg2=[]
+    for x in lbeg:
+      if x-d>=threshold:
+        lbeg2.append(x)
+        d=x
+    return(lbeg2)
+        
+  
 def runGARD(parameters):
     """
     Function creating the batch file to run GARD (Kosakovsky Pond et al., 2006).

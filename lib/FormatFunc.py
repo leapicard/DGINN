@@ -81,7 +81,8 @@ def isBlastRes(targetFile):
 	"""
 	boolFile = False
 	with open(targetFile, "r") as target:
-		if target.readline().startswith("# BLAST"):
+		l = target.readline() 
+		if l.startswith("# BLAST") or l.startswith("# TBLASTN"):
 			boolFile = True
 		target.close()	
 	return(boolFile)
