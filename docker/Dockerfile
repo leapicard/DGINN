@@ -47,7 +47,7 @@ RUN git clone https://github.com/ariloytynoja/prank-msa.git && cd prank-msa/src 
 #################
 ## Install mafft
 FROM base as mafft
-RUN apt-get install -y mafft
+RUN apt-get update && apt-get install -y mafft
 
 
 #################
