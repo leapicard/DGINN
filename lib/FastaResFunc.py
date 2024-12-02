@@ -34,7 +34,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	@param3 apiKey: apikey, not considered if equals ""
 	@return dId2Seq: dictionnary from gene ids to sequences
 	"""
-        logger = logging.getLogger("main.accessions")
+	logger = logging.getLogger("main.accessions")
 	dSpecies = {}
 	dId2Seq = {}
 	lTax = []
@@ -42,9 +42,9 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	Entrez.email="example@example.com"
 	if apiKey!="":
 	  Entrez.api_key = apiKey
-          logger.info("No ApiKey")
-        else:
-          logger.info("ApiKey " + apikey)
+	  logger.info("No ApiKey")
+	else:
+	  logger.info("ApiKey " + apikey)
           
 	handle = Entrez.efetch(db="nuccore", id=lBlastRes , idtype="acc", retmode="xml")
 	records = list(Entrez.read(handle))
