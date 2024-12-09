@@ -91,7 +91,7 @@ usage. The Apptainer container should be usable in every environment.
 To use Docker, either you pull the image from github:
 
 ```{sh}
-docker pull laugueguen/dginn
+docker pull ghcr.io/lgueguen/dginn:master
 ```
 
 or you to clone this repository first, and then build the Docker image
@@ -118,11 +118,11 @@ try the Apptainer container.
 
 #### b/ Apptainer / Singularity
 
-To use an Apptainer or Singularity container you can build it from the
-docker hub:
+To use an Apptainer or Singularity container you can build it from 
+github:
 
 ```{sh}
-apptainer build dginn.sif docker://laugueguen/dginn:latest
+apptainer build dginn.sif docker://ghcr.io/lgueguen/dginn:master
 ```
 
 To use the container, you can run the following, with
