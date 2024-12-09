@@ -24,7 +24,7 @@ jobs:
 
       - name: Build Container
         run: |
-           apptainer build dginn.sif docker://ghcr.io/lgueguen/dginn:master
+           singularity build dginn.sif docker://ghcr.io/lgueguen/dginn:master
 
       - name: Login and Deploy Container
         run: |
