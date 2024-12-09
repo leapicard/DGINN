@@ -13,9 +13,9 @@ jobs:
       contents: read
       packages: write
 
-   # container:
-   #     image: quay.io/singularity/singularity:v4.1.0
-   #     options: --privileged
+   container:
+       image: quay.io/singularity/singularity:v4.1.0
+       options: --privileged
 
     name: Build Apptainer Container
     steps:
