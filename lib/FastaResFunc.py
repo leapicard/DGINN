@@ -1,8 +1,8 @@
 import LoadFileFunc, TreeFunc
+import logging
 import sys
 from Bio import Entrez
 from statistics import median
-
 
 """
 This file pools functions related to the creation and conversion of fasta format data.
@@ -44,7 +44,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 	  Entrez.api_key = apiKey
 	  logger.info("No ApiKey")
 	else:
-	  logger.info("ApiKey " + apikey)
+	  logger.info("ApiKey " + apiKey)
           
 	handle = Entrez.efetch(db="nuccore", id=lBlastRes , idtype="acc", retmode="xml")
 	records = list(Entrez.read(handle))
