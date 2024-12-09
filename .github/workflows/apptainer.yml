@@ -28,7 +28,7 @@ jobs:
 
       - name: Login and Deploy Container
         run: |
-           echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ secrets.GHCR_USERNAME }} --password-stdin oras://ghcr.io
-           apptainer push dginn.sif oras://ghcr.io/${GITHUB_REPOSITORY}:${tag}# Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
+           echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ secrets.GHCR_USERNAME }} --password-stdin docker://${{ env.REGISTRY }}
+           singularity push dginn.sif docker://${{ env.REGISTRY }}/${GITHUB_REPOSITORY}:${tag}# Uses the `docker/login-action` action to log in to the Container registry registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
       
            
