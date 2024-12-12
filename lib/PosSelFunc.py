@@ -115,7 +115,9 @@ def pspAnalysis(params):
                               tree, 
                               outDir, 
                               params["paml"], 
-                              lModels)
+                              lModels,
+                              logger)
+
         """try:
             SiteAnalysis.pamlSite(aln, tree, lModels, dCtrls["paml"], outDir, data.baseName, logger)
         except Exception:

@@ -95,7 +95,6 @@ def blast(parameters, outfile):
             for alignment in record.alignments:
                 for hsp in alignment.hsps:
                     qcov = hsp.align_length / seqL * 100
-                    logger.info("%d/%d\n"%(hsp.align_length,seqL))
                     if qcov > mincov:
                         f.write(alignment.title + "\n")
                         nbSeq += 1

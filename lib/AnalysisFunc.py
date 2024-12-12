@@ -342,6 +342,25 @@ def isoformAln(aln, parameters):
 #######=================================================================================================================
 ######PhyML=============================================================================================================
 
+def fasta2phylip(aln, outPhy, format):
+    tmp = aln+".tmp"
+    with open(aln, "r") as aln2:
+        laln = aln2.read().replace("!", "N")
+        aln2.close()
+    with open(tmp, "w") as temp:
+      temp.write(laln)
+      temp.close()
+
+    input_handle = open(tmp, "r")
+    output_handle = open(outPhy, "w")
+
+    alignments = AlignIO.parse(input_handle, "fasta")
+    AlignIO.write(alignments, output_handle, format)
+
+    output_handle.close()
+    input_handle.close()
+    os.remove(tmp)
+  
 
 def runPhyML(parameters):
     """
@@ -362,23 +381,9 @@ def runPhyML(parameters):
     # aln = aln.split("/")[-1]
     tmp = geneDir + "/" + queryName + "tree.tmp"
 
+    fasta2phylip(aln, outPhy, format="phylip-relaxed")
+    
     logger = logging.getLogger("main.tree")
-    with open(aln, "r") as aln2:
-        laln = aln2.read().replace("!", "N")
-        aln2.close()
-        with open(tmp, "w") as temp:
-            temp.write(laln)
-            temp.close()
-
-    input_handle = open(tmp, "r")
-    output_handle = open(outPhy, "w")
-
-    alignments = AlignIO.parse(input_handle, "fasta")
-    AlignIO.write(alignments, output_handle, "phylip-relaxed")
-
-    output_handle.close()
-    input_handle.close()
-    os.remove(tmp)
 
     phymlOpt = parameters["phymlOpt"]
     # PhyML
