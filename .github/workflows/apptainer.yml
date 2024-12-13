@@ -26,4 +26,4 @@ jobs:
       - name: Login and Deploy Container
         run: |
            apptainer registry login --username ${{ secrets.GHCR_USERNAME }} --password ${{ secrets.GITHUB_TOKEN }} oras://ghcr.io
-           singularity push dginn.sif oras://ghcr.io/${GITHUB_REPOSITORY}
+           apptainer push dginn.sif oras://ghcr.io/${GITHUB_REPOSITORY}
