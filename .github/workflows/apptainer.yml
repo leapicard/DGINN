@@ -17,7 +17,7 @@ jobs:
         run: |
            sudo add-apt-repository -y ppa:apptainer/ppa
            sudo apt update
-           sudo app install -y apptainer
+           sudo apt install -y apptainer
   
       - name: Build Container         
         run: |
