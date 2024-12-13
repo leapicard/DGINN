@@ -1,11 +1,6 @@
 on:
   push:
 
-# Defines two custom environment variables for the workflow. These are used for the Container registry domain, and a name for the Docker image that this workflow builds.
-env:
-    REGISTRY: ghcr.io
-    IMAGE_NAME: ${{ github.repository }}
-
 jobs:
   build-and-push-image:
     runs-on: ubuntu-latest
@@ -13,20 +8,22 @@ jobs:
       contents: read
       packages: write
 
-    container:
-       image: quay.io/singularity/singularity:v4.1.0
-       options: --privileged
-
     name: Build Apptainer Container
     steps:
       - name: Check out code for the container builds
         uses: actions/checkout@v4
 
-      - name: Build Container
+      - name: Setup Apptainer
         run: |
-           singularity build dginn.sif docker://ghcr.io/lgueguen/dginn:master
+           sudo add-apt-repository -y ppa:apptainer/ppa
+           sudo apt update
+           sudo app install -y apptainer
+  
+      - name: Build Container         
+        run: |
+           apptainer build dginn.sif docker://ghcr.io/lgueguen/dginn:master
 
       - name: Login and Deploy Container
         run: |
-           echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ secrets.GHCR_USERNAME }} --password-stdin oras://ghcr.io
-           singularity push container.sif oras://ghcr.io/${GITHUB_REPOSITORY}:${tag}
+           apptainer registry login --username ${{ secrets.GHCR_USERNAME }} --password ${{ secrets.GITHUB_TOKEN }} oras://ghcr.io
+           singularity push dginn.sif oras://ghcr.io/${GITHUB_REPOSITORY}
