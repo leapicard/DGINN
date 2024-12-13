@@ -118,18 +118,17 @@ try the Apptainer container.
 
 #### b/ Apptainer / Singularity
 
-To use an Apptainer or Singularity container you can build it from 
-github:
+To use an Apptainer container you can pull it from github:
 
 ```{sh}
-apptainer build dginn.sif docker://ghcr.io/lgueguen/dginn:master
+apptainer pull oras://ghcr.io/lgueguen/dginn
 ```
 
-To use the container, you can run the following, with
+To use the container, you can then run the following, for example with
 "config_example.yaml" as your configuration file :
 
 ```{sh}
-apptainer run --bind .snakemake:/opt/DGINN/.snakemake dginn.sif --cores 1 --configfile config_example.yaml
+apptainer run --bind .snakemake:/opt/DGINN/.snakemake dginn_latest.sif --cores 1 --configfile config_example.yaml
 ```
 
 <!-- If you want to run DGINN from another folder, you can specify the -->
