@@ -121,7 +121,7 @@ try the Apptainer container.
 To use an Apptainer container you can pull it from github:
 
 ```{sh}
-apptainer pull oras://ghcr.io/lgueguen/dginn
+apptainer pull oras://ghcr.io/lgueguen/dginn:latest
 ```
 
 To use the container, you can then run the following, for example with
