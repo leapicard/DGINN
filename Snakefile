@@ -124,7 +124,7 @@ def check_exists(wildcards, outsuffix, insuffix):
     outfile = out_path(outsuffix,queryName=wildcards)[0]
     infile = out_path(insuffix,queryName=wildcards)[0]
 
-    if not os.path.exists(outfile):
+    if not os.path.exists(outfile) or os.path.getsize(outfile)==0:
           return infile
     # to check file modification times, does not work
     # elif os.path.exists(infile) and os.path.getmtime(infile) > os.path.getmtime(outfile):
