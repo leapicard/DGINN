@@ -5,6 +5,7 @@ import logging
 import os
 
 import AnalysisFunc
+
 import Init
 from Logging import setup_logger
 
@@ -29,12 +30,31 @@ if __name__ == "__main__":
     parameters = Init.paramDef(config)
 
     # Run step
+    lbuilder=["phyml","iqtree"]
 
-    if builder == "phyml":
-      dAltree = AnalysisFunc.runPhyML(parameters)
-    elif builder == "iqtree":
-      dAltree = AnalysisFunc.runIqTree(parameters)
-    else:
-      print("Unknown tree builder: " + builder)
-      
+    flag=0
+
+    while flag<=1:
+      if builder == "phyml":
+        dAltree = ""#AnalysisFunc.runPhyML(parameters)
+      elif builder == "iqtree":
+        dAltree = ""#AnalysisFunc.runIqTree(parameters)
+      else:
+        logger.info("Unknown tree builder: " + builder)
+        break
+        
+      if not os.path.exists(dAltree) or os.path.getsize(dAltree)==0:
+        logger.info(builder + " failed to build tree.")
+        lbuilder = [b for b in lbuilder if b!=builder]
+        if lbuilder==[]:
+          flag = 0
+          break
+        builder = lbuilder[0]
+        flag+=1
+      else:
+        break
+
+    if flag==0:
+      raise Exception("Failed tree construction.")
+    
     os.rename(dAltree, config["output"])

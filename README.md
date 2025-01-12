@@ -92,6 +92,7 @@ To use Docker, either you pull the image from github:
 
 ```{sh}
 docker pull ghcr.io/lgueguen/dginn:master
+docker tag ghcr.io/lgueguen/dginn:master dginn:master
 ```
 
 or you to clone this repository first, and then build the Docker image
@@ -99,12 +100,13 @@ with:
 
 ```{sh}
 docker build . -t dginn
+docker tag dginn dginn:master
 ```
 
 After that, you will be able to run DGINN with:
 
 ```{sh}
-docker run --rm -u $(id -u $USER) --network host --mount source=$(pwd),target=/opt/home,type=bind dginn --cores 1 --configfile config_example.yaml
+docker run --rm -u $(id -u $USER) --network host --mount source=$(pwd),target=/opt/home,type=bind dginn:master --cores 1 --configfile config_example.yaml
 ```
 
 The command should run on both Mac and Linux systems, provided the
@@ -121,7 +123,7 @@ try the Apptainer container.
 To use an Apptainer container you can pull it from github:
 
 ```{sh}
-apptainer pull oras://ghcr.io/lgueguen/dginn:latest
+apptainer pull oras://ghcr.io/lgueguen/dginn
 ```
 
 To use the container, you can then run the following, for example with

@@ -384,13 +384,14 @@ def runPhyML(parameters):
     fasta2phylip(aln, outPhy, format="phylip-relaxed")
     
     logger = logging.getLogger("main.tree")
+    logger.info("Run PhyML builder.")
 
     phymlOpt = parameters["phymlOpt"]
     # PhyML
     if phymlOpt != "":
         try:
             opt = phymlOpt.split("ALN ")[1]
-            logger.debug("phyml -i {:s} {}".format(outPhy, opt))
+            logger.debug("phyml --quiet -i {:s} {}".format(outPhy, opt))
             cmd("phyml --quiet -i {:s} {}".format(outPhy, opt), False)
         except:
             logger.info(
@@ -398,10 +399,10 @@ def runPhyML(parameters):
                     phymlOpt
                 )
             )
-            cmd("phyml -i {:s} -v e -b -2".format(outPhy), False)
+            cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False)
     else:
-        logger.debug("phyml -i {:s} -v e -b -2".format(outPhy))
-        cmd("phyml -i {:s} -v e -b -2".format(outPhy), False, False)
+        logger.debug("phyml --quiet -i {:s} -v e -b -2".format(outPhy))
+        cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False, False)
 
     return outPhy+"_phyml_tree.txt"
 
@@ -414,7 +415,10 @@ def runIqTree(parameters):
     aln = parameters["input"]
     queryName = parameters["queryName"]
 
-    cmd("iqtree2 --quiet -s {:s}".format(aln), False)
+    logger = logging.getLogger("main.tree")
+    logger.info("Run IqTree builder.")
+    logger.debug("iqtree2 -redo --quiet -s {:s}".format(aln))
+    cmd("iqtree2 -redo --quiet -s {:s}".format(aln), False)
 
     return aln+".treefile"
 
