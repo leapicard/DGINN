@@ -1,5 +1,5 @@
 import shutil, sys, os
-
+from pathlib import Path
           
 # --- Path functions ---
 def out_path(file, queryName = "{queryName}"):
@@ -123,16 +123,12 @@ rule all:
 def check_exists(wildcards, outsuffix, insuffix):
     outfile = out_path(outsuffix,queryName=wildcards)[0]
     infile = out_path(insuffix,queryName=wildcards)[0]
-
     if not os.path.exists(outfile):
           return infile
-    # to check file modification times, does not work
-    # elif os.path.exists(infile) and os.path.getmtime(infile) > os.path.getmtime(outfile):
-    #       print("os.remove(outfile)")
-    #       os.remove(outfile)
-    #       return infile
-    else:
-          return ""
+    if os.path.getsize(outfile)==0:
+          Path(infile).touch()
+          return infile
+    return ""
           
 rule blast:
     input:

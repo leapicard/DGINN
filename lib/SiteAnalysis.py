@@ -1,6 +1,6 @@
 import os, logging, subprocess
 import PSPFunc
-from ete3 import EvolTree
+import AnalysisFunc
 
 def bppSite(alnFile, treeFile, outDir, bppFile, bppMixed, lModels, logger):	
   # outDir=os.getcwd()+"/"  # used to debug
@@ -302,35 +302,89 @@ def setIgnoreParams(model, prevmodel, lModels, logger):
 
   return lignore
 
+def assignCodemlCtl(alnFile, treeFile, outFile, model):
+       codemlparam={"seqfile":alnFile,  "treefile":treeFile,  "outfile":outFile,  "aaDist":0,  "fix_blength":0,  "cleandata":0,  "clock":0,  "CodonFreq":2,  "getSE":0,  "icode":0,  "fix_kappa":0,  "kappa":2,  "Mgene":0,  "model":0,  "ncatG":8,  "noisy":0,  "NSsites":0,  "fix_omega":0,  "omega":0.7,  "RateAncestor":0,  "runmode":0,  "seqtype":1,  "Small_Diff":1e-6,  "verbose":2}
 
+       if model=="M0":
+         codemlparam["NSsites"]=0
+       elif model=="M1":
+         codemlparam["NSsites"]=1
+       elif model=="M2":
+         codemlparam["NSsites"]=2
+       elif model=="M7":
+         codemlparam["NSsites"]=7
+       elif model=="M8":
+         codemlparam["NSsites"]=8 
+       elif model=="M8a":
+         codemlparam["NSsites"]=8
+         codemlparam["fix_omega"]=1
+         codemlparam["omega"]=1
+         
+       return(codemlparam)
 
-def pamlSite(alnFile, treeFile, outDir, pamlParams, lModels):
+def fasta2paml(aln, outPhy):
+  fin = open(aln, "r")
+  dseq={}
+  l = fin.readline()
+  while l:
+    l2 = l.replace("!", "N")
+    if l2.startswith(">"):
+      name=l2[1:].strip()
+      dseq[name]=""
+    else:
+      dseq[name]+=l2.strip().upper()
+    l = fin.readline()
+      
+  fin.close()
+
+  lseq=len(dseq[list(dseq.keys())[0]])
+  fout = open(outPhy, "w")
+  fout.write('%d\t%d\n\n'%(len(dseq),lseq))
+
+  for k,v in dseq.items():
+    fout.write(k+"\n")
+    fout.write(v+"\n")
+  fout.close()
+  
+def pamlSite(alnFile, treeFile, outDir, pamlParams, lModels, logger):
 
       lModels = [m if (m[-2:]=="_C" or m.find("_G")!=-1) else m+"_C" for m in lModels] #constant distrib only available
       dlModels = {"C":[m[:-2] for m in lModels if m[-2:]=="_C"]}  #constant distrib
 #      dlModels["G"] = [m[:m.rfind("_")] for m in lModels if m[-2:]!="_C"]  #gamma distrib
-      tree = EvolTree(treeFile)
-      tree.link_to_alignment(alnFile, "Fasta")
+
       dLogLlh = {}		# dictionary(model:logllh)
       outP=outDir+"/paml_site/"
       if not os.path.exists(outP):
         os.mkdir(outP)
-        
+
+      outPhy=alnFile[:alnFile.rfind(".")]+".phy"
+      fasta2paml(alnFile, outPhy)
+      logger.info("Codeml Site Analysis")
+      
       for k,lModels in dlModels.items():
        dLogLlh[k]={}
        outpaml=outP+k+"/"
        if not os.path.exists(outpaml):
         os.mkdir(outpaml)
 
-       tree.workdir = outpaml
        for model in lModels:
         if model in ["M0","M1","M2","M7","M8","M8a"]:
-          print("Running {:s}".format(model+"_"+k))
-          tree.run_model(model)
-          lgl=pamlGetLogL(outpaml+model+"/")
+          logger.info("Running {:s}".format(model+"_"+k))
+          outpamlmod=os.path.join(outpaml,model)
+          if not os.path.exists(outpamlmod):
+            os.mkdir(outpamlmod)
+
+          codemlparam = assignCodemlCtl(outPhy, treeFile, os.path.join(outpamlmod,"result.txt"), model)
+          parname = os.path.join(outpamlmod,"codeml.ctl")
+          f=open(parname,"w")
+          f.write("\n".join([k+" = "+str(v) for k,v in codemlparam.items()]))
+          f.close()
+          os.chdir(outpamlmod)
+          runCodeml = subprocess.Popen("codeml "+ parname, shell =  True, stdout=subprocess.PIPE).wait()
+          lgl=pamlGetLogL(os.path.join(outpamlmod,"result.txt"))
           if lgl!=None:
                   dLogLlh[k][model]=lgl
-          print("Log Likelihood = {}".format(dLogLlh[k].get(model,None)))
+          logger.info("Log Likelihood = {}".format(dLogLlh[k].get(model,None)))
 
        for k,lModels in dlModels.items():
           if not k in dLogLlh:
@@ -339,35 +393,35 @@ def pamlSite(alnFile, treeFile, outDir, pamlParams, lModels):
                         if "M1"  in dLogLlh[k] and "M2" in dLogLlh[k]:
                           LR12, p12 = PSPFunc.LRT(dLogLlh[k]["M1"], dLogLlh[k]["M2"], 2)
                         else:
-                          print("Possible failed optimization, likelihoods of M1_%s and M2_%s have not been computed."%(k,k))
+                          logger.info("Possible failed optimization, likelihoods of M1_%s and M2_%s have not been computed."%(k,k))
           if "M7" in lModels and "M8" in lModels:
                     if "M7"  in dLogLlh[k] and "M8" in dLogLlh[k]:
                       LR78, p78 = PSPFunc.LRT(dLogLlh[k]["M7"], dLogLlh[k]["M8"], 2)
-                      print("LRT of M7_%s vs M8_%s: %f"%(k,k,p78))
+                      logger.info("LRT of M7_%s vs M8_%s: %f"%(k,k,p78))
                     else:
-                      print("Possible failed optimization, likelihoods of M7_%s and M8_%s have not been computed."%(k,k))
+                      logger.info("Possible failed optimization, likelihoods of M7_%s and M8_%s have not been computed."%(k,k))
           if "M7"  in lModels and "M10" in lModels:
                       if "M7"  in dLogLlh[k] and "M10" in dLogLlh[k]:
                         LR710, p710 = PSPFunc.LRT(dLogLlh[k]["M7"], dLogLlh[k]["M10"], 3)
-                        print("LRT of M7_%s vs M10_%s: %f"%(k,k,p710))
+                        logger.info("LRT of M7_%s vs M10_%s: %f"%(k,k,p710))
                       else:
-                        print("Possible failed optimization, likelihoods of M7_%s and M10_%s have not been computed."%(k,k))
+                        logger.info("Possible failed optimization, likelihoods of M7_%s and M10_%s have not been computed."%(k,k))
           if "M8" in lModels and "M8a" in lModels:
                       if "M8"  in dLogLlh[k] and "M8a" in dLogLlh[k]:
                         LR88a, p88a = PSPFunc.LRT(dLogLlh[k]["M8a"], dLogLlh[k]["M8"], 1)
                         ts88a = 0.5*p88a + 0.5
-                        print("LRT of M8_%s vs M8a_%s: %f (Treshold: %f)"%(k, k, p88a, ts88a))
+                        logger.info("LRT of M8_%s vs M8a_%s: %f (Treshold: %f)"%(k, k, p88a, ts88a))
                       else:
-                        print("Possible failed optimization, likelihoods of M8_%s and M8a_%s have not been computed."%(k,k))
+                        logger.info("Possible failed optimization, likelihoods of M8_%s and M8a_%s have not been computed."%(k,k))
 
 
-def pamlGetLogL(pamldir):
+def pamlGetLogL(file):
 #        """ Get LogL from rst file."""
 #        try:
-                f=open(pamldir+"rst","r")
+                f=open(file,"r")
                 for l in f.readlines():
                         if l[:3]=="lnL":
-                                x=float(l.split(" ")[-1])
+                                x=float(l.split()[-2])
                                 f.close()
                                 return x
                 f.close()

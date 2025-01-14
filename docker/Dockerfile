@@ -47,7 +47,7 @@ RUN git clone https://github.com/ariloytynoja/prank-msa.git && cd prank-msa/src 
 #################
 ## Install mafft
 FROM base as mafft
-RUN apt-get install -y mafft
+RUN apt-get update && apt-get install -y mafft
 
 
 #################
@@ -213,7 +213,7 @@ ENV LD_LIBRARY_PATH /opt/bpp/lib:$LD_LIBRARY_PATH
 
 ### Set Up rights for snakemake
 
-RUN mkdir /opt/DGINN/.snakemake
+RUN mkdir -p /opt/DGINN/.snakemake
 RUN chmod 777 /opt/DGINN/.snakemake
 ENV XDG_CACHE_HOME /opt/DGINN/.snakemake
 

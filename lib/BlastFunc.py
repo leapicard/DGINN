@@ -35,6 +35,15 @@ def blast(parameters, outfile):
     logger = logging.getLogger("main.blast")
     logger.info("Running Blast")
 
+    sequence = open(queryFile).read()
+    if sum([x in sequence for x in "RDEQHILKPLMFPSWYV"])==0:
+      blast="blastn"
+      logger.info("Nucleotide sequence: blastn performed.")
+    else:
+      blast="tblastn"
+      logger.info("Proteic sequence: tblastn performed.")
+          
+    seqL = len(sequence.split("\n")[1])
  
     if remote:
         if query == "":
@@ -44,8 +53,6 @@ def blast(parameters, outfile):
                 "Database search on {:s} will be limited to {:s}".format(db, query)
             )
 
-        sequence = open(queryFile).read()
-        seqL = len(sequence.split("\n")[1])
         if apiKey != "":
           url = "https://blast.ncbi.nlm.nih.gov/Blast.cgi?api_key={:s}".format(apiKey)
         else:
@@ -56,7 +63,7 @@ def blast(parameters, outfile):
             try:
                 sleep(2)
                 resultHandle = NCBIWWW.qblast(
-                    "blastn",
+                    blast,
                     db,
                     sequence,
                     entrez_query=query,
@@ -92,7 +99,7 @@ def blast(parameters, outfile):
                         f.write(alignment.title + "\n")
                         nbSeq += 1
         f.close()
-
+        logger.info(nbSeq)
     else:
         cmdBlast = 'blastn -task blastn -db {:s} -query {:s} -out {:s} \
 					-evalue {:f} -perc_identity {:d} -qcov_hsp_perc {:d} \
@@ -109,7 +116,7 @@ def blast(parameters, outfile):
             )
         )
     else:
-        logger.error("Blast didn't run, exiting DGINN.")
+        logger.info("Blast didn't run, exiting DGINN.")
         sys.exit()
 
     return blastRes

@@ -91,7 +91,8 @@ usage. The Apptainer container should be usable in every environment.
 To use Docker, either you pull the image from github:
 
 ```{sh}
-docker pull laugueguen/dginn
+docker pull ghcr.io/lgueguen/dginn:master
+docker tag ghcr.io/lgueguen/dginn:master dginn:master
 ```
 
 or you to clone this repository first, and then build the Docker image
@@ -99,12 +100,13 @@ with:
 
 ```{sh}
 docker build . -t dginn
+docker tag dginn dginn:master
 ```
 
 After that, you will be able to run DGINN with:
 
 ```{sh}
-docker run --rm -u $(id -u $USER) --network host --mount source=$(pwd),target=/opt/home,type=bind dginn --cores 1 --configfile config_example.yaml
+docker run --rm -u $(id -u $USER) --network host --mount source=$(pwd),target=/opt/home,type=bind dginn:master --cores 1 --configfile config_example.yaml
 ```
 
 The command should run on both Mac and Linux systems, provided the
@@ -118,18 +120,17 @@ try the Apptainer container.
 
 #### b/ Apptainer / Singularity
 
-To use an Apptainer or Singularity container you can build it from the
-docker hub:
+To use an Apptainer container you can pull it from github:
 
 ```{sh}
-apptainer build dginn.sif docker://laugueguen/dginn:latest
+apptainer pull oras://ghcr.io/lgueguen/dginn
 ```
 
-To use the container, you can run the following, with
+To use the container, you can then run the following, for example with
 "config_example.yaml" as your configuration file :
 
 ```{sh}
-apptainer run --bind .snakemake:/opt/DGINN/.snakemake dginn.sif --cores 1 --configfile config_example.yaml
+apptainer run --bind .snakemake:/opt/DGINN/.snakemake dginn_latest.sif --cores 1 --configfile config_example.yaml
 ```
 
 <!-- If you want to run DGINN from another folder, you can specify the -->

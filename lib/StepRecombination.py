@@ -29,12 +29,13 @@ if __name__ == "__main__":
 
     # Run step (inactivated for now)
 
-    gardRes = os.path.join(config["outdir"],config["queryName"] + "_bp.txt")
+    lbp = AnalysisFunc.runPhymlMulti(parameters)
     
+    gardRes = os.path.join(config["outdir"],config["queryName"] + "_bp.txt")
+
     frec = open(gardRes, "w")
     frec.write("breakpoints\n")
-#    frec.write("[500]\n")
-#    frec.write("[]\n")
+    frec.write(str(lbp)+"\n")
     frec.close()
 
     ## lQuer is the list of new queryNames
