@@ -36,7 +36,7 @@ if __name__ == "__main__":
 
     while flag<=1:
       if builder == "phyml":
-        dAltree = ""#AnalysisFunc.runPhyML(parameters)
+        dAltree = AnalysisFunc.runPhyML(parameters)
       elif builder == "iqtree":
         dAltree = ""#AnalysisFunc.runIqTree(parameters)
       else:
