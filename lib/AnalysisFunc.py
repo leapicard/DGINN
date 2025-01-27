@@ -108,7 +108,8 @@ def getORFs(parameters):
                 else:
                     firstOcc = str(lOcc)
 
-            dupl.remove(firstOcc)
+            if firstOcc:
+                dupl.remove(firstOcc)
 
         for i in dupl:
             dId2Longest.pop(i, None)
