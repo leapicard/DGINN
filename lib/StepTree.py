@@ -38,7 +38,7 @@ if __name__ == "__main__":
       if builder == "phyml":
         dAltree = AnalysisFunc.runPhyML(parameters)
       elif builder == "iqtree":
-        dAltree = ""#AnalysisFunc.runIqTree(parameters)
+        dAltree = AnalysisFunc.runIqTree(parameters)
       else:
         logger.info("Unknown tree builder: " + builder)
         break
