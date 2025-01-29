@@ -32,29 +32,29 @@ if __name__ == "__main__":
     # Run step
     lbuilder=["phyml","iqtree"]
 
-    flag=0
+    treeOk=False
 
-    while flag<=1:
+    while not treeOk:
       if builder == "phyml":
-        dAltree = ""#AnalysisFunc.runPhyML(parameters)
+        dAltree = AnalysisFunc.runPhyML(parameters)
       elif builder == "iqtree":
-        dAltree = ""#AnalysisFunc.runIqTree(parameters)
+        dAltree = AnalysisFunc.runIqTree(parameters)
       else:
         logger.info("Unknown tree builder: " + builder)
         break
-        
+
+      logging.info(dAltree)
       if not os.path.exists(dAltree) or os.path.getsize(dAltree)==0:
         logger.info(builder + " failed to build tree.")
         lbuilder = [b for b in lbuilder if b!=builder]
         if lbuilder==[]:
-          flag = 0
           break
         builder = lbuilder[0]
-        flag+=1
       else:
+        treeOk=True
         break
 
-    if flag==0:
+    if not treeOk:
       raise Exception("Failed tree construction.")
     
     os.rename(dAltree, config["output"])

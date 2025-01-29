@@ -1,9 +1,13 @@
 FROM ubuntu:latest as base
-MAINTAINER Lea Picard lea.picard@gmail.com
+MAINTAINER Laurent Guéguen laurent.gueguen@univ-lyon1.fr
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && apt-get install -y apt-utils  locales default-jdk default-jre  build-essential git emboss doxygen  pkg-config  automake openmpi-bin  libopenmpi-dev  libeigen3-dev wget openssl locales
+RUN apt-get update && apt-get install -y apt-utils locales
+
+RUN apt-get install -y default-jdk default-jre  build-essential
+
+RUN apt-get install -y git emboss doxygen  pkg-config  automake openmpi-bin  libopenmpi-dev  libeigen3-dev wget openssl 
 
 RUN TZ="Europe/Paris" apt-get -y install tzdata
 
@@ -69,8 +73,9 @@ RUN apt-get -y install phyml
 #################
 ## Install Iqtree
 FROM base as iqtree
-RUN apt-get  -y install iqtree
+WORKDIR /opt
 
+RUN wget https://github.com/iqtree/iqtree2/releases/download/v2.3.6/iqtree-2.3.6-Linux-intel.tar.gz && tar zxvf iqtree-2.3.6-Linux-intel.tar.gz
 
 #################
 ## Install Treerecs
@@ -183,14 +188,13 @@ COPY --from=macse /opt/macse_v2.07.jar /opt/bin/macse.jar
 ###############################
 ## Trees
 
-COPY --from=iqtree /usr/bin/iqtree2 /usr/bin/iqtree2
+COPY --from=iqtree /opt/iqtree-2.3.6-Linux-intel/bin/iqtree2 /usr/bin/iqtree2
 
 COPY --from=phyml /usr/bin/phyml /usr/bin/phyml
 COPY --from=phyml /usr/lib/phyml/bin /usr/lib/phyml/bin
 
 COPY --from=treerecs  /opt/Treerecs /opt/treerecs
 ENV PATH /opt/treerecs/bin:$PATH
-
 
 ######################################
 ### Selection
