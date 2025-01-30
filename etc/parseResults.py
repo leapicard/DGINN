@@ -44,6 +44,9 @@ if __name__ == "__main__":
     inFile = args.inFile
     inDir = "/".join(inFile.split("/")[0:-1])
     outPut = args.outPut
+    if outPut == "":
+      print("Missing output file.")
+      sys.exit(0)
     pr = args.pr
     pvmeme = args.pvmeme
     outDir = inDir
@@ -189,7 +192,7 @@ if __name__ == "__main__":
     head="\t".join(lBase+allKok)
     res.write(head+"\n")
     for (a,meth) in allRes:
-      line = "\t".join(a +  [meth[k] for k in allKok])
+      line = "\t".join(a +  [meth.get(k,"") for k in allKok])
       res.write(line+"\n")
       
     res.close()
