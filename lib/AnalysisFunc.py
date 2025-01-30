@@ -81,7 +81,9 @@ def getORFs(parameters):
             fname2 = "_".join(fname.split("_")[0:-1])
         else:
             fname2 = fname.split("_")[0]
-        dId2ORFs[fname2].append(fseq)
+        # only keep sequences with limited number of Ns
+        if fseq.count('N') < 10 and fseq.count('n') < 10:
+            dId2ORFs[fname2].append(fseq)
 
     dId2Longest = {}
     for k, v in dId2ORFs.items():
@@ -108,7 +110,8 @@ def getORFs(parameters):
                 else:
                     firstOcc = str(lOcc)
 
-            dupl.remove(firstOcc)
+            if firstOcc:
+                dupl.remove(firstOcc)
 
         for i in dupl:
             dId2Longest.pop(i, None)
