@@ -36,8 +36,10 @@ if __name__ == "__main__":
 
     while not treeOk:
       if builder == "phyml":
+        logger.info("Running PhyML")
         dAltree = AnalysisFunc.runPhyML(parameters)
       elif builder == "iqtree":
+        logger.info("Running IQtree")
         dAltree = AnalysisFunc.runIqTree(parameters)
       else:
         logger.info("Unknown tree builder: " + builder)
