@@ -126,7 +126,7 @@ def cutLongBranches(parameters, aln, tree, nbSp, logger):
                 fasta.write(FastaResFunc.dict2fasta(dNewAln))
                 fasta.close()
               dSubAln[newQuery] = alnf
-            elif len(dNewAln)!=0:
+            elif len(dNewAln)!=0 or len(dID2Seq)==0:
                 logger.info(
                     "Sequences {} will not be considered for downstream analyses as they do not compose a large enough group.".format(
                         " ".join(dNewAln.keys())
@@ -142,7 +142,7 @@ def cutLongBranches(parameters, aln, tree, nbSp, logger):
                 logger.info("\tNew alignment:%s" % {alnLeft})
                 fasta.close()
             dSubAln[newQuery]=alnLeft
-        elif len(dID2Seq)!=0:
+        elif len(dID2Seq)!=0 or len(dID2Seq)==0:
             logger.info(
                 "Sequences in {} will not be considered for downstream analyses as they do not compose a large enough group.".format(
                   " ".join(dID2Seq.keys())
