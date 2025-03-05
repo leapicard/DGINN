@@ -5,13 +5,14 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update && apt-get install -y apt-utils locales
 
-RUN apt-get install -y default-jdk default-jre  build-essential
+RUN apt-get install -y build-essential
 
 RUN apt-get install -y git emboss doxygen  pkg-config  automake openmpi-bin  libopenmpi-dev  libeigen3-dev wget openssl 
 
 RUN TZ="Europe/Paris" apt-get -y install tzdata
 
-## Install python3, necessary packages and DGINN
+
+## Install python3
 
 RUN apt-get install -y python3-numpy python3-scipy \
 	python3-pandas \
@@ -23,6 +24,12 @@ RUN apt-get install -y python3-numpy python3-scipy \
 
 
 
+## Load ncbi taxonomy in the container
+RUN python3 -c "import ete3; ete3.ncbiquery.update_db(\"/opt/ncbi/taxa.sqlite\")"
+
+## Install java
+
+RUN apt-get install -y default-jdk default-jre
 
 ## Install most recent version of cMake
 

@@ -92,7 +92,7 @@ nbspecies: 8
 ### RECOMBINATION
 
 # Option for the detection of recombination events (default: False)
-recombination: True
+recombination: False
 
 
 ############################################################
