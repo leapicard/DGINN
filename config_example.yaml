@@ -72,11 +72,12 @@ phymlOpt:
 ### CHECK ORTHOLOGS
 
 # Path to the species tree for the detection of duplication events and ortholog group assignment
-# Species names must be formated as speSpe or speSpeSpe (ex: homSap, gorGorGor)
-sptree: example_snakemake/ex_spTree.tree
+# Species names must be formated as Species_species
+
+sptree: 
 
 # Option for the identification of duplication events (default: False)
-duplication: False
+duplication: True
 
 
 # Option for Long Branch separation (default: cutoff(50))

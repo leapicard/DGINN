@@ -1,16 +1,17 @@
 import sys
 import logging, os
 import ete3
-import subprocess
+from ete3 import PhyloTree
+import subprocess, shutil, random
 import FastaResFunc, AnalysisFunc
-from Bio import SeqIO
+from Bio import SeqIO, Phylo
 from statistics import median, mean
+from Bio.Phylo.TreeConstruction import DistanceTreeConstructor, DistanceCalculator, DistanceMatrix
+from Bio.Phylo import Newick
 
 """
 File which countain all functions about treerecs and tree treatement.
 """
-
-
 
 def splitTree(parameters, step="duplication"):
   """
@@ -36,7 +37,7 @@ def splitTree(parameters, step="duplication"):
 
   if parameters["sptree"]!="":
     sptree = parameters["sptree"]
-    
+    logger.info("Species tree " + sptree)
     for query, aln in dSubAln.items():
       logger.info("Running Treerecs for " + query)
       recTree = runTreerecs(query, aln, tree, sptree, outdir, logger)
@@ -206,81 +207,63 @@ def getLeaves(path):
     return lGene
 
 
-def buildSpeciesTree(taxon, gfaln):
+def buildSpeciesTree(sptree, gfaln):
     """
-    Build a species tree from the ncbi taxonomy and species in the gene tree,
-    and write it in a file.
+    Build a species tree from the ncbi taxonomy or a given species tree,
+    and write it in a specific species tree file.
 
-    @param1 taxon: taxon under which ncbi species are considered.
-    @param2 gftree: path of the alignment
+    @param1 sptree: general species tree.
+    @param2 gfaln: path of the alignment
+    
     @return the species tree file path.
     """
 
-    ncbi = ete3.NCBITaxa(dbfile="/opt/DGINN/taxa.sqlite")
-
-    sptree = ncbi.get_descendant_taxa(taxon, collapse_subspecies=True, return_tree=True)
-    spleaves = [ncbi.get_taxid_translator([x]) for x in sptree.get_leaf_names()]
+    
+    ncbi = ete3.NCBITaxa(dbfile="/opt/ncbi/taxa.sqlite")
+    
+    ## get names from link Taxids & species names abbreviations
 
     accns = list(SeqIO.parse(gfaln, "fasta"))
-    gLeavesSp = [name.id.split("_")[0] for name in accns]
+    gLeavesSp = [" ".join(name.id.split("_")[:2]) for name in accns]
 
-    ## link Taxids & species names abbreviations
-    leavesNames = {}
-    for x in spleaves:
-        for k, v in x.items():
-            tax = v.replace(".", "").replace("-", "").split(" ")
-            newTax = tax[0][:3].lower() + "".join([i[:3].title() for i in tax[1:]])
-            leavesNames[k] = newTax
+    gLeavesid = ncbi.get_name_translator(gLeavesSp)
+    sptree = ncbi.get_topology([v[0] for v in gLeavesid.values()])
 
-    # List of tax ids of species in gene tree
-    lTaxids = []
-    for x in gLeavesSp:
-        lTaxids += [str(k) for k, v in leavesNames.items() if v == x[0:6]]
-
-    lTaxids = list(set(lTaxids))
-
-    # restriction of species tree to these taxons
-    sptree.prune(lTaxids)
-
-    # back to correct leaves names
-    for x in sptree:
-        x.name = leavesNames[int(x.name)]
-
+    for node in sptree.traverse():
+      node.name = ncbi.get_taxid_translator([int(node.name)])[int(node.name)]
+      node.name = "_".join(node.name.split())
+    
     spTreeFile = "/".join(gfaln.split("/")[:-1] + ["species_tree.tree"])
     sptree.write(format=9, outfile=spTreeFile)
 
     return spTreeFile
 
 
-def treeCheck(treePath, alnf):
+def treeCheck(treePath, alnf, logger):
     """
     Check if the tree isn't corrupted
 
     @param1 treePath: tree's path
     @param2 alnf: alignment's path
-    @param3 optionTree: Boolean (treerecs option)
     @return1 treePath: tree's path
-    @return2 optionTree: Boolean (treerecs option)
     """
-    optionTree = True
-    logger = logging.getLogger("main")
-    if treePath != "":
-        if not os.path.exists(treePath):
-            try:
-                treePath = buildSpeciesTree(treePath, alnf)
-            except:
-                logger.warning("The path for the species tree doesn't exist.")
-                logger.warning("Duplication option will be set to False.")
-                optionTree = False
-                treePath = ""
-        else:
-            if not ete3.Tree(treePath):
-                logger.warning("The species tree is corrupted.")
-                logger.warning("Duplication option will be set to False.")
-                optionTree = False
-                treePath = ""
 
-    return treePath, optionTree
+    buildspt = False
+    
+    if treePath != "":
+      if not os.path.exists(treePath):
+        logger.warning("Species tree file " + treePath + " does not exist.")
+        buildspt = True
+      elif not ete3.Tree(treePath):
+        logger.warning("The species tree is corrupted.")
+        buildspt = True
+    else:
+      buildspt = True
+
+    if buildspt:
+      treePath = buildSpeciesTree(treePath, alnf)
+
+    return treePath
 
 
 # =========================================================================================================================
@@ -372,11 +355,12 @@ def filterTree(tree, spTree):
     """
 
     tg = ete3.Tree(tree)
+
     ts = ete3.Tree(spTree)
     lg = tg.get_leaf_names()
     ls = ts.get_leaf_names()
 
-    gok = [g for g in lg if g.split("_")[0] in ls]
+    gok = [g for g in lg if "_".join(g.split("_")[:2]) in ls]
 
     tg.prune(gok)
     out = tree.replace(".tree", "_filtered.tree")
@@ -403,82 +387,83 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
     with open(recTree, "r") as tree:
         reconTree = tree.readlines()[1]
         tree.close()
-        testTree = ete3.Tree(reconTree)
 
-        seqs = SeqIO.parse(open(ORF), "fasta")
-        dID2Seq = {gene.id: gene.seq for gene in seqs}
+    testTree = ete3.Tree(reconTree)
 
-        # get all nodes annotated with a duplication event
-        dupl = testTree.search_nodes(D="Y")
-        dNb2Node = {int(node.ND): node for node in dupl}
-        nDuplSign = 0
-        lOut = []
+    seqs = SeqIO.parse(open(ORF), "fasta")
+    dID2Seq = {gene.id: gene.seq for gene in seqs}
+
+    # get all nodes annotated with a duplication event
+    dupl = testTree.search_nodes(D="Y")
+    dNb2Node = {int(node.ND): node for node in dupl}
+    nDuplSign = 0
+    lOut = []
+    sp = set([leaf.S for leaf in testTree])
+    dDupl2Seq = {}
+
+    # as long as the number of species left in the tree is equal or superior to the cut-off specified by the user and there still are nodes annoted with duplication events
+    while len(sp) > int(nbSp) - 1 and len(dNb2Node.keys()) > 0:
+        # start from the most recent duplications (ie, the furthest node)
         sp = set([leaf.S for leaf in testTree])
-        dDupl2Seq = {}
+        nodeNb = min(dNb2Node.keys())
+        node = dNb2Node[nodeNb]
 
-        # as long as the number of species left in the tree is equal or superior to the cut-off specified by the user and there still are nodes annoted with duplication events
-        while len(sp) > int(nbSp) - 1 and len(dNb2Node.keys()) > 0:
-            # start from the most recent duplications (ie, the furthest node)
-            sp = set([leaf.S for leaf in testTree])
-            nodeNb = min(dNb2Node.keys())
-            node = dNb2Node[nodeNb]
+        # for each of the branches concerned by the duplication
+        nGp = 1
+        interok = False
+        
+        # do not consider dubious duplications (no intersection between the species on either side of the annotated duplication)
+        lf = [set([leaf.S for leaf in gp]) for gp in node.get_children()]
+        interok = (
+            len(lf[0].intersection(lf[1])) != 0
+            and len(lf[0]) > int(nbSp) / 2 - 1
+            and len(lf[1]) > int(nbSp) / 2 - 1
+        )
 
-            # for each of the branches concerned by the duplication
-            nGp = 1
-            interok = False
-            
-            # do not consider dubious duplications (no intersection between the species on either side of the annotated duplication)
-            lf = [set([leaf.S for leaf in gp]) for gp in node.get_children()]
-            interok = (
-                len(lf[0].intersection(lf[1])) != 0
-                and len(lf[0]) > int(nbSp) / 2 - 1
-                and len(lf[1]) > int(nbSp) / 2 - 1
-            )
+        if not interok:
+            dNb2Node.pop(nodeNb, None)
 
-            if not interok:
-                dNb2Node.pop(nodeNb, None)
+        # otherwise check it out
+        else:
+            for gp in node.get_children():
+                spGp = set([leaf.S for leaf in gp])
 
-            # otherwise check it out
-            else:
-                for gp in node.get_children():
-                    spGp = set([leaf.S for leaf in gp])
+                # check if the numbers of species in the branch is equal or superior to the cut-off specified by the user
+                if len(spGp) > int(nbSp) - 1:
+                    orthos = gp.get_leaf_names()
+                    dOrtho2Seq = {
+                        ortho: dID2Seq[ortho]
+                        for ortho in orthos
+                        if not ortho == "" and ortho in dID2Seq
+                    }
 
-                    # check if the numbers of species in the branch is equal or superior to the cut-off specified by the user
-                    if len(spGp) > int(nbSp) - 1:
-                        orthos = gp.get_leaf_names()
-                        dOrtho2Seq = {
-                            ortho: dID2Seq[ortho]
-                            for ortho in orthos
-                            if not ortho == "" and ortho in dID2Seq
-                        }
+                    # check if orthologues have already been included in another, more recent, duplication event
+                    already = False
+                    for doneDupl in dDupl2Seq:
+                        if all(ortho in dDupl2Seq[doneDupl] for ortho in orthos):
+                            already = True
+                            break
 
-                        # check if orthologues have already been included in another, more recent, duplication event
-                        already = False
-                        for doneDupl in dDupl2Seq:
-                            if all(ortho in dDupl2Seq[doneDupl] for ortho in orthos):
-                                already = True
-                                break
+                    if not already:
+                        nDuplSign += 1
+                        newQuery = query + "_D%d_gp%d"%(nodeNb,nGp)
+                        outFile = os.path.join(outdir, newQuery + "_orf.fasta")
+                        lOut.append(newQuery)
 
-                        if not already:
-                            nDuplSign += 1
-                            newQuery = query + "_D%d_gp%d"%(nodeNb,nGp)
-                            outFile = os.path.join(outdir, newQuery + "_orf.fasta")
-                            lOut.append(newQuery)
+                        # create new file of orthologous sequences
+                        with open(outFile, "w") as fasta:
+                            fasta.write(FastaResFunc.dict2fasta(dOrtho2Seq))
+                            fasta.close()
+                        # remove the node from the tree
+                        removed = gp.detach()
 
-                            # create new file of orthologous sequences
-                            with open(outFile, "w") as fasta:
-                                fasta.write(FastaResFunc.dict2fasta(dOrtho2Seq))
-                                fasta.close()
-                            # remove the node from the tree
-                            removed = gp.detach()
+                    dDupl2Seq["{:d}-{:d}".format(nodeNb, nGp)] = orthos
+                nGp += 1
 
-                        dDupl2Seq["{:d}-{:d}".format(nodeNb, nGp)] = orthos
-                    nGp += 1
+            dNb2Node.pop(nodeNb, None)
 
-                dNb2Node.pop(nodeNb, None)
-
-            # if duplication groups have been extracted
-            # pool remaining sequences (if span enough different species - per user's specification) into new file
+        # if duplication groups have been extracted
+        # pool remaining sequences (if span enough different species - per user's specification) into new file
         if len(lOut) > 0:
             leftovers = filter(None, testTree.get_leaf_names())
             dRemain = {left: dID2Seq[left] for left in leftovers if left in dID2Seq}
@@ -511,7 +496,7 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
 # Post order traversal of sptree to find polytomies
 
 
-def resolve_polytomy(node, gtree, o):
+def max_parcimony_polytomy(node, gtree, outdir):
     ch = node.get_children()
     lch = len(node.get_children())
     # best newtree
@@ -520,28 +505,32 @@ def resolve_polytomy(node, gtree, o):
     lspt = []
     lcost = []
 
-    if not os.path.exists("tmp"):
-        os.makedirs("tmp")
+    otmp=os.path.join(outdir,"tmp")
+    if not os.path.exists(otmp):
+        os.makedirs(otmp)
 
+    gf = os.path.join(otmp, "eval_poly_gene.tree")
+    gtree.write(outfile=gf)
+    
     for desctree in enum_unordered(range(lch)):
-        nt = ete3.Tree(str(desctree) + ";")
+        nt = PhyloTree(str(desctree) + ";")
         for p in nt.get_leaves():
             if int(p.name) == lch:
                 continue
 
-            p.add_sister(ch[int(p.name)].copy())
+            p.add_sister(PhyloTree(ch[int(p.name)].write()))
             p.detach()
 
         lspt.append(nt)
-        spf = os.path.join("tmp", "eval_poly_sp_%d.tree" % (len(lspt)))
+        spf = os.path.join(otmp, "eval_poly_sp_%d.tree" % (len(lspt)))
         nt.write(outfile=spf)
-        gf = os.path.join("tmp", "eval_poly_gene_%d.tree" % (len(lspt)))
-        gtree.write(outfile=gf)
+        gfi = os.path.join(otmp, "eval_poly_gene_%d.tree" % (len(lspt)))
+        os.symlink(gf, gfi)
 
-        val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX".format(gf, spf, "tmp")
-        subprocess.run(val, shell=True, stdout=subprocess.PIPE)  # , True)
+        val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX".format(gfi, spf, otmp)
+        subprocess.run(val, shell=True, capture_output=True)
 
-        fnt = open(os.path.join("tmp", "eval_poly_gene_%d_recs.nhx" % (len(lspt))), "r")
+        fnt = open(os.path.join(otmp, "eval_poly_gene_%d.tree_recs.nhx" % (len(lspt))), "r")
         lc = fnt.readline()
         fnt.close()
         pc = lc.find("total cost")
@@ -553,7 +542,99 @@ def resolve_polytomy(node, gtree, o):
     m = min(lcost)
     im = [i for i in range(len(lcost)) if lcost[i] == m]
 
+    # clean tmp
+    shutil.rmtree(otmp)
+
     return lspt[im[0]]  # get first reconciliation if equality...
+
+
+###
+# Resolve high order polytomy through nj on sampled clades
+
+def nj_sample_polytomy(node, gtree, outdir):
+    """ Resolve polytomy from observed gene tree."""
+
+    def g2sp(gname):
+      return("_".join(gname.split("_")[:2]))
+      
+    ## get list of lists of leaves names for all children
+    lln=[]
+    lch = node.get_children()
+    for ch in lch:
+      lln.append(ch.get_leaf_names())
+
+    ## set genes leaves names as species names
+    obstree=PhyloTree(gtree.write())
+    
+    ### Sample quartets of species names to perform partial reconciliations
+    nbSample = 50
+    nbleaves = 5
+    
+    distmat=[]
+    cummat=[]
+    for i in range(len(lch)):
+      distmat.append([0]*(i+1))
+      cummat.append([0]*(i+1))
+   
+    lnoderes=[]
+    for ns in range(nbSample):
+      inodes = random.sample(range(len(lch)), nbleaves)
+      snodes = [lch[i] for i in inodes]
+      
+      node2 = PhyloTree("Root;")
+      for ch in snodes:
+        ch2= PhyloTree(ch.write())
+        node2.add_child(ch2)
+
+      gt2 = gtree.copy()
+      leavnode = [l.name for l in node2.get_leaves()]
+      leag = [l.name for l in gt2.get_leaves() if g2sp(l.name) in leavnode]
+      if len(leag) != 0:
+        gt2.prune(leag)
+
+      noderes=max_parcimony_polytomy(node2, gt2, outdir)
+      lnoderes.append(noderes)
+
+      for isa in inodes:
+        for jsa in inodes:
+          if isa<=jsa:
+            continue
+          d=noderes.get_distance(lch[isa].get_leaf_names()[0],lch[jsa].get_leaf_names()[0],topology_only=True)
+          distmat[isa][jsa]+=d
+          cummat[isa][jsa]+=1
+      
+    ### Compute mean distances between all leaves from samples
+
+    def rap(x,y):
+      if y==0:
+        return 0
+      else:
+        return x/y
+      
+    meanmat = [[rap(distmat[i][j],cummat[i][j]) for j in range(len(distmat[i]))] for i in range(len(distmat))]
+    
+    dm=DistanceMatrix(names=list(map(str,range(len(lch)))),matrix=meanmat)
+
+    constructor = DistanceTreeConstructor()
+    tree = constructor.nj(dm)
+
+    tmpt = os.path.join(outdir,"tmp.dnd")
+    Phylo.write(tree,tmpt,format="newick") # do not know how to make otherwise than through a temp file
+
+    with open(tmpt, "r") as tree:
+        restree= tree.readlines()[0]
+        tree.close()
+    # clean tmp file
+    os.remove(tmpt)
+    treeok = PhyloTree(restree,format=1)
+
+    ## Put back correct children
+    for num in range(len(lch)):
+      chn = treeok&str(num)
+      chn.add_sister(lch[num])
+      chn.detach()
+      
+    return treeok
 
 
 def runTreerecs(query, aln, pathGtree, pathSptree, outdir,logger):
@@ -572,12 +653,11 @@ def runTreerecs(query, aln, pathGtree, pathSptree, outdir,logger):
     ## prune gene tree according to species Tree
     pathGtree = filterTree(pathGtree, pathSptree)
 
-    
     ## look for polytomies, and change species tree in a most
     ## parcimonious way
 
-    gtree = ete3.Tree(pathGtree)
-    sptree = ete3.Tree(pathSptree)
+    gtree = PhyloTree(pathGtree)
+    sptree = PhyloTree(pathSptree)
 
     # ## names of the genes
     # seqs = SeqIO.parse(open(aln), "fasta")
@@ -589,48 +669,44 @@ def runTreerecs(query, aln, pathGtree, pathSptree, outdir,logger):
     
     # species of the genes
     lg = gtree.get_leaf_names()
-    gs = set([g.split("_")[0] for g in lg])
+    gs = set(["_".join(g.split("_")[:2]) for g in lg])
 
     ## prune species tree
     sptree.prune(gs)
-
     
     ## look for polytomies, and change species tree in a most
-    ## parcimonious way
+    ## parcimonious way for species under the polytomy (but not with
+    ## the others!).
 
-    thrspoly = 8
+    thrspoly = 6
     poly = False
 
     lnode = [node for node in sptree.traverse("postorder")]
     for node in lnode:
         lch = len(node.get_children())
-        if lch > thrspoly:
+        while lch >2:
+          if not poly:
+            logger = logging.getLogger("main.duplication")
             logger.warning(
-                "Species Tree with polytomy of order larger than "
-                + str(thrspoly)
-                + ", give up reconciliation."
+              "Species Tree with polytomies: solved with most parcimonious or neighbour-joining."
             )
-            return
+            poly = True
 
-        if lch > 2:
-            if not poly:
-                logger = logging.getLogger("main.duplication")
-                logger.warning(
-                    "Species Tree with polytomies: solved at most parcimonious."
-                )
-                poly = True
+          gt2 = gtree.copy()
+          leavnode = [l.name for l in node.get_leaves()]
+          leag = [l.name for l in gt2.get_leaves() if "_".join(l.name.split("_")[:2]) in leavnode]
+          if len(leag) != 0:
+            gt2.prune(leag)
 
-            gt2 = gtree.copy()
+          if lch> thrspoly:
+            nb = nj_sample_polytomy(node, gt2, outdir)
+          else:
+            nb = max_parcimony_polytomy(node, gt2, outdir)
 
-            leavnode = [l.name for l in node.get_leaves()]
-            leag = [l.name for l in gt2.get_leaves() if l.name.split("_")[0] in leavnode]
-            if len(leag) != 0:
-                gt2.prune(leag)
-
-            nb = resolve_polytomy(node, gt2, outdir)
-
-            node.add_sister(nb)
-            node.detach()
+          node.add_sister(nb)
+          node.detach()
+          node=nb
+          lch = len(node.get_children())
 
     if not poly:  # no polytomy solved
         pathSptree2 = pathSptree
@@ -640,7 +716,6 @@ def runTreerecs(query, aln, pathGtree, pathSptree, outdir,logger):
         pathSptree2 = ".".join(lp[:-1] + ["bif"] + [lp[-1]])
         sptree.write(outfile=pathSptree2)
 
-    
     ### filter out unmatched genes in species tree
     val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX:svg".format(
         pathGtree, pathSptree2, outdir
