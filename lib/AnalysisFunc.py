@@ -2,7 +2,7 @@
 import sys
 import FastaResFunc, shutil
 import logging, subprocess, shlex, os, ete3
-from Bio import SeqIO, AlignIO
+from Bio import SeqIO, Align, AlignIO
 from collections import defaultdict
 from itertools import chain
 import pandas as pd
@@ -97,7 +97,7 @@ def getORFs(parameters):
     AllDupl = [values for key, values in dRev.items() if len(values) > 1]
     n = 0
     for dupl in AllDupl:
-        species = set([x.split("_")[0] for x in dupl])
+        species = set(["_".join(x.split("_")[:2]) for x in dupl])
 
         for sp in species:
             if queryName in dupl:
@@ -185,14 +185,13 @@ def runMacse(ORFs, parameters):
     return outFile + ".best.fas"
 
 
-def runMafft(parameters):
+def runMafft(ORFs, parameters, verbose=True):
     outdir = parameters["outdir"]
     queryName = parameters["queryName"]
     logger = logging.getLogger("main.alignment")
-    logger.info("Started Mafft nucleotide alignment")
-
+    if verbose:
+      logger.info("Started Mafft nucleotide alignment")
     
-    ORFs=parameters["input"]
     cmdmafft = "mafft --auto --quiet {}".format(ORFs)
     outMafft = outdir+"/"+ queryName + "_mafft.fasta"
     cmd(cmdmafft,False,stdout=outMafft)
@@ -201,14 +200,15 @@ def runMafft(parameters):
     #         lCmd, shell=False, check=True, stdout=outM, stderr=subprocess.PIPE
     #     )
 
-    logger.info("Finished Mafft nucleotide alignment: {:s}".format(outMafft))
+    if verbose:
+      logger.info("Finished Mafft nucleotide alignment: {:s}".format(outMafft))
 
     return outMafft
 
 
 def covAln(aln, parameters):
     """
-    Function to discard sequences from alignment according to coverage to query.
+    Function to discard sequences from alignment according to coverage on sequence query.
 
     @param1 aln: Path to next alignment
     @param2 parameters: 
@@ -254,17 +254,17 @@ def covAln(aln, parameters):
         return (aln, 0)
 
 
-def isoformAln(aln, parameters):
-    """Function to cluster isoforms according to the alignment. Return the
-    overall coverage of these isoforms.
+def isoformMafft(ORFs, parameters):
+    """Function to with species specific Mafft used to cluster
+    isoforms. Return the clustering of these isoforms.
 
-        Isoforms are from the same species (recognized through keyword
-        xxxXxx at the beginning of their name) and same letters or
-        indels at same positions in alignment.
+    Isoforms are from the same species (recognized through
+    Species_species at the beginning of their name) and same letters
+    or indels at same positions in alignment.
 
-        @param1 aln: Path to alignment
-        @param2 o: output directory
-        @return outAln: Path to file of resulting alignment
+    @param1 ORFs: Path to sequences
+    ]param2 parameters: dict of parameters
+    @return Path to file of resulting sequences file
 
     """
 
@@ -276,11 +276,11 @@ def isoformAln(aln, parameters):
     dRem = {}  # for remaining sequences
     dId2Seq = {}  # for remaining sequences
     laln = 0  # alignement length
-    for fasta in SeqIO.parse(open(aln), "fasta"):
-        post = fasta.id.find("_")
-        if post != -1:  # regular format
-            sp = fasta.id[:post]
-            tag = fasta.id[post + 1 :]
+    for fasta in SeqIO.parse(open(ORFs), "fasta"):
+        post = len(fasta.id.split("_"))
+        if post > 2:  # regular format
+            sp = "_".join(fasta.id.split("_")[:2])
+            tag = "_".join(fasta.id.split("_")[2:])
             if not sp in dId2Seq:
                 dId2Seq[sp] = {}
             dId2Seq[sp][tag] = str(fasta.seq)
@@ -291,25 +291,49 @@ def isoformAln(aln, parameters):
 
     outCov = outdir + "/"  + queryName + "_clustiso.fasta"
     clustok = False  # flag to check if a cluster has occured
+
     for sp, dtagseq in dId2Seq.items():
-        lclust = [list(dtagseq)]  # list of clusters of tags to be split
-        for pos in range(laln):
-            lclust2 = []
-            for clust in lclust:
-                dlet = {tag: dtagseq[tag][pos] for tag in clust}
-                llet = set([x for x in dlet.values() if x != "-"])
-                if len(llet) <= 1:  # one letter at most, keep all
-                    lclust2.append(clust)
-                    continue
-                else:
-                    for x in llet:
-                        lclust2.append([tag for tag in clust if dlet[tag] == x])
-                    lind = [
-                        tag for tag in clust if dlet[tag] == "-"
-                    ]  # conservative, do not know wether to merge, may be improved
-                    if len(lind) != 0:
-                        lclust2.append(lind)
-            lclust = lclust2
+        if len(dtagseq)==1:
+          dRem[sp + "_" + list(dtagseq.keys())[0]] = dtagseq[list(dtagseq.keys())[0]]
+          continue
+        
+        ltags=list(dtagseq.keys())
+        tmpfseq=os.path.join(outdir,sp+".fasta")
+        with open(tmpfseq, "w") as outC:
+          outC.write(FastaResFunc.dict2fasta(dtagseq))
+          outC.close()
+
+        # Mafft of species sequences
+        parameters["queryName"] = sp + "_" + queryName
+        outMafft = runMafft(tmpfseq, parameters, False)
+        dtagseq={}
+        laln=0
+        for fasta in SeqIO.parse(open(outMafft), "fasta"):
+          dtagseq[fasta.id] = str(fasta.seq)
+          if laln == 0:
+            laln = len(fasta.seq)
+        parameters["queryName"] = queryName
+
+        os.remove(tmpfseq)
+        os.remove(outMafft)
+        
+        ## Now cluster
+        lclust = [[ltags[0]]]  # list of clusters of tags
+        for itag in range(1,len(ltags)):
+          tag=ltags[itag]
+          seq1=dtagseq[tag]
+          for clust in lclust:
+            for tag2 in clust:
+              seq2=dtagseq[tag2]
+              dist=len([pos for pos in range(laln) if seq1[pos]!=seq2[pos] and seq1[pos]!="-" and seq2[pos]!="-"])
+              if dist!=0: # not in the cluster
+                break
+            if dist==0: # final success -> in clust
+              clust.append(tag)
+              tag=""
+              break
+          if tag!="": # not put in a cluster
+            lclust.append([tag])
 
         # now merge sequences in each cluster
         for clust in lclust:
@@ -335,12 +359,99 @@ def isoformAln(aln, parameters):
         with open(outCov, "w") as outC:
             outC.write(FastaResFunc.dict2fasta(dRem))
             outC.close()
-
+        logger.info("%d remaining sequences"%(len(dRem)))
         return outCov
     else:
         return aln
 
+    
+def isoformAln(aln, parameters):
+    """Function to cluster isoforms according to the alignment. Return the
+    clustering of these isoforms.
 
+        Isoforms are from the same species (recognized through 
+        Species_species at the beginning of their name) and same letters or
+        indels at same positions in alignment.
+
+        @param1 aln: Path to alignment
+        @param2 parameters: dict of parameters
+        @return Path to file of resulting alignment
+
+    """
+
+    outdir = parameters["outdir"]
+    queryName = parameters["queryName"]
+    logger = logging.getLogger("main.alignment")
+    logger.info("Clustering isoforms.")
+
+    dRem = {}  # for remaining sequences
+    dId2Seq = {}  # for remaining sequences
+    laln = 0  # alignement length
+    for fasta in SeqIO.parse(open(aln), "fasta"):
+        post = len(fasta.id.split("_"))
+        if post > 2:  # regular format
+            sp = "_".join(fasta.id.split("_")[:2])
+            tag = "_".join(fasta.id.split("_")[2:])
+            if not sp in dId2Seq:
+                dId2Seq[sp] = {}
+            dId2Seq[sp][tag] = str(fasta.seq)
+            if laln == 0:
+                laln = len(fasta.seq)
+        else:
+            dRem[fasta.id] = str(fasta.seq)
+
+    outCov = outdir + "/"  + queryName + "_clustiso.fasta"
+    clustok = False  # flag to check if a cluster has occured
+
+    for sp, dtagseq in dId2Seq.items():
+        ltags=list(dtagseq.keys())
+        lclust = [[ltags[0]]]  # list of clusters of tags
+        for itag in range(1,len(ltags)):
+          tag=ltags[itag]
+          seq1=dtagseq[tag]
+          for clust in lclust:
+            for tag2 in clust:
+              seq2=dtagseq[tag2]
+              dist=len([pos for pos in range(laln) if seq1[pos]!=seq2[pos] and seq1[pos]!="-" and seq2[pos]!="-"])
+              if dist!=0: # not in the cluster
+                break
+            if dist==0: # final success -> in clust
+              clust.append(tag)
+              tag=""
+              break
+          if tag!="": # not put in a cluster
+            lclust.append([tag])
+
+        # now merge sequences in each cluster
+        for clust in lclust:
+            if len(clust) == 1:
+                dRem[sp + "_" + clust[0]] = dtagseq[clust[0]]
+            else:
+                clustok = True
+                ntag = clust[-1] + "_clust"
+                logger.info(
+                    "Clustered sequences "
+                    + sp
+                    + "_"
+                    + (", %s_" % (sp)).join(clust)
+                    + " into %s_" % (sp)
+                    + ntag
+                )
+                nseq = "".join(
+                    [max([dtagseq[tag][pos] for tag in clust]) for pos in range(laln)]
+                )
+                dRem[sp + "_" + ntag] = nseq
+
+    if clustok:
+        with open(outCov, "w") as outC:
+            outC.write(FastaResFunc.dict2fasta(dRem))
+            outC.close()
+        logger.info("%d remaining sequences"%(len(dRem)))
+        return outCov
+    else:
+        return aln
+
+      
 
 #######=================================================================================================================
 ######PhyML=============================================================================================================
