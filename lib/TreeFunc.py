@@ -525,6 +525,9 @@ def max_parcimony_polytomy(node, gtree, outdir):
         spf = os.path.join(otmp, "eval_poly_sp_%d.tree" % (len(lspt)))
         nt.write(outfile=spf)
         gfi = os.path.join(otmp, "eval_poly_gene_%d.tree" % (len(lspt)))
+        if os.path.exists(gfi):
+          os.remove(gfi)
+
         os.symlink(gf, gfi)
 
         val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX".format(gfi, spf, otmp)
