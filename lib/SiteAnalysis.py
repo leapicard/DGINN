@@ -357,6 +357,7 @@ def pamlSite(alnFile, treeFile, outDir, pamlParams, lModels, logger):
       if not os.path.exists(outP):
         os.mkdir(outP)
 
+      here=os.getcwd()
       outPhy=alnFile[:alnFile.rfind(".")]+".phy"
       fasta2paml(alnFile, outPhy)
       logger.info("Codeml Site Analysis")
@@ -379,13 +380,14 @@ def pamlSite(alnFile, treeFile, outDir, pamlParams, lModels, logger):
           f=open(parname,"w")
           f.write("\n".join([k+" = "+str(v) for k,v in codemlparam.items()]))
           f.close()
-          os.chdir(outpamlmod)
-          runCodeml = subprocess.Popen("codeml "+ parname, shell =  True, stdout=subprocess.PIPE).wait()
+          os.chdir(outpamlmod) #Necessary because codeml does not like long paths...
+          runCodeml = subprocess.Popen("codeml codeml.ctl", shell =  True, stdout=subprocess.PIPE).wait()
           lgl=pamlGetLogL(os.path.join(outpamlmod,"result.txt"))
           if lgl!=None:
                   dLogLlh[k][model]=lgl
           logger.info("Log Likelihood = {}".format(dLogLlh[k].get(model,None)))
-
+          os.chdir(here)
+          
        for k,lModels in dlModels.items():
           if not k in dLogLlh:
             continue
