@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     ORFs=parameters["input"]
 
-    ## cluster isoforms based on mafft alignment
+    ## cluster isoforms based on species specific mafft alignments
     outIso = AnalysisFunc.isoformMafft(ORFs, parameters)
 
     outMafft = AnalysisFunc.runMafft(outIso, parameters)

@@ -125,10 +125,10 @@ def bppSite(alnFile, treeFile, outDir, bppFile, bppMixed, lModels, logger):
 
 
   # perform LRT
-        # M1 vs M2
   for k,lModels in dlModels.items():
     if not k in dLogLlh:
                   continue
+    # M1 vs M2
     if "M1"  in lModels and "M2" in lModels:
                 if "M1"  in dLogLlh[k] and "M2" in dLogLlh[k]:
                         LR12, p12 = PSPFunc.LRT(dLogLlh[k]["M1"], dLogLlh[k]["M2"], 2)
@@ -191,12 +191,13 @@ def bppSite(alnFile, treeFile, outDir, bppFile, bppMixed, lModels, logger):
               dMixCmd = {"INPUTFILE":alnFile, 
                          "FORMAT":"Fasta", 
                          "TREEFILE":treeFile, 
-                         "params":dModelParams[model+"_"+k], 
+                         "param":",".join([dModelParams[model+"_"+k],bppMixed]),
                          "OUTINFO":dModelResults[model+"_"+k], 
-                         "param":bppMixed}
+                         }
 
               logger.info("Running mixed likelihoods with model {:s}".format(model+"_"+k))
               argsMx = "\""+"\" \"".join([k2+"="+v for k2, v in dMixCmd.items()])+"\""
+              logger.info("bppmixedlikelihoods "+argsMx)
               runMx = subprocess.Popen("bppmixedlikelihoods "+argsMx, shell=True, stdout=subprocess.PIPE).wait()
               logger.debug(subprocess.PIPE)
 
