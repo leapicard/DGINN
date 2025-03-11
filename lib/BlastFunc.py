@@ -36,15 +36,18 @@ def blast(parameters, outfile):
     logger.info("Running Blast")
 
     sequence = open(queryFile).read()
-    if sum([x in sequence for x in "RDEQHILKPLMFPSWYV"])==0:
+    if sequence.startswith(">"): # fasta
+      sequence = sequence.split("\n")[1]
+      
+    if sum([x in sequence for x in "RDEQHILKPLMFPSWYV"])<5: # tolerance to ambiguities
       blast="blastn"
       logger.info("Nucleotide sequence: blastn performed.")
     else:
       blast="tblastn"
       logger.info("Proteic sequence: tblastn performed.")
           
-    seqL = len(sequence.split("\n")[1])
- 
+    seqL = len(sequence)
+          
     if remote:
         if query == "":
             logger.info("Database {:s} will be searched for all species".format(db))

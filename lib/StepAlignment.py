@@ -32,8 +32,20 @@ if __name__ == "__main__":
         os.symlink(config["input"],config["output"])
         sys.exit(0)
 
-    outMafft = AnalysisFunc.runMafft(parameters)
 
+    ## Fix isoforms within each species through species specific MSA
+
+
+    ## Global Mafft
+
+    ORFs=parameters["input"]
+
+    ## cluster isoforms based on mafft alignment
+    outIso = AnalysisFunc.isoformMafft(ORFs, parameters)
+
+    outMafft = AnalysisFunc.runMafft(outIso, parameters)
+
+    ## discard sequences according to coverage on query sequence
     fasCov, nbOut = AnalysisFunc.covAln(outMafft, parameters)
 
     if aligner == "prank":
@@ -50,7 +62,7 @@ if __name__ == "__main__":
       print(aligner + " did not run on file " + fasCov)
       outAli = fasCov
 
+    ## Rerun isoform clustering
+    outIso2 = AnalysisFunc.isoformAln(outAli, parameters)
 
-    outIso = AnalysisFunc.isoformAln(outAli, parameters)
-
-    os.rename(outIso, config["output"])
+    os.rename(outIso2, config["output"])

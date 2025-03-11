@@ -59,7 +59,7 @@ def remoteDl(lBlastRes, queryName, apiKey):
 		else:
 			tax = tax.split(" ")
 			
-		tax = tax[0][:3].lower()+"".join([ i[:3].title() for i in tax[1:]])
+		tax = "_".join(tax)#[0][:3].lower()+"".join([ i[:3].title() for i in tax[1:]])
 
 		features = [record['GBSeq_feature-table'][i]['GBFeature_quals'] for i, d in enumerate(record['GBSeq_feature-table']) if 'GBFeature_quals' in d]
 		
@@ -162,10 +162,4 @@ def fastaCreation(parameters, lBlastRes, outputfile):
         		out.write(dict2fasta(dId2Seq))
         		out.close()
         
-        if "sptree" in parameters and parameters["duplication"]:
-          parameters["sptree"], parameters["duplication"] = TreeFunc.treeCheck(parameters["sptree"], firstFasta)
-        
-        if parameters["duplication"] and parameters["sptree"]!="":
-          parameters["seqFile"], parameters["cor"] = LoadFileFunc.filterData(parameters["sptree"], firstFasta, parameters["outdir"])
-	
         return firstFasta

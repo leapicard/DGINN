@@ -24,6 +24,8 @@ if __name__ == "__main__":
     config["output"] = str(snakemake.output)
     config["input"] = str(snakemake.input)
 
+    align=config["input"].split()[0]
+    
     config["step"] = snakemake.rule
 
     # else:
@@ -31,6 +33,8 @@ if __name__ == "__main__":
 
     # Run step
 
+    parameters["sptree"] = TreeFunc.treeCheck(parameters.get("sptree",""), align, logger)
+        
     lquery = TreeFunc.splitTree(parameters)
 
     # output of the resulting sub-alignments querynames
