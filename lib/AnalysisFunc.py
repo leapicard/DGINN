@@ -362,7 +362,7 @@ def isoformMafft(ORFs, parameters):
         logger.info("%d remaining sequences"%(len(dRem)))
         return outCov
     else:
-        return aln
+        return ORFs
 
     
 def isoformAln(aln, parameters):

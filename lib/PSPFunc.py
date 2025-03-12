@@ -98,7 +98,7 @@ def pspFileCreation(path, option):
     dparams["input.data1"] = "alignment(file=$(INPUTFILE), format=$(FORMAT), sites_to_use=all, max_gap_allowed=50%, max_unresolved_allowed=100%)"
     dparams["input.tree1"] = "user(file=$(TREEFILE), format=Newick)"
     dparams["phylo1"] = "Single(process=1, data=1)"
-    if option == "mixedlikelihood":
+    if option == "bppmixedlikelihood":
       #dparams["params"] = "$(PARAMS)"
       dparams["output.likelihoods.file"] = "$(OUTINFO)"
     else:

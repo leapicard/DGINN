@@ -98,8 +98,7 @@ if __name__ == "__main__":
         # except:
         # 	wM0Paml = "na"
 
-                ### Get the method specific results
-        baseName2 = baseName.split("_")[0]
+        ### Get the method specific results
 
         bust = PRS.ResBusted(baseName, posDir)
         dGene.update(bust)
@@ -120,14 +119,10 @@ if __name__ == "__main__":
 
         lsplitid=[fasta.id.split("_") for fasta in SeqIO.parse(open(aln),'fasta')]
         minlid=min(map(len, lsplitid))
-        sp=set([l[0] for l in lsplitid])
-        ids=[l[1].upper() for l in lsplitid]
-        ids=["_".join(l).upper() for l in lsplitid]
-        # if (len(set(ids))!=len(lsplitid)):
-        #   ids=["_".join(l[1:]).upper() for l in lsplitid]
-        #   if len(set(ids))!=len(lsplitid):
-        #             print("Unable to find good ids in alignment file " + aln)
-        #             sys.exit()
+        sp=set(["_".join(l[:2]) for l in lsplitid])
+
+        ids=["_".join(list(map(str.upper,l[2:]))) for l in lsplitid]
+        print(ids)
 
         lLen = [len(str(fasta.seq)) for fasta in SeqIO.parse(open(aln),'fasta')]
         alnLen = max(lLen)/3
