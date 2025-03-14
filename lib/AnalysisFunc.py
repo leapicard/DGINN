@@ -315,7 +315,7 @@ def isoformMafft(ORFs, parameters):
         parameters["queryName"] = queryName
 
         if os.path.exists(tmpfseq):
-          os.remove(tmpfseq)
+            os.remove(tmpfseq)
         os.remove(outMafft)
         
         ## Now cluster
