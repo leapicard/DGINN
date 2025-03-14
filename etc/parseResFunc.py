@@ -206,7 +206,7 @@ def ResPaml(posDir, pr):
         for pDir in pamlDirs:
             for model in lModels:
                 if model in pamlDirs[pDir].split("/"):
-                    dModelFile[model] = pamlDirs[pDir]+"/out"
+                    dModelFile[model] = pamlDirs[pDir]+"/result.txt"
                     if os.path.exists(pamlDirs[pDir]+"/rst1"):
                         with open(pamlDirs[pDir]+"/rst1", "r") as modelFile:
                             line = modelFile.read().strip()
