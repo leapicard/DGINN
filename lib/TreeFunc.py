@@ -41,7 +41,6 @@ def splitTree(parameters, step="duplication"):
     for query, aln in dSubAln.items():
       logger.info("Running Treerecs for " + query)
       recTree = runTreerecs(query, aln, tree, sptree, outdir, logger)
-
       if recTree:
         lquery += treeParsing(query, aln, recTree, nbspecies, outdir, logger)
       else:
@@ -437,7 +436,7 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
                         if not ortho == "" and ortho in dID2Seq
                     }
 
-                    # check if orthologues have already been included in another, more recent, duplication event
+                    # check if orthologs have already been included in another, more recent, duplication event
                     already = False
                     for doneDupl in dDupl2Seq:
                         if all(ortho in dDupl2Seq[doneDupl] for ortho in orthos):
@@ -462,27 +461,27 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
 
             dNb2Node.pop(nodeNb, None)
 
-        # if duplication groups have been extracted
-        # pool remaining sequences (if span enough different species - per user's specification) into new file
-        if len(lOut) > 0:
-            leftovers = filter(None, testTree.get_leaf_names())
-            dRemain = {left: dID2Seq[left] for left in leftovers if left in dID2Seq}
+    # if duplication groups have been extracted
+    # pool remaining sequences (if span enough different species - per user's specification) into new file
+    if len(lOut) > 0:
+      leftovers = filter(None, testTree.get_leaf_names())
+      dRemain = {left: dID2Seq[left] for left in leftovers if left in dID2Seq}
 
-            if len(dRemain.keys()) > int(nbSp) - 1:
-                newQuery = query + "_Drem"
-                outFile = os.path.join(outdir, newQuery + "_orf.fasta")
-                nDuplSign += 1
+      if len(dRemain.keys()) > int(nbSp) - 1:
+        newQuery = query + "_Drem"
+        outFile = os.path.join(outdir, newQuery + "_orf.fasta")
+        nDuplSign += 1
 
-                with open(outFile, "w") as fasta:
-                    fasta.write(FastaResFunc.dict2fasta(dRemain))
-                    fasta.close()
-                lOut.append(newQuery)
-            else:
-                logger.info(
-                    "Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(
-                        list(dRemain.keys())
-                    )
-                )
+        with open(outFile, "w") as fasta:
+          fasta.write(FastaResFunc.dict2fasta(dRemain))
+          fasta.close()
+        lOut.append(newQuery)
+      else:
+        logger.info(
+          "Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(
+            list(dRemain.keys())
+          )
+        )
 
     logger.info(
         "{:d} duplications detected by Treerecs, extracting {:d} groups of at least {} orthologs.".format(
