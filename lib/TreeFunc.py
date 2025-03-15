@@ -483,9 +483,16 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
           )
         )
 
+    # check that all files contain sequences, otherwise filter them out
+    for dupFile in lOut:
+        seqs = SeqIO.parse(open(dupFile), "fasta")
+        if len(seqs) < nbSp:
+          lOut.remove(dupFile)
+          os.remove(dupFile)
+
     logger.info(
         "{:d} duplications detected by Treerecs, extracting {:d} groups of at least {} orthologs.".format(
-            len(dupl), nDuplSign, nbSp
+            len(dupl), len(lOut), nbSp
         )
     )
     return lOut
