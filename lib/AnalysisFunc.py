@@ -314,7 +314,8 @@ def isoformMafft(ORFs, parameters):
             laln = len(fasta.seq)
         parameters["queryName"] = queryName
 
-        os.remove(tmpfseq)
+        if os.path.exists(tmpfseq):
+            os.remove(tmpfseq)
         os.remove(outMafft)
         
         ## Now cluster

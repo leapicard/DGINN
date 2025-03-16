@@ -660,22 +660,22 @@ def runTreerecs(query, aln, pathGtree, pathSptree, outdir,logger):
     """
 
     ## prune gene tree according to species Tree
-    pathGtree = filterTree(pathGtree, pathSptree)
+    try:
+      pathGtree = filterTree(pathGtree, pathSptree)
+    except TreeError:
+      ## names of the genes
+      seqs = SeqIO.parse(open(aln), "fasta")
+      dID2Seq = [gene.id for gene in seqs]
+      ## prune gene tree according to aln sequences
+      pathGtree = PhyloTree(pathGtree)
+      pathGtree.prune(dID2Seq)
 
     ## look for polytomies, and change species tree in a most
     ## parcimonious way
 
     gtree = PhyloTree(pathGtree)
     sptree = PhyloTree(pathSptree)
-
-    # ## names of the genes
-    # seqs = SeqIO.parse(open(aln), "fasta")
-    # dID2Seq = [gene.id for gene in seqs]
-
-    # ## prune gene tree according to aln sequences
-    # gtree.prune(dID2Seq)
-
-    
+  
     # species of the genes
     lg = gtree.get_leaf_names()
     gs = set(["_".join(g.split("_")[:2]) for g in lg])
