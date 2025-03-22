@@ -122,7 +122,6 @@ if __name__ == "__main__":
         sp=set(["_".join(l[:2]) for l in lsplitid])
 
         ids=["_".join(list(map(str.upper,l[2:]))) for l in lsplitid]
-        print(ids)
 
         lLen = [len(str(fasta.seq)) for fasta in SeqIO.parse(open(aln),'fasta')]
         alnLen = max(lLen)/3

@@ -20,7 +20,7 @@ def splitTree(parameters, step="duplication"):
   1- Cutlongbranches
   2- Reconciliation
 
-  @output The list of new subalignment files
+  @output The dictionnary {new query, new subalignment file}
   """
 
   nbspecies=parameters["nbspecies"]
@@ -33,7 +33,7 @@ def splitTree(parameters, step="duplication"):
 
   dSubAln = cutLongBranches(parameters, aln, tree, nbspecies, logger)
 
-  lquery=[]
+  dqaln={}
 
   if parameters["sptree"]!="":
     sptree = parameters["sptree"]
@@ -41,16 +41,15 @@ def splitTree(parameters, step="duplication"):
     for query, aln in dSubAln.items():
       logger.info("Running Treerecs for " + query)
       recTree = runTreerecs(query, aln, tree, sptree, outdir, logger)
-
       if recTree:
-        lquery += treeParsing(query, aln, recTree, nbspecies, outdir, logger)
+        dqaln.update(treeParsing(query, aln, recTree, nbspecies, outdir, logger))
       else:
-        lquery.append(query)
+        dqaln[query]=aln
           
   else:
-    lquery=list(dSubAln.keys())
+    dqaln=dSubAln
 
-  return(lquery)
+  return(dqaln)
 
 
 def cutLongBranches(parameters, aln, tree, nbSp, logger):
@@ -381,7 +380,7 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
     @param5 outdir: Output directory
     @param6 logger: Logging object
     
-    @return lOut: List of path to alignments (fasta files)
+    @return dquery: dictionnary (new queries, new files)
     """
 
     with open(recTree, "r") as tree:
@@ -397,7 +396,7 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
     dupl = testTree.search_nodes(D="Y")
     dNb2Node = {int(node.ND): node for node in dupl}
     nDuplSign = 0
-    lOut = []
+    dOut = {}
     sp = set([leaf.S for leaf in testTree])
     dDupl2Seq = {}
 
@@ -437,7 +436,7 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
                         if not ortho == "" and ortho in dID2Seq
                     }
 
-                    # check if orthologues have already been included in another, more recent, duplication event
+                    # check if orthologs have already been included in another, more recent, duplication event
                     already = False
                     for doneDupl in dDupl2Seq:
                         if all(ortho in dDupl2Seq[doneDupl] for ortho in orthos):
@@ -448,7 +447,7 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
                         nDuplSign += 1
                         newQuery = query + "_D%d_gp%d"%(nodeNb,nGp)
                         outFile = os.path.join(outdir, newQuery + "_orf.fasta")
-                        lOut.append(newQuery)
+                        dOut[newQuery]=outFile
 
                         # create new file of orthologous sequences
                         with open(outFile, "w") as fasta:
@@ -462,40 +461,41 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
 
             dNb2Node.pop(nodeNb, None)
 
-        # if duplication groups have been extracted
-        # pool remaining sequences (if span enough different species - per user's specification) into new file
-        if len(lOut) > 0:
-            leftovers = filter(None, testTree.get_leaf_names())
-            dRemain = {left: dID2Seq[left] for left in leftovers if left in dID2Seq}
+    # if duplication groups have been extracted
+    # pool remaining sequences (if span enough different species - per user's specification) into new file
+    if len(dOut) > 0:
+      leftovers = filter(None, testTree.get_leaf_names())
+      dRemain = {left: dID2Seq[left] for left in leftovers if left in dID2Seq}
 
-            if len(dRemain.keys()) > int(nbSp) - 1:
-                newQuery = query + "_Drem"
-                outFile = os.path.join(outdir, newQuery + "_orf.fasta")
-                nDuplSign += 1
+      if len(dRemain.keys()) > int(nbSp) - 1:
+        newQuery = query + "_Drem"
+        outFile = os.path.join(outdir, newQuery + "_orf.fasta")
+        nDuplSign += 1
 
-                with open(outFile, "w") as fasta:
-                    fasta.write(FastaResFunc.dict2fasta(dRemain))
-                    fasta.close()
-                lOut.append(newQuery)
-            else:
-                logger.info(
-                    "Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(
-                        list(dRemain.keys())
-                    )
-                )
+        with open(outFile, "w") as fasta:
+          fasta.write(FastaResFunc.dict2fasta(dRemain))
+          fasta.close()
+        dOut[newQuery]=outFile
+      else:
+        logger.info(
+          "Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(
+            list(dRemain.keys())
+          )
+        )
+
     # check that all files contain sequences, otherwise filter them out
-    for dupFile in lOut:
-        seqs = SeqIO.parse(open(dupFile), "fasta")
-        if len(seqs) < nbSp:
-          lOut.remove(dupFile)
+    for dupKey, dupFile in dOut.items():
+        lnseq = len([seq for seq in SeqIO.parse(open(dupFile), "fasta")])
+        if lnseq < nbSp:
+          dOut.remove(dupKey)
           os.remove(dupFile)
 
     logger.info(
         "{:d} duplications detected by Treerecs, extracting {:d} groups of at least {} orthologs.".format(
-            len(dupl), len(lOut), nbSp
+            len(dupl), len(dOut), nbSp
         )
     )
-    return lOut
+    return dOut
 
 
 ###

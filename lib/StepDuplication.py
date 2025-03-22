@@ -35,15 +35,15 @@ if __name__ == "__main__":
 
     parameters["sptree"] = TreeFunc.treeCheck(parameters.get("sptree",""), align, logger)
         
-    lquery = TreeFunc.splitTree(parameters)
+    dqueryaln = TreeFunc.splitTree(parameters)
 
     # output of the resulting sub-alignments querynames
 
     fout = open(config["output"], "w")
 
-    if len(lquery) >= 1:  # several sub alignments
-        for query in lquery:
-            fout.write(query + "\t"+ config["outdir"] + "/" + query + ".fasta" + "\n")
+    if len(dqueryaln) >= 1:  # several sub alignments
+        for query,faln in dqueryaln.items():
+            fout.write(query + "\t"+ faln + "\n")
 
     else:
         fout.write(config["queryName"] + "\t"+ str(snakemake.input[0]) + "\n")
