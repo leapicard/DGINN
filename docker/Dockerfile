@@ -69,6 +69,12 @@ WORKDIR /opt
 RUN wget https://www.agap-ge2pop.org/wp-content/uploads/macse/releases/macse_v2.07.jar
 
 
+################
+## For visualisation (in shell mode)
+
+RUN apt-get install -y seaview
+
+
 ##################################################
 ### Trees
 
