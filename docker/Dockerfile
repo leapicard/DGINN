@@ -3,7 +3,7 @@ MAINTAINER Laurent Guéguen laurent.gueguen@univ-lyon1.fr
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && apt-get install -y apt-utils locales
+RUN apt-get update && apt-get install -y apt-utils locales locales-all
 
 RUN apt-get install -y build-essential
 
