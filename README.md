@@ -83,7 +83,7 @@ container system.
 
 Please be aware that, due to Docker compulsory root access, a Docker
 container is not appropriate for usage in cluster environments, though
-it is appropriate for cloud computing (tutorial to come) and local
+it is appropriate for cloud computing and local
 usage. The Apptainer container should be usable in every environment.
 
 #### a/ Docker
@@ -156,8 +156,8 @@ arguments. Two example files are provided in the examples directory:
    (parameters_possel.yaml) and summarizing the results in a file.
 
 Please be aware that, when provided, fasta sequence name **and**
-queryName must follow the format **speSpe_GENE_Id** for matching (ex:
-homSap_MX1_CCDS13673, macMul_APOBEC3G_NM_001198693).
+queryName must follow the format **Species_species_GENE_Id** for matching (ex:
+Homo_sapiens_MX1_CCDS13673, Macaca_mulatta_APOBEC3G_NM_001198693).
 
 ```
 # Path or list of paths (absolute or relative) to the files needed to start the pipeline
