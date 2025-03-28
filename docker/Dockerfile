@@ -39,6 +39,11 @@ RUN apt-get -y install build-essential cmake
 
 RUN apt-get install -y snakemake
 
+################
+## For visualisation (in shell mode)
+
+RUN apt-get install -y seaview
+
 ### Clean apt cache
 
 RUN apt-get clean
@@ -67,12 +72,6 @@ FROM base as macse
 WORKDIR /opt
 
 RUN wget https://www.agap-ge2pop.org/wp-content/uploads/macse/releases/macse_v2.07.jar
-
-
-################
-## For visualisation (in shell mode)
-
-RUN apt-get install -y seaview
 
 
 ##################################################
@@ -197,7 +196,6 @@ COPY --from=mafft /usr/lib/mafft /usr/lib/mafft
 #
 
 COPY --from=macse /opt/macse_v2.07.jar /opt/bin/macse.jar
-COPY --from=macse /usr/bin/seaview /usr/bin/seaview
 
 ###############################
 ## Trees
