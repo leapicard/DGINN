@@ -197,6 +197,7 @@ COPY --from=mafft /usr/lib/mafft /usr/lib/mafft
 #
 
 COPY --from=macse /opt/macse_v2.07.jar /opt/bin/macse.jar
+COPY --from=macse /usr/bin/seaview /usr/bin/seaview
 
 ###############################
 ## Trees
