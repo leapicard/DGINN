@@ -249,7 +249,7 @@ phymlOpt:
 ##################################################
 
 # Path to the species tree for the detection of duplication events and ortholog group assignment
-# Species names must be formated as speSpe or speSpeSpe (ex: homSap, gorGorGor)
+# Species names must be formated as Species_species (ex: Homo_sapiens)
 sptree:
 
 # Option for the identification of duplication events (default: False)
