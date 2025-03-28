@@ -132,6 +132,7 @@ To use the container, you can then run the following, for example with
 ```{sh}
 apptainer run --bind .snakemake:/opt/DGINN/.snakemake dginn_latest.sif --cores 1 --configfile config_example.yaml
 ```
+An error message may occur about the non-existence of .snakemake directory. Just create one, and run again, it should work.
 
 <!-- If you want to run DGINN from another folder, you can specify the -->
 <!-- path to the Snakefile file in the cloned repository: -->
