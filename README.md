@@ -83,7 +83,7 @@ container system.
 
 Please be aware that, due to Docker compulsory root access, a Docker
 container is not appropriate for usage in cluster environments, though
-it is appropriate for cloud computing (tutorial to come) and local
+it is appropriate for cloud computing and local
 usage. The Apptainer container should be usable in every environment.
 
 #### a/ Docker
@@ -132,6 +132,7 @@ To use the container, you can then run the following, for example with
 ```{sh}
 apptainer run --bind .snakemake:/opt/DGINN/.snakemake dginn_latest.sif --cores 1 --configfile config_example.yaml
 ```
+An error message may occur about the non-existence of .snakemake directory. Just create one, and run again, it should work.
 
 <!-- If you want to run DGINN from another folder, you can specify the -->
 <!-- path to the Snakefile file in the cloned repository: -->
@@ -155,8 +156,8 @@ arguments. Two example files are provided in the examples directory:
    (parameters_possel.yaml) and summarizing the results in a file.
 
 Please be aware that, when provided, fasta sequence name **and**
-queryName must follow the format **speSpe_GENE_Id** for matching (ex:
-homSap_MX1_CCDS13673, macMul_APOBEC3G_NM_001198693).
+queryName must follow the format **Species_species_GENE_Id** for matching (ex:
+Homo_sapiens_MX1_CCDS13673, Macaca_mulatta_APOBEC3G_NM_001198693).
 
 ```
 # Path or list of paths (absolute or relative) to the files needed to start the pipeline
@@ -248,7 +249,7 @@ phymlOpt:
 ##################################################
 
 # Path to the species tree for the detection of duplication events and ortholog group assignment
-# Species names must be formated as speSpe or speSpeSpe (ex: homSap, gorGorGor)
+# Species names must be formated as Species_species (ex: Homo_sapiens)
 sptree:
 
 # Option for the identification of duplication events (default: False)

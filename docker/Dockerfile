@@ -3,7 +3,7 @@ MAINTAINER Laurent Guéguen laurent.gueguen@univ-lyon1.fr
 
 ENV DEBIAN_FRONTEND noninteractive
 
-RUN apt-get update && apt-get install -y apt-utils locales
+RUN apt-get update && apt-get install -y apt-utils locales locales-all
 
 RUN apt-get install -y build-essential
 
@@ -38,6 +38,11 @@ RUN apt-get -y install build-essential cmake
 ### SNAKEMAKE
 
 RUN apt-get install -y snakemake
+
+################
+## For visualisation (in shell mode)
+
+RUN apt-get install -y seaview
 
 ### Clean apt cache
 
