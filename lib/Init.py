@@ -113,7 +113,7 @@ def paramDef(dParams):
         "input": "",
         "queryName": "",
         "queryFile": "",
-        "blastdb": "",
+        "blastdb": "nt",
         "outdir": "",
         "logfile": "",
         "evalue": 1e-3,
@@ -147,7 +147,7 @@ def paramDef(dParams):
     }
 
     for i in defaultParam:
-        if not i in dParams.keys() or  dParams[i] == "" or dParams[i]==None:
+        if not i in dParams.keys()  or dParams[i]==None or str(dParams[i]).strip() == "":
           dParams[i] = defaultParam[i]
         elif type(dParams[i])!=type(defaultParam[i]):
           dParams[i]=type(defaultParam[i])(dParams[i])
@@ -246,12 +246,6 @@ def paramDef(dParams):
             "Error: positiveSelection option set to false and step set to positiveSelection."
         )
         sys.exit()
-
-    if dParams["step"] in ["blast", "accessions", "fasta"]:
-        if dParams["blastdb"] == "":
-            print("Blastdb is necessary.")
-            sys.exit()
-
 
     return dParams
 

@@ -23,7 +23,7 @@ def blast(parameters, outfile):
     
     queryFile = parameters.get("input")
     outDir = parameters["outdir"]
-    db = parameters.get("blastdb","nr")
+    db = parameters["blastdb"]
     evalue = parameters["evalue"]
     percId = parameters["percID"]
     mincov  = parameters["mincov"]
@@ -37,8 +37,8 @@ def blast(parameters, outfile):
 
     sequence = open(queryFile).read()
     if sequence.startswith(">"): # fasta
-      sequence = sequence.split("\n")[1]
-      
+      sequence = "".join(sequence.split("\n")[1:])
+
     if sum([x in sequence for x in "RDEQHILKPLMFPSWYV"])<5: # tolerance to ambiguities
       blast="blastn"
       logger.info("Nucleotide sequence: blastn performed.")
@@ -47,7 +47,7 @@ def blast(parameters, outfile):
       logger.info("Proteic sequence: tblastn performed.")
           
     seqL = len(sequence)
-          
+
     if remote:
         if query == "":
             logger.info("Database {:s} will be searched for all species".format(db))
@@ -83,18 +83,6 @@ def blast(parameters, outfile):
         nbSeq = 0
 
         for record in NCBIXML.parse(resultHandle):
-            # f.write("# "+record.application+" "+record.version+"\n# Query: "+record.query+"\n# Database: "+record.database+"\n# Fields: subject id, ?\n# "+str(len(record.alignments))+" hits found\n")
-            f.write(
-                "# {} {}\n# Query: {}\n# Database: {}\
-					\n# Fields: subject id, ?\n# {} hits found\n".format(
-                    record.application,
-                    record.version,
-                    record.query,
-                    record.database,
-                    str(len(record.alignments)),
-                )
-            )
-
             for alignment in record.alignments:
                 for hsp in alignment.hsps:
                     qcov = hsp.align_length / seqL * 100
@@ -104,10 +92,10 @@ def blast(parameters, outfile):
         f.close()
         logger.info(nbSeq)
     else:
-        cmdBlast = 'blastn -task blastn -db {:s} -query {:s} -out {:s} \
+        cmdBlast = 'blastn -task {:s} -db {:s} -query {:s} -out {:s} \
 					-evalue {:f} -perc_identity {:d} -qcov_hsp_perc {:d} \
 					-outfmt "7 sseqid" -max_target_seqs 1000'.format(
-            db, queryFile, blastRes, evalue, percId, mincov
+                                        blast, db, queryFile, blastRes, evalue, percId, mincov
         )
         AnalysisFunc.cmd(cmdBlast, False)
         logger.debug("Blast command: {:s}".format(cmdBlast))
