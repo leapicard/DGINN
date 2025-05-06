@@ -83,6 +83,17 @@ def blast(parameters, outfile):
         nbSeq = 0
 
         for record in NCBIXML.parse(resultHandle):
+            f.write(
+                "# {} {}\n# Query: {}\n# Database: {}\
+                                       \n# Fields: subject id, ?\n# {} hits found\n".format(
+                    record.application,
+                    record.version,
+                    record.query,
+                    record.database,
+                    str(len(record.alignments)),
+                )
+            )
+
             for alignment in record.alignments:
                 for hsp in alignment.hsps:
                     qcov = hsp.align_length / seqL * 100
