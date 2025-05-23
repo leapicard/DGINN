@@ -477,7 +477,7 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
           fasta.write(FastaResFunc.dict2fasta(dRemain))
           fasta.close()
         dOut[newQuery]=outFile
-        logger.info("Extracting remaining sequence of {:d} species".format(len(spGp))
+        logger.info("Extracting remaining sequence of {:d} species".format(len(spGp)))
       else:
         logger.info(
           "Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(
