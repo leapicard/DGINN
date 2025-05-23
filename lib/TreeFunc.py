@@ -455,6 +455,7 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
                             fasta.close()
                         # remove the node from the tree
                         removed = gp.detach()
+                    logger.info("Extracting clade of {:d} species under node {:d}".format(len(spGp),nodeNb))
 
                     dDupl2Seq["{:d}-{:d}".format(nodeNb, nGp)] = orthos
                 nGp += 1
@@ -476,18 +477,19 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
           fasta.write(FastaResFunc.dict2fasta(dRemain))
           fasta.close()
         dOut[newQuery]=outFile
+        logger.info("Extracting remaining sequence of {:d} species".format(len(spGp))
       else:
         logger.info(
           "Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(
             list(dRemain.keys())
           )
         )
-
+                    
     # check that all files contain sequences, otherwise filter them out
     for dupKey, dupFile in dOut.items():
         lnseq = len([seq for seq in SeqIO.parse(open(dupFile), "fasta")])
         if lnseq < nbSp:
-          dOut.remove(dupKey)
+          dOut.pop(dupKey)
           os.remove(dupFile)
 
     logger.info(
