@@ -107,7 +107,7 @@ with_rec = ("recombination" in config and config["recombination"])
 
 rule all:
     input:
-         out_path("_results.txt",config["queryName"]) if up2ps else
+         out_path("_results.tsv",config["queryName"]) if up2ps else
            (out_path("_duplications.txt",config["queryName"]) if with_dupli else
              (out_path("_recombinations.txt",config["queryName"]) if with_rec else
                 (out_path("_tree.dnd",config["queryName"]))))
@@ -331,7 +331,7 @@ rule analyse_ps:
     input:
         rules.positive_selection.output,
     output:
-        out_path("_results.txt"),
+        out_path("_results.tsv"),
     log:
         log_path("_09_results.log"),
     script:
