@@ -203,31 +203,6 @@ def phymlRecEntry(Data, step="tree"):
     return Data
 
 
-def spTreeCheck(Data, firstStep, treeOption):
-    if not hasattr(Data, "cor") and treeOption:
-        if firstStep == "orf":
-            aln = Data.seqFile
-        elif firstStep == "alignment":
-            aln = Data.ORFs
-        elif firstStep == "tree" or firstStep == "duplication":
-            aln = Data.aln
-
-        if not os.path.exists(Data.sptree):
-            Data.sptree, treeOption = TreeFunc.treeCheck(Data.sptree, aln, treeOption)
-
-        if Data.sptree != "":
-            aln2, corSG = filterData(Data.sptree, aln, Data.o)
-
-            if firstStep == "orf":
-                Data.seqFile = aln2
-            elif firstStep == "alignment":
-                Data.ORFs = aln2
-            elif firstStep == "tree" or firstStep == "duplication":
-                Data.aln = aln2
-
-            setattr(Data, "cor", corSG)
-
-
 def duplPSEntry(Data, step="duplication"):
     """
     Function handling start of the pipeline at the tree step.

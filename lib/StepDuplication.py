@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
     # Run step
 
-    parameters["sptree"] = TreeFunc.treeCheck(parameters.get("sptree",""), align, logger)
+    parameters["sptree"] = TreeFunc.treeCheck(parameters.get("sptree",""), align, config["queryName"], logger)
         
     dqueryaln = TreeFunc.splitTree(parameters)
 

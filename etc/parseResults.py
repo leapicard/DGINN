@@ -118,7 +118,6 @@ if __name__ == "__main__":
             dGene.update(val)
 
         lsplitid=[fasta.id.split("_") for fasta in SeqIO.parse(open(aln),'fasta')]
-        minlid=min(map(len, lsplitid))
         sp=set(["_".join(l[:2]) for l in lsplitid])
 
         ids=["_".join(list(map(str.upper,l[2:]))) for l in lsplitid]

@@ -24,7 +24,7 @@ def splitTree(parameters, step="duplication"):
   """
 
   nbspecies=parameters["nbspecies"]
-
+  
   aln = parameters["input"].split()[0].strip()
   tree = parameters["input"].split()[1].strip()
   outdir = parameters["outdir"]
@@ -206,12 +206,12 @@ def getLeaves(path):
     return lGene
 
 
-def buildSpeciesTree(sptree, gfaln):
+def buildSpeciesTree(queryName, gfaln):
     """
     Build a species tree from the ncbi taxonomy or a given species tree,
     and write it in a specific species tree file.
 
-    @param1 sptree: general species tree.
+    @param1 queryName: query name.
     @param2 gfaln: path of the alignment
     
     @return the species tree file path.
@@ -231,14 +231,14 @@ def buildSpeciesTree(sptree, gfaln):
     for node in sptree.traverse():
       node.name = ncbi.get_taxid_translator([int(node.name)])[int(node.name)]
       node.name = "_".join(node.name.split())
-    
-    spTreeFile = "/".join(gfaln.split("/")[:-1] + ["species_tree.tree"])
+
+    spTreeFile = "/".join(gfaln.split("/")[:-1] + [queryName+"_species_tree.tree"])
     sptree.write(format=9, outfile=spTreeFile)
 
     return spTreeFile
 
 
-def treeCheck(treePath, alnf, logger):
+def treeCheck(treePath, alnf, queryName, logger):
     """
     Check if the tree isn't corrupted
 
@@ -260,7 +260,7 @@ def treeCheck(treePath, alnf, logger):
       buildspt = True
 
     if buildspt:
-      treePath = buildSpeciesTree(treePath, alnf)
+      treePath = buildSpeciesTree(queryName, alnf)
 
     return treePath
 
@@ -455,6 +455,7 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
                             fasta.close()
                         # remove the node from the tree
                         removed = gp.detach()
+                    logger.info("Extracting clade of {:d} species under node {:d}".format(len(spGp),nodeNb))
 
                     dDupl2Seq["{:d}-{:d}".format(nodeNb, nGp)] = orthos
                 nGp += 1
@@ -476,20 +477,25 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
           fasta.write(FastaResFunc.dict2fasta(dRemain))
           fasta.close()
         dOut[newQuery]=outFile
+        logger.info("Extracting remaining sequence of {:d} species".format(len(spGp)))
       else:
         logger.info(
           "Ignoring remaining sequences {} as they do not compose a group of enough orthologs.".format(
             list(dRemain.keys())
           )
         )
-
+                    
     # check that all files contain sequences, otherwise filter them out
+    rmKey = []
     for dupKey, dupFile in dOut.items():
         lnseq = len([seq for seq in SeqIO.parse(open(dupFile), "fasta")])
         if lnseq < nbSp:
-          dOut.remove(dupKey)
+          rmKey.append(dupKey)
           os.remove(dupFile)
 
+    for key in rmKey:
+      dOut.pop(key)
+      
     logger.info(
         "{:d} duplications detected by Treerecs, extracting {:d} groups of at least {} orthologs.".format(
             len(dupl), len(dOut), nbSp
@@ -502,7 +508,7 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
 # Post order traversal of sptree to find polytomies
 
 
-def max_parcimony_polytomy(node, gtree, outdir):
+def max_parcimony_polytomy(node, gtree, outdir, queryName):
     ch = node.get_children()
     lch = len(node.get_children())
     # best newtree
@@ -511,7 +517,7 @@ def max_parcimony_polytomy(node, gtree, outdir):
     lspt = []
     lcost = []
 
-    otmp=os.path.join(outdir,"tmp")
+    otmp=os.path.join(outdir,queryName+"_tmp")
     if not os.path.exists(otmp):
         os.makedirs(otmp)
 
@@ -539,7 +545,7 @@ def max_parcimony_polytomy(node, gtree, outdir):
         val = "treerecs -g {:s} -s {:s} -o {:s} -f -t 0.8 -O NHX".format(gfi, spf, otmp)
         subprocess.run(val, shell=True, capture_output=True)
 
-        fnt = open(os.path.join(otmp, "eval_poly_gene_%d.tree_recs.nhx" % (len(lspt))), "r")
+        fnt = open(gfi+"_recs.nhx", "r")
         lc = fnt.readline()
         fnt.close()
         pc = lc.find("total cost")
@@ -560,7 +566,7 @@ def max_parcimony_polytomy(node, gtree, outdir):
 ###
 # Resolve high order polytomy through nj on sampled clades
 
-def nj_sample_polytomy(node, gtree, outdir):
+def nj_sample_polytomy(node, gtree, outdir, queryName):
     """ Resolve polytomy from observed gene tree."""
 
     def g2sp(gname):
@@ -601,7 +607,7 @@ def nj_sample_polytomy(node, gtree, outdir):
       if len(leag) != 0:
         gt2.prune(leag)
 
-      noderes=max_parcimony_polytomy(node2, gt2, outdir)
+      noderes=max_parcimony_polytomy(node2, gt2, outdir, queryName)
       lnoderes.append(noderes)
 
       for isa in inodes:
@@ -708,9 +714,9 @@ def runTreerecs(query, aln, pathGtree, pathSptree, outdir,logger):
             gt2.prune(leag)
 
           if lch> thrspoly:
-            nb = nj_sample_polytomy(node, gt2, outdir)
+            nb = nj_sample_polytomy(node, gt2, outdir, query)
           else:
-            nb = max_parcimony_polytomy(node, gt2, outdir)
+            nb = max_parcimony_polytomy(node, gt2, outdir, query)
 
           node.add_sister(nb)
           node.detach()

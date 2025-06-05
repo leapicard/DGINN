@@ -19,6 +19,8 @@ def dict2fasta(dico):
 
     txtoutput = ""
     for key, value in dico.items():
+        key = key.replace("(","_")
+        key = key.replace(")","_")
         txtoutput += ">{:s}\n{:s}\n".format(str(key), str(value))
 
     return txtoutput
