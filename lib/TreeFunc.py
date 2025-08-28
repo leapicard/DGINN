@@ -360,6 +360,7 @@ def filterTree(tree, spTree):
     lg = tg.get_leaf_names()
     ls = ts.get_leaf_names()
 
+    #gok = [g for g in lg if g.split("_")[] in ls]
     gok = [g for g in lg if "_".join(g.split("_")[:2]) in ls]
 
     tg.prune(gok)
@@ -669,7 +670,7 @@ def runTreerecs(query, aln, pathGtree, pathSptree, outdir,logger):
     ## prune gene tree according to species Tree
     try:
       pathGtree = filterTree(pathGtree, pathSptree)
-    except Exception: #TreeError:
+    except TreeError:
       ## names of the genes
       seqs = SeqIO.parse(open(aln), "fasta")
       dID2Seq = [gene.id for gene in seqs]
