@@ -668,7 +668,7 @@ def runTreerecs(query, aln, pathGtree, pathSptree, outdir,logger):
     ## prune gene tree according to species Tree
     try:
       pathGtree = filterTree(pathGtree, pathSptree)
-    except TreeError:
+    except Exception: #TreeError:
       ## names of the genes
       seqs = SeqIO.parse(open(aln), "fasta")
       dID2Seq = [gene.id for gene in seqs]
