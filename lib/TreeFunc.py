@@ -8,6 +8,7 @@ from Bio import SeqIO, Phylo
 from statistics import median, mean
 from Bio.Phylo.TreeConstruction import DistanceTreeConstructor, DistanceCalculator, DistanceMatrix
 from Bio.Phylo import Newick
+from ete3.coretype.tree import TreeError
 
 """
 File which countain all functions about treerecs and tree treatement.
