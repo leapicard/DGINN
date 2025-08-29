@@ -253,8 +253,139 @@ def covAln(aln, parameters):
         )
         return (aln, 0)
 
-
 def isoformMafft(ORFs, parameters):
+    """
+    Cluster isoforms of the same species using MAFFT and return the resulting sequences file.
+
+    Isoforms are grouped by species (first two parts of sequence ID) and clustered
+    if they share identical letters at the same positions in the alignment.
+
+    Parameters:
+        ORFs (str): Path to input sequences in FASTA format.
+        parameters (dict): Dictionary of parameters including:
+            - outdir: output directory
+            - queryName: query name for output files
+
+    Returns:
+        str: Path to resulting sequences file (clustered), or original ORFs if no clustering occurred.
+    """
+
+    import os
+    import logging
+    from Bio import SeqIO
+
+    outdir = parameters["outdir"]
+    queryName = parameters["queryName"]
+    logger = logging.getLogger("main.alignment")
+    logger.info("Clustering isoforms.")
+
+    dRem = {}       # for sequences that are not clustered
+    dId2Seq = {}    # species -> {tag -> sequence}
+    laln = 0        # alignment length
+
+    # Step 1: Read sequences and organize by species and tag
+    for fasta in SeqIO.parse(open(ORFs), "fasta"):
+        parts = fasta.id.split("_")
+        if len(parts) > 2:  # normal format: Species_species_tag...
+            sp = "_".join(parts[:2])
+            tag = "_".join(parts[2:])
+            if sp not in dId2Seq:
+                dId2Seq[sp] = {}
+            dId2Seq[sp][tag] = str(fasta.seq)
+            if laln == 0:
+                laln = len(fasta.seq)
+        else:
+            dRem[fasta.id] = str(fasta.seq)
+
+    outCov = os.path.join(outdir, queryName + "_clustiso.fasta")
+    clustok = False
+
+    # Step 2: Process each species
+    for sp, dtagseq in dId2Seq.items():
+        if len(dtagseq) == 1:
+            # Only one sequence: keep as is
+            single_tag = list(dtagseq.keys())[0]
+            dRem[sp + "_" + single_tag] = dtagseq[single_tag]
+            continue
+
+        # Keep original tag order for clustering
+        ltags = list(dtagseq.keys())
+
+        # --- NEW: Map tags to temporary IDs for MAFFT ---
+        tag2tmp = {tag: f"seq{i}" for i, tag in enumerate(ltags)}
+        tmp2tag = {v: k for k, v in tag2tmp.items()}
+
+        tmpfseq = os.path.join(outdir, sp + ".fasta")
+        with open(tmpfseq, "w") as outC:
+            for tag, seq in dtagseq.items():
+                outC.write(f">{tag2tmp[tag]}\n{seq}\n")
+
+        # Step 3: Run MAFFT
+        parameters["queryName"] = sp + "_" + queryName
+        outMafft = runMafft(tmpfseq, parameters, False)
+        parameters["queryName"] = queryName
+
+        # --- NEW: Map aligned sequences back to original tags ---
+        dtagseq_aligned = {}
+        laln = 0
+        for fasta in SeqIO.parse(open(outMafft), "fasta"):
+            original_tag = tmp2tag[fasta.id]  # map back
+            dtagseq_aligned[original_tag] = str(fasta.seq)
+            if laln == 0:
+                laln = len(fasta.seq)
+        dtagseq = dtagseq_aligned
+
+        # Clean temporary files
+        if os.path.exists(tmpfseq):
+            os.remove(tmpfseq)
+        os.remove(outMafft)
+
+        # Step 4: Cluster sequences
+        lclust = [[ltags[0]]]  # initialize clusters
+        for itag in range(1, len(ltags)):
+            tag = ltags[itag]
+            seq1 = dtagseq[tag]
+            for clust in lclust:
+                for tag2 in clust:
+                    seq2 = dtagseq[tag2]
+                    dist = len([pos for pos in range(laln) if seq1[pos] != seq2[pos] and seq1[pos] != "-" and seq2[pos] != "-"])
+                    if dist != 0:  # sequences differ
+                        break
+                if dist == 0:  # sequence matches cluster
+                    clust.append(tag)
+                    tag = ""
+                    break
+            if tag != "":
+                lclust.append([tag])
+
+        # Step 5: Merge sequences in each cluster
+        for clust in lclust:
+            if len(clust) == 1:
+                dRem[sp + "_" + clust[0]] = dtagseq[clust[0]]
+            else:
+                clustok = True
+                ntag = clust[-1] + "_clust"
+                logger.info(
+                    "Clustered sequences " +
+                    sp + "_" +
+                    (", %s_" % (sp)).join(clust) +
+                    " into %s_" % (sp) + ntag
+                )
+                nseq = "".join(
+                    [max([dtagseq[tag][pos] for tag in clust]) for pos in range(laln)]
+                )
+                dRem[sp + "_" + ntag] = nseq
+
+    # Step 6: Write final sequences if clustering occurred
+    if clustok:
+        with open(outCov, "w") as outC:
+            outC.write(FastaResFunc.dict2fasta(dRem))
+        logger.info("%d remaining sequences" % len(dRem))
+        return outCov
+    else:
+        return ORFs
+
+def isoformMafftori(ORFs, parameters):
     """Function to with species specific Mafft used to cluster
     isoforms. Return the clustering of these isoforms.
 
