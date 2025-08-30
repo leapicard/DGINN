@@ -256,18 +256,6 @@ def covAln(aln, parameters):
 def isoformMafft(ORFs, parameters):
     """
     Cluster isoforms of the same species using MAFFT and return the resulting sequences file.
-
-    Isoforms are grouped by species (first two parts of sequence ID) and clustered
-    if they share identical letters at the same positions in the alignment.
-
-    Parameters:
-        ORFs (str): Path to input sequences in FASTA format.
-        parameters (dict): Dictionary of parameters including:
-            - outdir: output directory
-            - queryName: query name for output files
-
-    Returns:
-        str: Path to resulting sequences file (clustered), or original ORFs if no clustering occurred.
     """
 
     import os
@@ -308,10 +296,10 @@ def isoformMafft(ORFs, parameters):
             dRem[sp + "_" + single_tag] = dtagseq[single_tag]
             continue
 
-        # Keep original tag order for clustering
+        # --- Original tags (before MAFFT) ---
         ltags = list(dtagseq.keys())
 
-        # --- NEW: Map tags to temporary IDs for MAFFT ---
+        # Map tags to temporary IDs for MAFFT
         tag2tmp = {tag: f"seq{i}" for i, tag in enumerate(ltags)}
         tmp2tag = {v: k for k, v in tag2tmp.items()}
 
@@ -325,20 +313,23 @@ def isoformMafft(ORFs, parameters):
         outMafft = runMafft(tmpfseq, parameters, False)
         parameters["queryName"] = queryName
 
-        # --- NEW: Map aligned sequences back to original tags ---
+        # --- Map aligned sequences back to original tags ---
         dtagseq_aligned = {}
         laln = 0
         for fasta in SeqIO.parse(open(outMafft), "fasta"):
-            original_tag = tmp2tag[fasta.id]  # map back
+            original_tag = tmp2tag[fasta.id]
             dtagseq_aligned[original_tag] = str(fasta.seq)
             if laln == 0:
                 laln = len(fasta.seq)
         dtagseq = dtagseq_aligned
 
-        # Clean temporary files
-        if os.path.exists(tmpfseq):
-            os.remove(tmpfseq)
-        os.remove(outMafft)
+        # --- FIX: Refresh ltags so they match new dtagseq keys ---
+        ltags = list(dtagseq.keys())
+
+        # --- Safe cleanup of temporary files ---
+        for f in (tmpfseq, outMafft):
+            if f and os.path.exists(f):
+                os.remove(f)
 
         # Step 4: Cluster sequences
         lclust = [[ltags[0]]]  # initialize clusters
@@ -348,7 +339,10 @@ def isoformMafft(ORFs, parameters):
             for clust in lclust:
                 for tag2 in clust:
                     seq2 = dtagseq[tag2]
-                    dist = len([pos for pos in range(laln) if seq1[pos] != seq2[pos] and seq1[pos] != "-" and seq2[pos] != "-"])
+                    dist = len([
+                        pos for pos in range(laln)
+                        if seq1[pos] != seq2[pos] and seq1[pos] != "-" and seq2[pos] != "-"
+                    ])
                     if dist != 0:  # sequences differ
                         break
                 if dist == 0:  # sequence matches cluster
