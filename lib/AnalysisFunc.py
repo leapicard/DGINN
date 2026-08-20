@@ -36,7 +36,7 @@ def cmd(commandLine, choice, verbose=False, stdout = None):
         run = subprocess.run(commandLine, shell=choice, stdout=out, stderr=out)
     except subprocess.CalledProcessError as err:
       sys.stderr.write(str(err))
-
+      raise subprocess.CalledProcessError(str(err))
         
     if stdout and stdout != subprocess.PIPE:
       out.close()
@@ -647,17 +647,22 @@ def runPhyML(parameters):
             opt = phymlOpt.split("ALN ")[1]
             logger.debug("phyml --quiet -i {:s} {}".format(outPhy, opt))
             cmd("phyml --quiet -i {:s} {}".format(outPhy, opt), False)
-        except:
+        except subprocess.CalledProcessError:
             logger.info(
                 "PhyML couldn't run with the provided info {}, running with default options.".format(
                     phymlOpt
                 )
             )
-            cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False)
-    else:
-        logger.debug("phyml --quiet -i {:s} -v e -b -2".format(outPhy))
-        cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False, False)
+            phymlOpt = ""
 
+    if phymlOpt == "":
+        try:
+            logger.debug("phyml --quiet -i {:s} -v e -b -2".format(outPhy))
+            cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False, False)
+        except subprocess.CalledProcessError:
+            logger.info("PhyML couldn't run default options.")
+            raise(subprocess.CalledProcessError)
+            
     return outPhy+"_phyml_tree.txt"
 
 #######=================================================================================================================
@@ -706,22 +711,27 @@ def runPhymlMulti(parameters):
     input_handle.close()
     os.remove(tmp)
 
-    #phymlOpt = parameters["phymlOpt"]
+    phymlOpt = parameters["phymlOpt"]
     # PhyML
-    if False:#phymlOpt != "":
+    if phymlOpt != "":
         try:
             opt = phymlOpt.split("ALN ")[1]
             logger.debug("phyml -i {:s} {}".format(outPhy, opt))
             cmd("phyml --quiet -i {:s} {}".format(outPhy, opt), False)
-        except:
+        except subprocess.CalledProcessError:
             logger.info(
                 "PhyML couldn't run with the provided info {}, running with default options.".format(
                     phymlOpt
                 )
-            )
-    else:
+            phymlOpt = ""
+
+    if phymlOpt == "":
         logger.info("phyml_multi %s 0 i 1 0 HKY e e 4 e BIONJ y y y 2"%(outPhy))
-        subprocess.run("phyml_multi %s 0 i 1 0 HKY e e 4 e BIONJ y y y 2"%(outPhy),shell=True)
+        try:
+            cmd("phyml_multi %s 0 i 1 0 HKY e e 4 e BIONJ y y y 2"%(outPhy),True)
+        except subprocess.CalledProcessError:
+            logger.info("PhyML couldn't run default options.")
+            raise(subprocess.CalledProcessError)
 
     ################
     ### SARMENT HMM
