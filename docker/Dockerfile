@@ -1,7 +1,7 @@
 FROM ubuntu:latest as base
 MAINTAINER Laurent Guéguen laurent.gueguen@univ-lyon1.fr
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y apt-utils locales locales-all
 
@@ -68,7 +68,7 @@ RUN apt-get update && apt-get install -y mafft
 
 #################
 ## Install MACSE
-FROM base as macse
+from base as macse
 WORKDIR /opt
 
 RUN wget https://www.agap-ge2pop.org/wp-content/uploads/macse/releases/macse_v2.07.jar
@@ -79,19 +79,19 @@ RUN wget https://www.agap-ge2pop.org/wp-content/uploads/macse/releases/macse_v2.
 
 #################
 ## Install PhyML
-FROM base as phyml
+from base as phyml
 RUN apt-get -y install phyml
 
 #################
 ## Install Iqtree
-FROM base as iqtree
+from base as iqtree
 WORKDIR /opt
 
 RUN wget https://github.com/iqtree/iqtree2/releases/download/v2.3.6/iqtree-2.3.6-Linux-intel.tar.gz && tar zxvf iqtree-2.3.6-Linux-intel.tar.gz
 
 #################
 ## Install Treerecs
-FROM base as treerecs
+from base as treerecs
 WORKDIR /opt
 
 RUN apt-get install -y flex bison
@@ -102,7 +102,7 @@ RUN git  clone  --recurse-submodules https://gitlab.inria.fr/Phylophile/Treerecs
 
 #################
 ## Install BIO++
-FROM base as biopp
+from base as biopp
 WORKDIR /opt
 
 RUN mkdir bpp && cd  bpp && mkdir sources && cd sources
@@ -148,13 +148,13 @@ RUN cd bpp  && git clone https://github.com/BioPP/bppsuite && cd bppsuite && cma
 
 #################
 ## Install paml
-FROM base as paml
+from base as paml
 
 RUN apt-get install -y paml
 
 #################
 ### Install HYPHY
-FROM base as hyphy
+from base as hyphy
 
 RUN apt-get install -y hyphy-mpi hyphy-common hyphy-pt
 
@@ -167,19 +167,19 @@ RUN apt-get install -y hyphy-mpi hyphy-common hyphy-pt
 #########################"
 ## DGINN
 
-FROM base
+from base
 WORKDIR /opt/
 RUN git clone https://github.com/lgueguen/DGINN && cd DGINN
 
 
 ### Environnment
 
-ENV PATH /opt/DGINN/:$PATH
-ENV PYTHONPATH /opt/DGINN/:/opt/DGINN/scripts/:/opt/DGINN/lib/:$PYTHONPATH
+ENV PATH=/opt/DGINN/:$PATH
+ENV PYTHONPATH=/opt/DGINN/:/opt/DGINN/scripts/:/opt/DGINN/lib/:$PYTHONPATH
 
 
 ## All softwares
-ENV PATH /opt/bin:/usr/bin/$PATH
+ENV PATH=/opt/bin:/usr/bin/$PATH
 
 #################################
 ## ALIGNERS
@@ -206,7 +206,7 @@ COPY --from=phyml /usr/bin/phyml /usr/bin/phyml
 COPY --from=phyml /usr/lib/phyml/bin /usr/lib/phyml/bin
 
 COPY --from=treerecs  /opt/Treerecs /opt/treerecs
-ENV PATH /opt/treerecs/bin:$PATH
+ENV PATH=/opt/treerecs/bin:$PATH
 
 ######################################
 ### Selection
@@ -222,8 +222,8 @@ COPY --from=hyphy /usr/lib/hyphy/bin /usr/lib/hyphy/bin
 COPY --from=hyphy /usr/bin/hyphy /usr/bin/hyphy
 COPY --from=hyphy /usr/share/hyphy /usr/share/hyphy
 
-ENV PATH /opt/bpp/bppsuite/bppSuite/:$PATH
-ENV LD_LIBRARY_PATH /opt/bpp/lib:$LD_LIBRARY_PATH
+ENV PATH=/opt/bpp/bppsuite/bppSuite/:$PATH
+ENV LD_LIBRARY_PATH=/opt/bpp/lib:$LD_LIBRARY_PATH
 
 
 
@@ -231,7 +231,7 @@ ENV LD_LIBRARY_PATH /opt/bpp/lib:$LD_LIBRARY_PATH
 
 RUN mkdir -p /opt/DGINN/.snakemake
 RUN chmod 777 /opt/DGINN/.snakemake
-ENV XDG_CACHE_HOME /opt/DGINN/.snakemake
+ENV XDG_CACHE_HOME=/opt/DGINN/.snakemake
 
 ###
 
