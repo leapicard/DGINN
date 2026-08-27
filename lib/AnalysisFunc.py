@@ -722,7 +722,7 @@ def runPhymlMulti(parameters):
             logger.info(
                 "PhyML couldn't run with the provided info {}, running with default options.".format(
                     phymlOpt
-                )
+                ))
             phymlOpt = ""
 
     if phymlOpt == "":
