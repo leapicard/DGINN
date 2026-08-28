@@ -657,7 +657,7 @@ def runPhyML(parameters):
 
     if phymlOpt == "":
         try:
-            logger.debug("phyml --quiet -i {:s} -v e -b -2".format(outPhy))
+            logger.debug("phyml --quiet -i {:s} -v e -b -4".format(outPhy))
             cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False, False)
         except subprocess.CalledProcessError:
             logger.info("PhyML couldn't run default options.")
@@ -676,10 +676,14 @@ def runIqTree(parameters):
 
     logger = logging.getLogger("main.tree")
     logger.info("Run IqTree builder.")
-    logger.debug("iqtree2 -redo --quiet -s {:s}".format(aln))
-    cmd("iqtree2 -redo --quiet -s {:s}".format(aln), False)
+    
+    logger.debug("iqtree2 -redo --quiet --alrt 0 -s {:s}".format(aln))
+    cmd("iqtree2 -redo --alrt 0 --quiet -s {:s}".format(aln), True)
 
-    return aln+".treefile"
+    ##remove / 
+    os.system(r"sed 's/\///g' %s.treefile > %s.nwk"%(aln,aln))
+
+    return aln+".nwk"
 
 
 #######=================================================================================================================

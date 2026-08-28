@@ -595,7 +595,7 @@ def runNotung(query, aln, pathGtree, pathSptree, outdir, logger):
 
     ### pruning, reconciliation & rooting of gene tree
 
-    val = "java -jar lib/Notung-2.9.1.5.jar -s {:s} -g {:s} --prune --root --treeoutput nhx --outputdir {:s} --reconcile --nolosses --rearrange --threshold 0.8".format(pathSptree, pathGtree, outdir)
+    val = "java -jar lib/Notung-2.9.1.5.jar -s {:s} -g {:s} --prune --root --treeoutput nhx --outputdir {:s} --reconcile --nolosses".format(pathSptree, pathGtree, outdir) # --rearrange --threshold 0.8
     AnalysisFunc.cmd(val,True)
 
     return os.path.join(outdir,os.path.split(pathGtree)[-1] + ".reconciled")
