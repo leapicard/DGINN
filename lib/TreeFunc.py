@@ -447,9 +447,11 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
 
         # for each of the branches concerned by the duplication
         nGp = 1
-        interok = False
-        
+
+        ###################
+        ### here deactivated
         # do not consider dubious duplications (no intersection between the species on either side of the annotated duplication)
+        interok = False
         lf = [set([leaf.S for leaf in gp]) for gp in node.get_children()]
         interok = (
             len(lf) > 1 and 
@@ -458,9 +460,12 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
             and len(lf[1]) > int(nbSp) / 2 - 1
         )
 
-        if not interok:
-            dNb2Node.pop(0)
-            
+        #if not interok: 
+        #    dNb2Node.pop(0)
+
+        if False:
+          pass
+        ####################
         # otherwise check it out
         else:
             for gp in node.get_children():
