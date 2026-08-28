@@ -2,7 +2,7 @@
 Script running the tree analysis step.
 """
 import logging
-import os
+import os, shutil
 
 import AnalysisFunc
 
@@ -33,7 +33,6 @@ if __name__ == "__main__":
     lbuilder=["phyml","iqtree"]
 
     treeOk=False
-
     while not treeOk:
       if builder == "phyml":
         logger.info("Running PhyML")
@@ -44,8 +43,7 @@ if __name__ == "__main__":
       else:
         logger.info("Unknown tree builder: " + builder)
         break
-
-      logging.info(dAltree)
+   
       if not os.path.exists(dAltree) or os.path.getsize(dAltree)==0:
         logger.info(builder + " failed to build tree.")
         lbuilder = [b for b in lbuilder if b!=builder]
@@ -55,8 +53,8 @@ if __name__ == "__main__":
       else:
         treeOk=True
         break
-
+   
     if not treeOk:
       raise Exception("Failed tree construction.")
-    
+   
     os.rename(dAltree, config["output"])

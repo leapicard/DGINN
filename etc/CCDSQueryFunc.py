@@ -44,10 +44,11 @@ def getCCDS(genesFile, species, spName):
 	server = "http://rest.ensembl.org"
 	species = species.lower().replace(" ", "_")
 	
-	df = pandas.read_csv(genesFile, sep='\t') # import gene list as pandas dataframe
-	df = df.drop_duplicates(subset='Approved symbol', keep='first') # keep only first instance of each gene
+	df = pandas.read_csv(genesFile, sep=',') # import gene list as pandas dataframe
+	#df = df.drop_duplicates(subset='Approved symbol', keep='first') # keep only first instance of each gene
 	
 	for index, row in df.iterrows():
+		print(row)
 		geneName = str(row['Approved symbol'])
 		geneCCDS = str(row['CCDS accession'])
 		seqID = "{:s}_{:s}_{:s}".format(spName, geneName, geneCCDS)

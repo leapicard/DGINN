@@ -41,7 +41,7 @@ The pipeline is organized using snakemake.
 
 ## 1/ Necessary dependencies and softwares
 
--   Softwares and versions: [EMBOSS:6.6](http://en.bio-soft.net/format/emboss.html), [PRANK v.170427](http://wasabiapp.org/software/prank/prank_installation/), [MACSE V2.07](https://bio.tools/macse), [PhyML 3.0](https://github.com/stephaneguindon/phyml), [IQTREE v 2.6.6](http://www.iqtree.org), [Treerecs v1.0](https://gitlab.inria.fr/Phylophile/Treerecs), [HYPHY 2.3](http://www.hyphy.org/installation/), [Bio++ v.3](https://github.com/BioPP)
+-   Softwares and versions: [EMBOSS:6.6](http://en.bio-soft.net/format/emboss.html), [PRANK v.170427](http://wasabiapp.org/software/prank/prank_installation/), [MACSE V2.07](https://bio.tools/macse), [PhyML 3.0](https://github.com/stephaneguindon/phyml), [IQTREE v 2.6.6](http://www.iqtree.org), [Notung v2.9](https://www.cs.cmu.edu/~durand/Notung/), [HYPHY 2.3](http://www.hyphy.org/installation/), [Bio++ v.3](https://github.com/BioPP)
 -   Python (>3.5) and packages: Biopython, ete3, collections, logging, shlex, os, numpy, scipy, requests, pandas, statistics, time, re, argparse
 -   Snakemake
 
@@ -254,6 +254,9 @@ sptree:
 
 # Option for the identification of duplication events (default: False)
 duplication:
+
+# Will polymorphism be merged? Default : true 
+Merge SNP: 
 
 ###############################################
 ##### CLEANING

@@ -48,6 +48,7 @@ if __name__ == "__main__":
     ## discard sequences according to coverage on query sequence
     fasCov, nbOut = AnalysisFunc.covAln(outMafft, parameters)
 
+    ## align
     if aligner == "prank":
       outFile = AnalysisFunc.runPrank(fasCov, parameters)
     elif aligner == "macse":

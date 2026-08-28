@@ -1,6 +1,6 @@
 import shutil, sys, os
 from pathlib import Path
-          
+           
 # --- Path functions ---
 def out_path(file, queryName = "{queryName}"):
     return expand("{outdir}/{queryName}" + file, outdir=config["outdir"], queryName=queryName)
@@ -78,9 +78,12 @@ dstep={
 if step in dstep:
   for i in range(len(config["queryName"])):
     instep = dstep[step][0]
-    shutil.copyfile(config["infile"][i],out_path(instep,queryName=config["queryName"][i])[0])
-    config["infile"][i]=out_path(instep,queryName=config["queryName"][i])[0]
-
+    try: 
+    	 shutil.copyfile(config["infile"][i],out_path(instep,queryName=config["queryName"][i])[0])
+    	 config["infile"][i]=out_path(instep,queryName=config["queryName"][i])[0]
+    except FileNotFoundError as e:
+         print(e)
+         sys.exit()
 
 ## specifically for positive selection step, infiles should be couples (alignment, tree)
 
@@ -118,7 +121,7 @@ rule all:
 ######################################################
 
 ## Function to check if a rule should be run: if file with outsuffix
-## does not exists, ask for insuffix file
+## does not exist, ask for insuffix file
           
 def check_exists(wildcards, outsuffix, insuffix):
     outfile = out_path(outsuffix,queryName=wildcards)[0]
@@ -203,7 +206,6 @@ checkpoint tree:
         "lib/StepTree.py"
 
           
-
 ######################################################
 #### Recombination
 ######################################################
@@ -300,9 +302,52 @@ rule duplication:
 #### Positive selection
 ######################################################
 
+rule meme:
+    input:
+       [rules.alignment.output, rules.tree.output]
+    output:
+        out_path("_positive_selection/meme/MEME.json"),
+    log:
+        log_path("_08_meme.log"),
+    script:
+        "lib/PosSelFunc.py"
+
+rule busted:
+    input:
+       [rules.alignment.output, rules.tree.output]
+    output:
+        out_path("_positive_selection/busted/busted.out"),
+    log:
+        log_path("_08_busted.log"),
+    script:
+        "lib/PosSelFunc.py"
+
+rule paml:
+    input:
+       [rules.alignment.output, rules.tree.output]
+    output:
+        out_path("_positive_selection/paml_site/C/M0/result.txt"),
+    log:
+        log_path("_08_paml.log"),
+    script:
+        "lib/PosSelFunc.py"
+
+rule bppml:
+    input:
+       [rules.alignment.output, rules.tree.output]
+    output:
+        out_path("_positive_selection/bpp_site/base.bpp"),
+    log:
+        log_path("_08_bpp.log"),
+    script:
+        "lib/PosSelFunc.py"          
+
 rule positive_selection_dup:
     input:
-        [rules.alignment.output, rules.tree.output],
+        rules.busted.output if config["busted"] else [],
+        rules.paml.output if config["paml"] else [],
+        rules.meme.output if config["meme"] else [],
+        rules.bppml.output if config["bppml"] else [],
     output:
         out_path("_positive_selection_dup.txt"),
     log:

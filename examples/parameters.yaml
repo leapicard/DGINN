@@ -95,6 +95,9 @@ LBopt:
 # Minimum number of species for assignment to an ortholog group (default: 8)
 nbspecies:8
 
+# Will polymorphism be merged? Default : true 
+Merge SNP: 
+
 ##################################################
 ###### RECOMBINATION
 ##################################################

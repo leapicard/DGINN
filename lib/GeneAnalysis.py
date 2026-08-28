@@ -1,5 +1,6 @@
 import logging, os, re, subprocess
 
+
 # def hyphyBusted(alnFile, cladoFile, outDir, baseName, logger): old line for function with logger.
 def hyphyBusted(alnFile, cladoFile, outDir, logger):
 ### WHOLE-GENE ANALYSIS: HYPHY BUSTED
@@ -11,6 +12,7 @@ def hyphyBusted(alnFile, cladoFile, outDir, logger):
 	if not os.path.exists(outWG):
 		subprocess.Popen("mkdir "+outWG, shell =  True).wait()
 
+                
 	bustedFile = outWG+"busted.bf"
 	with open(bustedFile, "w") as bf:
 		bf.write("inputRedirect = {};\n")
