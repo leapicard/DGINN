@@ -622,7 +622,7 @@ def runPhyML(parameters):
 
     @param1 aln: Path
     @param2 geneDir: Gene directory
-    @return outPhy: Path to PhyML results file
+    @return (llog,outPhy): (log likelihood, Path to PhyML results file)
     """
     # convert to Phylip format and replace eventual "!" symbols (relic from using MACSE)
 
@@ -657,13 +657,14 @@ def runPhyML(parameters):
 
     if phymlOpt == "":
         try:
-            logger.debug("phyml --quiet -i {:s} -v e -b -4".format(outPhy))
-            cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False, False)
+            logger.debug("phyml --quiet -i {:s} -v e -b -2".format(outPhy))
+            output = cmd("phyml --quiet -i {:s} -v e -b -2".format(outPhy), False, False)
+            llog = float([s for s in output.split(b"\n") if b"Log like" in s][-1].split()[-1][:-1])
         except subprocess.CalledProcessError:
             logger.info("PhyML couldn't run default options.")
             raise(subprocess.CalledProcessError)
             
-    return outPhy+"_phyml_tree.txt"
+    return (llog,outPhy+"_phyml_tree.txt")
 
 #######=================================================================================================================
 ###### IqTree =============================================================================================================
@@ -677,13 +678,14 @@ def runIqTree(parameters):
     logger = logging.getLogger("main.tree")
     logger.info("Run IqTree builder.")
     
-    logger.debug("iqtree2 -redo --quiet --alrt 0 -s {:s}".format(aln))
-    cmd("iqtree2 -redo --alrt 0 --quiet -s {:s}".format(aln), True)
+    logger.debug("iqtree2 -redo --alrt 0 -s {:s}".format(aln))
+    output = cmd("iqtree2 -redo --alrt 0 -s {:s}".format(aln), True)
+    llog = float([s for s in output.split(b"\n") if b"BEST SCORE" in s][-1].split()[-1])
 
     ##remove / 
     os.system(r"sed 's/\///g' %s.treefile > %s.nwk"%(aln,aln))
 
-    return aln+".nwk"
+    return (llog,aln+".nwk")
 
 
 #######=================================================================================================================

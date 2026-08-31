@@ -19,42 +19,34 @@ if __name__ == "__main__":
 
     config = snakemake.config
 
-
     config["queryName"] = str(snakemake.wildcards).split(":", 1)[0]
     config["output"] = str(snakemake.output)
     config["step"] = snakemake.rule
 
-    builder = config.get("builder","phyml")
+    if "builder" in config and config["builder"]:
+        builder = [config["builder"]]
+    else:
+        builder = ["phyml","iqtree"]
 
     config["input"] = os.path.join(config["outdir"],config["queryName"]+"_align.fasta")
     parameters = Init.paramDef(config)
 
     # Run step
-    lbuilder=["phyml","iqtree"]
 
-    treeOk=False
-    while not treeOk:
-      if builder == "phyml":
-        logger.info("Running PhyML")
-        dAltree = AnalysisFunc.runPhyML(parameters)
-      elif builder == "iqtree":
-        logger.info("Running IQtree")
-        dAltree = AnalysisFunc.runIqTree(parameters)
-      else:
-        logger.info("Unknown tree builder: " + builder)
-        break
-   
-      if not os.path.exists(dAltree) or os.path.getsize(dAltree)==0:
-        logger.info(builder + " failed to build tree.")
-        lbuilder = [b for b in lbuilder if b!=builder]
-        if lbuilder==[]:
-          break
-        builder = lbuilder[0]
-      else:
-        treeOk=True
-        break
-   
-    if not treeOk:
+    lAltree = [] # List of (llist, file name)
+    if "phyml" in builder:
+        lAltree.append(AnalysisFunc.runPhyML(parameters))
+        logger.info("Log-lik: " + str(lAltree[-1][0]))
+    if "iqtree" in builder:
+        lAltree.append(AnalysisFunc.runIqTree(parameters))
+        logger.info("Log-lik: " + str(lAltree[-1][0]))
+
+    ### get maximum
+    if len(lAltree)==0:
       raise Exception("Failed tree construction.")
-   
+
+    imax = max(range(len(lAltree)), key = lambda x:lAltree[x][0])
+    logger.info("Get tree from best builder: " + builder[imax])
+    dAltree = lAltree[imax][1]
+    
     os.rename(dAltree, config["output"])
