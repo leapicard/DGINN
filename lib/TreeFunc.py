@@ -447,9 +447,11 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
 
         # for each of the branches concerned by the duplication
         nGp = 1
-        interok = False
-        
+
+        ###################
+        ### here deactivated
         # do not consider dubious duplications (no intersection between the species on either side of the annotated duplication)
+        interok = False
         lf = [set([leaf.S for leaf in gp]) for gp in node.get_children()]
         interok = (
             len(lf) > 1 and 
@@ -458,9 +460,12 @@ def treeParsing(query, ORF, recTree, nbSp, outdir, logger):
             and len(lf[1]) > int(nbSp) / 2 - 1
         )
 
-        if not interok:
-            dNb2Node.pop(0)
-            
+        #if not interok: 
+        #    dNb2Node.pop(0)
+
+        if False:
+          pass
+        ####################
         # otherwise check it out
         else:
             for gp in node.get_children():
@@ -595,7 +600,7 @@ def runNotung(query, aln, pathGtree, pathSptree, outdir, logger):
 
     ### pruning, reconciliation & rooting of gene tree
 
-    val = "java -jar lib/Notung-2.9.1.5.jar -s {:s} -g {:s} --prune --root --treeoutput nhx --outputdir {:s} --reconcile --nolosses --rearrange --threshold 0.8".format(pathSptree, pathGtree, outdir)
+    val = "java -jar lib/Notung-2.9.1.5.jar -s {:s} -g {:s} --prune --root --treeoutput nhx --outputdir {:s} --reconcile --nolosses".format(pathSptree, pathGtree, outdir) # --rearrange --threshold 0.8
     AnalysisFunc.cmd(val,True)
 
     return os.path.join(outdir,os.path.split(pathGtree)[-1] + ".reconciled")

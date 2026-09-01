@@ -232,10 +232,9 @@ aligner:
 ###### TREE
 ##################################################
 
-# Choice of tree builder: iqtree or phyml (default)
+# Choice of tree builder: iqtree and phyml (default : best between both methods)
 
 builder:
-
 
 # Options for running PhyML
 # Input the command in the same way you would to run PhyML yourself in the following manner phyml -i ALN [the rest of your options]
